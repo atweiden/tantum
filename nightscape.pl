@@ -55,7 +55,7 @@ grammar Nightscape {
     }
 
     my token transaction {
-        [ \N+ ] ** 1
+        \N+
     }
 
     my token posting {
