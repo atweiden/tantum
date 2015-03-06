@@ -73,9 +73,9 @@ grammar Nightscape {
     }
 
     my token transaction {
-        <asset_minus>? <asset_symbol>? \h* <asset_quantity> \h <asset_code>       # -$100.00 USD
-        || <asset_symbol>? \h* <asset_minus>? <asset_quantity> \h <asset_code>    # $-100.00 USD
-        || <asset_code> \h+ <asset_minus>? <asset_quantity>                       # USD -100.00
+        <asset_minus>? <asset_symbol>? \h* <asset_quantity> \h+ <asset_code>       # -$100.00 USD
+        || <asset_symbol>? \h* <asset_minus>? <asset_quantity> \h+ <asset_code>    # $-100.00 USD
+        || <asset_code> \h+ <asset_minus>? <asset_quantity>                        # USD -100.00
     }
 
     my token posting {
