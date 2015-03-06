@@ -119,9 +119,13 @@ Numbers
 -------
 
 - Numbers for CR/DR purposes must provide an asset or currency code.
+- Numbers for CR/DR purposes must not contain commas or underscores.
+- Numbers between 0 and 1 for CR/DR purposes need not contain a leading
+  zero before the decimal place.
+- Fractions aren't allowed.
 - Scientific notation isn’t allowed.
-- Negative numbers should avoid spaces between the negating `-`
-  character and the rest of the number.
+- Negative numbers should avoid spaces between the negating `-` character
+  and one of either the asset symbol or asset quantity.
 
 #### Unacceptable (lack of asset asset or currency code):
 
