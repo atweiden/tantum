@@ -54,8 +54,28 @@ grammar Nightscape {
         [ <account_main> ** 1 [':'+ <account_sub>]* ] ** 1
     }
 
+    my token asset_minus {
+        '-'
+    }
+
+    my token asset_symbol {
+        \D+
+    }
+
+    my token asset_code {
+        <:Letter>+
+    }
+
+    my token asset_quantity {
+        [ \d+ ]?
+        [ '.' ]?
+        \d+
+    }
+
     my token transaction {
-        \N+
+        <asset_minus>? <asset_symbol>? \h* <asset_quantity> \h <asset_code>       # -$100.00 USD
+        || <asset_symbol>? \h* <asset_minus>? <asset_quantity> \h <asset_code>    # $-100.00 USD
+        || <asset_code> \h+ <asset_minus>? <asset_quantity>                       # USD -100.00
     }
 
     my token posting {
