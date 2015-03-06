@@ -9,7 +9,7 @@ grammar Nightscape {
     }
 
     my token year {
-        [ \d ** 4 ]
+        \d ** 4
     }
 
     my token month {
@@ -30,8 +30,10 @@ grammar Nightscape {
 
     my token header {
         <iso_date> ** 1
-        \h+
-        <description> ** 1
+        [
+            \h+
+            <description> ** 1
+        ]?
     }
 
     my token account_main {
@@ -88,6 +90,10 @@ my $content_tx = q:to/EOTX/;
 2014-01-02 I paid Exxon Mobile $10 for gas from Bankwest cheque account
   Expenses:Personal:Fuel             $10.00 USD
   Assets:Personal:Bankwest:Cheque   -$10.00 USD
+
+2014-01-02
+  Expenses:Personal:Fuel             $20.00 USD
+  Assets:Personal:Bankwest:Cheque   -$20.00 USD
 EOTX
 
 class Nightscape::Actions {

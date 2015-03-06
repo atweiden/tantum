@@ -90,7 +90,8 @@ Jan 1st, 2015
 Descriptions
 ------------
 
-- Transaction descriptions must appear all on one line.
+- Transaction descriptions are optional
+- Transaction descriptions, when given, must appear all on one line.
 
 #### Unacceptable (transaction description is not contained on one line)
 
