@@ -120,8 +120,10 @@ Numbers
 
 - Numbers for CR/DR purposes must provide an asset or currency code.
 - Numbers for CR/DR purposes must not contain commas or underscores.
-- Numbers between 0 and 1 for CR/DR purposes need not contain a leading
-  zero before the decimal place.
+- Numbers between -1 and 0, and 0 and 1 for CR/DR purposes need not
+  contain a leading zero before the decimal place.
+- A dot following a number can only be a decimal point if the following
+  character is a digit
 - Fractions aren't allowed.
 - Scientific notation isn’t allowed.
 - Negative numbers should avoid spaces between the negating `-` character
@@ -134,6 +136,14 @@ Numbers
 1000.00
 $1000
 $1000.00
+```
+
+#### Unacceptable (trailing decimal point)
+
+```
+20. USD
+$20. USD
+USD 20.
 ```
 
 #### Unacceptable (unsupported use of scientific notation):

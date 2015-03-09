@@ -67,9 +67,8 @@ grammar Nightscape {
     }
 
     my token commodity_quantity {
-        [ \d+ ]?
-        [ '.' ]?
-        \d+
+        \d+ [ '.' \d+ ]?
+        || '.' \d+
     }
 
     my token transaction {
