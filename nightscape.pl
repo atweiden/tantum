@@ -100,7 +100,7 @@ grammar Nightscape {
     my token journal {
         ^^ \h* $$ \n                   # blank lines
         || [ ^^ \h* <comment> \n ]+    # comment lines
-        || [ <entry> \s* ]+            # journal entries
+        || <entry>+                    # journal entries
     }
 
     token TOP {
