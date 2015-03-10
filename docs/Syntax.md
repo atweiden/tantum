@@ -196,3 +196,4 @@ Comments
 - Comments begin with a `#`
 - Comments can appear anywhere
 - There is no special multiline comment syntax
+- Trailing comments must have leading whitespace

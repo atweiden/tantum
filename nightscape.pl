@@ -44,7 +44,7 @@ grammar Nightscape {
     my token header {
         <iso_date> ** 1
         [ \h+ <description> ** 1 ]?
-        [ \h* <comment> ]?
+        [ \h+ <comment> ]?
     }
 
     my token account_main {
@@ -62,7 +62,7 @@ grammar Nightscape {
     }
 
     my token account {
-        [ <account_main> ** 1 [':'+ <account_sub>]* ] ** 1
+        [ <account_main> ** 1 [':' + <account_sub>]* ] ** 1
     }
 
     my token commodity_minus {
@@ -89,7 +89,7 @@ grammar Nightscape {
     }
 
     my token posting {
-        <comment> || <account> ** 1 \h+ <transaction> ** 1 [ \h* <comment> ]?
+        <comment> || <account> ** 1 \h+ <transaction> ** 1 [ \h+ <comment> ]?
     }
 
     my token entry {
