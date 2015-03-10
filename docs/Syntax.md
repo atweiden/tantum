@@ -60,10 +60,57 @@ Headers
 Postings
 --------
 
-- Postings must be indented with leading whitespace (one or more whitespaces)
+- Postings must be indented with two or more leading whitespaces
 - Other than leading whitespace to denote postings, whitespace is not
   significant. Postings do not have to align by column.
 - Postings must appear one after the other
+
+
+Accounts
+--------
+
+- Accepted main account names
+  - Asset / Assets
+  - Expense / Expenses
+  - Income / Revenue / Revenues
+  - Liability / Liabilities
+  - Equity / Equities
+- Main account names are case-insensitive
+  - asset / assets
+  - expense / expEnSeS
+  - income / revENuE / Revenues
+  - liability / liabilitiEs
+  - Equity / equitieS
+- Subaccount names are case sensitive
+- Subaccounts can contain letters (`A-Za-z`), numbers (`0-9`), periods
+  (`.`), dashes (`-`) and underscores (`_`)
+- Subaccounts cannot contain whitespace or any special characters besides
+  `.`, `-` and `_`
+
+#### Unacceptable (use of unsupported main account name)
+
+```
+MyCustomMainAcct:Subaccount:Subaccount
+```
+
+#### Unacceptable (subaccounts cannot contain whitespace)
+
+```
+Assets:Bank of America:Checking
+```
+
+#### Unacceptable (subaccounts cannot contain special chars besides `.`, `-` and `_`)
+
+```
+Assets:Bank\ of\ America:Checking
+Assets:C4$H
+```
+
+#### Acceptable
+
+```
+Assets:Personal:Bankwest:Cheque
+```
 
 
 Dates

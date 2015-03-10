@@ -58,7 +58,7 @@ grammar Nightscape {
     }
 
     my token account_sub {
-        <[\w\d\.\-,'“”‘’]>+
+        <[\w\d\.\-]>+
     }
 
     my token account {
