@@ -91,7 +91,9 @@ Descriptions
 ------------
 
 - Transaction descriptions are optional
-- Transaction descriptions, when given, must appear all on one line.
+- Transaction descriptions, when given, must appear all on one line,
+  within either a pair of double quotes ("this") or double curly quotes
+  (“that”)
 
 #### Unacceptable (transaction description is not contained on one line)
 
@@ -101,10 +103,17 @@ Descriptions
            cheque account
 ```
 
-#### Acceptable
+#### Unacceptable (transaction description not surrounded in double quotes)
 
 ```
 2014-01-01 I started the year with $1000 in Bankwest cheque account
+```
+
+#### Acceptable
+
+```
+2014-01-01 "I started the year with $1000 in Bankwest cheque account"
+2014-01-01 “I started the year with $1000 in Bankwest cheque account”
 ```
 
 
@@ -184,6 +193,6 @@ $-500 USD
 Comments
 --------
 
-- Comments begin with a `;`
+- Comments begin with a `#`
 - Comments can appear anywhere
 - There is no special multiline comment syntax

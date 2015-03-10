@@ -1,11 +1,16 @@
 use v6;
 
 grammar Nightscape {
-    # When parsing file formats where some whitespace (for example
-    # vertical whitespace) is significant, it is advisable to override ws:
     token ws {
-        <!ww>   # only match when not within a word
-        \h*     # only match horizontal whitespace
+        # When parsing file formats where some whitespace (for example
+        # vertical whitespace) is significant, it is advisable to
+        # override ws:
+        <!ww>    # only match when not within a word
+        \h*      # only match horizontal whitespace
+    }
+
+    my token comment {
+        '#' \N*
     }
 
     my token year {
@@ -24,16 +29,22 @@ grammar Nightscape {
         [ <year> ** 1 '-' <month> ** 1 '-' <day> ** 1 ] ** 1
     }
 
-    my token description {
-        \N*
+    my token open_quote {
+        <["“]>
+    }
+
+    my token close_quote {
+        <["”]>
+    }
+
+    my regex description {
+        [ <open_quote> \N* <close_quote> ]?
     }
 
     my token header {
         <iso_date> ** 1
-        [
-            \h+
-            <description> ** 1
-        ]?
+        [ \h+ <description> ** 1 ]?
+        [ \h* <comment> ]?
     }
 
     my token account_main {
@@ -78,41 +89,54 @@ grammar Nightscape {
     }
 
     my token posting {
-        <account> ** 1
-        \h+
-        <transaction> ** 1
+        <comment> || <account> ** 1 \h+ <transaction> ** 1 [ \h* <comment> ]?
     }
 
     my token entry {
         [ ^^ <header> \n ] ** 1
-        [
-            \h ** 2..*
-            <posting>
-            \n
-        ]+
+        [ \h ** 2..* <posting> \n ]+
+    }
+
+    my token journal {
+        ^^ \h* $$ \n                   # blank lines
+        || [ ^^ \h* <comment> \n ]+    # comment lines
+        || [ <entry> \s* ]+            # journal entries
     }
 
     token TOP {
-        [
-            <entry>
-            \s*
-        ]*
+        <journal>*
     }
 
 }
 
 my $content_tx = q:to/EOTX/;
-2014-01-01 I started the year with $1000 in Bankwest cheque account
+# this is a preceding comment
+# this is a second preceding comment
+2014-01-01 "I started the year with $1000 in Bankwest cheque account #TAG1 #TAG2" # EODESC COMMENT
+  # this is a comment line
   Assets:Personal:Bankwest:Cheque    $1000.00 USD
-  Equity:Personal                    $1000.00 USD
+  # this is a second comment line
+  Equity:Personal                    $1000.00 USD # EOL COMMENT
+  # this is a third comment line
+# this is a stray comment
+# another
 
-2014-01-02 I paid Exxon Mobile $10 for gas from Bankwest cheque account
+
+2014-01-02 "I paid Exxon Mobile $10 for gas from Bankwest cheque account"
   Expenses:Personal:Fuel             $10.00 USD
   Assets:Personal:Bankwest:Cheque   -$10.00 USD
 
 2014-01-02
   Expenses:Personal:Fuel             $20.00 USD
   Assets:Personal:Bankwest:Cheque   -$20.00 USD
+
+
+# ending comment block
+    # ending comment block
+# ending comment block
+    # ending comment block
+# ending comment block
+        #
 EOTX
 
 class Nightscape::Actions {
