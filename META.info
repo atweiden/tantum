@@ -1,0 +1,9 @@
+{
+    "name"        : "Nightscape",
+    "version"     : "*",
+    "author"      : "Andy Weidenbaum",
+    "description" : "Bitcoin double-entry cmdline accounting system",
+    "depends"     : [],
+    "source-type" : "git",
+    "source-url"  : "git://github.com/atweiden/nightscape.git"
+}
