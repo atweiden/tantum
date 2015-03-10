@@ -86,6 +86,7 @@ Accounts
   (`.`), dashes (`-`) and underscores (`_`)
 - Subaccounts cannot contain whitespace or any special characters besides
   `.`, `-` and `_`
+- Subaccounts must be separated by `:`
 
 #### Unacceptable (use of unsupported main account name)
 
@@ -161,14 +162,8 @@ Descriptions
 ```
 2014-01-01 "I started the year with $1000 in Bankwest cheque account"
 2014-01-01 “I started the year with $1000 in Bankwest cheque account”
+2014-01-01 # descriptions are optional
 ```
-
-
-Accounts
---------
-
-- No whitespace is allowed within account names
-- Accounts must be separated by `:`
 
 
 Numbers
