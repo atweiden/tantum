@@ -38,7 +38,7 @@ grammar Nightscape {
     }
 
     my regex description {
-        [ <open_quote> \N* <close_quote> ]?
+        <open_quote> \N* <close_quote>
     }
 
     my token header {
