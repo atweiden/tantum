@@ -57,6 +57,58 @@ Headers
 ```
 
 
+Dates
+-----
+
+- Must be valid ISO 8601 (YYYY-MM-DD)
+
+#### Unacceptable (not ISO 8601)
+
+```
+1-1-2015
+1/1/2015
+2015/01/01
+Jan 1st, 2015
+```
+
+#### Acceptable
+
+```
+2015-01-01
+```
+
+
+Descriptions
+------------
+
+- Transaction descriptions are optional
+- Transaction descriptions, when given, must appear all on one line,
+  within either a pair of double quotes ("this") or double curly quotes
+  (“that”)
+
+#### Unacceptable (transaction description is not contained on one line)
+
+```
+2014-01-01 I started the year \
+           with $1000 in Bankwest \
+           cheque account
+```
+
+#### Unacceptable (transaction description not surrounded in double quotes)
+
+```
+2014-01-01 I started the year with $1000 in Bankwest cheque account
+```
+
+#### Acceptable
+
+```
+2014-01-01 "I started the year with $1000 in Bankwest cheque account"
+2014-01-01 “I started the year with $1000 in Bankwest cheque account”
+2014-01-01 # descriptions are optional
+```
+
+
 Postings
 --------
 
@@ -111,58 +163,6 @@ Assets:C4$H
 
 ```
 Assets:Personal:Bankwest:Cheque
-```
-
-
-Dates
------
-
-- Must be valid ISO 8601 (YYYY-MM-DD)
-
-#### Unacceptable (not ISO 8601)
-
-```
-1-1-2015
-1/1/2015
-2015/01/01
-Jan 1st, 2015
-```
-
-#### Acceptable
-
-```
-2015-01-01
-```
-
-
-Descriptions
-------------
-
-- Transaction descriptions are optional
-- Transaction descriptions, when given, must appear all on one line,
-  within either a pair of double quotes ("this") or double curly quotes
-  (“that”)
-
-#### Unacceptable (transaction description is not contained on one line)
-
-```
-2014-01-01 I started the year \
-           with $1000 in Bankwest \
-           cheque account
-```
-
-#### Unacceptable (transaction description not surrounded in double quotes)
-
-```
-2014-01-01 I started the year with $1000 in Bankwest cheque account
-```
-
-#### Acceptable
-
-```
-2014-01-01 "I started the year with $1000 in Bankwest cheque account"
-2014-01-01 “I started the year with $1000 in Bankwest cheque account”
-2014-01-01 # descriptions are optional
 ```
 
 
@@ -236,6 +236,6 @@ Comments
 --------
 
 - Comments begin with a `#`
-- Comments can appear anywhere
+- Comments can appear anywhere, but trailing comments must have at least
+  one leading whitespace
 - There is no special multiline comment syntax
-- Trailing comments must have leading whitespace
