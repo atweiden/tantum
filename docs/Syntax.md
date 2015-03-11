@@ -83,8 +83,7 @@ Descriptions
 
 - Transaction descriptions are optional
 - Transaction descriptions, when given, must appear all on one line,
-  within either a pair of double quotes ("this") or double curly quotes
-  (“that”)
+  within a pair of double quotes ("this")
 
 #### Unacceptable (transaction description is not contained on one line)
 
