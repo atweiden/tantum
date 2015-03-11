@@ -29,16 +29,11 @@ grammar Nightscape {
         [ <year> ** 1 '-' <month> ** 1 '-' <day> ** 1 ] ** 1
     }
 
-    my token open_quote {
-        <["“]>
-    }
-
-    my token close_quote {
-        <["”]>
-    }
-
-    my regex description {
-        <open_quote> \N* <close_quote>
+    my token description {
+        '"'
+        <-["\\]>*
+        [ \\ . <-["\\]>* ]*
+        '"'
     }
 
     my token header {
