@@ -4,8 +4,7 @@ class Nightscape;
 
 method it (Str $file) {
     my $content = slurp $file;
-    if Nightscape::Parser.parse($content) {
-        my $parsed = Nightscape::Parser.parse($content);
+    if my $parsed = Nightscape::Parser.parse($content) {
         for $parsed<journal>.list -> $journal {
             for $journal<entry>.list -> $entry {
                 say "------------------------------------------------------";
