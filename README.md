@@ -32,7 +32,7 @@ Usage
 -----
 
 ```bash
-$ perl6 nightscape.pl
+$ PERL6LIB=lib ./bin/nightscape.pl examples/sample.transactions
 ```
 
 
