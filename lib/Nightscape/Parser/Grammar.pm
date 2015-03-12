@@ -26,7 +26,11 @@ token day {
 }
 
 token iso_date {
-    [ <year> ** 1 '-' <month> ** 1 '-' <day> ** 1 ] ** 1
+    <year> ** 1
+    '-'
+    <month> ** 1
+    '-'
+    <day> ** 1
 }
 
 token description {
@@ -44,11 +48,11 @@ token header {
 
 token account_main {
     [ :i
-        Asset[s]?
-    | Expense[s]?
-    | Income | Revenue[s]?
-    | Liabilit[y|ies]
-    | Equit[y|ies]
+       Asset[s]?
+    || Expense[s]?
+    || Income || Revenue[s]?
+    || Liabilit[y|ies]
+    || Equit[y|ies]
     ] ** 1
 }
 
@@ -57,7 +61,8 @@ token account_sub {
 }
 
 token account {
-    [ <account_main> ** 1 [':' + <account_sub>]* ] ** 1
+    <account_main> ** 1
+    [ ':' + <account_sub> ]*
 }
 
 token commodity_minus {
