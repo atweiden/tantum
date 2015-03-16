@@ -11,4 +11,10 @@ method iso_date($/) {
     }
 }
 
+method transaction($/) {
+    #if $<commodity_code> !eq $BASE_COMMODITY_CODE {
+        # check for valid @ syntax || config option linked to valid price data for iso_date
+    #}
+}
+
 # vim: ft=perl6
