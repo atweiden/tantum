@@ -26,6 +26,7 @@ Installation
 #### Dependencies
 
 - Rakudo Perl 6
+- [TOML](https://github.com/Mouq/toml-pm6)
 
 
 Usage
