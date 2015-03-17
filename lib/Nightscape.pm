@@ -2,7 +2,8 @@ use v6;
 use Nightscape::Parser;
 class Nightscape;
 
-method it(Str $file) {
+method it($file, %config) {
+    say %config.perl;
     my $content = slurp $file;
     if my $parsed = Nightscape::Parser.parse($content) {
         for $parsed<journal>.list -> $journal {

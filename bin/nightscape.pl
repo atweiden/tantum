@@ -66,13 +66,17 @@ sub MAIN($file) {
     # write default config file if it doesn't exist
     if !$config_file.IO.e {
         print "Placing default config file at $config_file… ";
+        spurt $config_file, $config_text.trim-trailing, :createonly;
         say "done.";
     }
 
     # read config options
+    use TOML;
+    my $config_toml = slurp $config_file or die "Sorry, could not read config file at $config_file";
+    my %config = %(from-toml $config_toml);
 
     if $file.IO.e {
-        Nightscape.it($file);
+        Nightscape.it($file, %config);
     } else {
         die "Sorry, could not locate file: $file";
     }
