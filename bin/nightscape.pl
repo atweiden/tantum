@@ -1,10 +1,47 @@
 #!/usr/bin/perl6
 
+
+
+
 use v6;
 use Nightscape;
 
+
+
+
+# -----------------------------------------------------------------------------
+# config
+# -----------------------------------------------------------------------------
+
+# constants
+my $data_dir = "%*ENV<HOME>/.nightscape";
+my $log_dir = "$data_dir/logs"
+my $price_dir = "$data_dir/prices"
 my $config_dir = "%*ENV<HOME>/.config/nightscape";
-my $config_file = "$config_dir/config.pl";
+my $config_file = "$config_dir/config.toml";
+my $config_text = qq:to/EOCONF/;
+log-dir = "$log_dir"
+
+[Currencies]
+base-currency = "USD"
+
+[Currencies.BTC.Prices.USD]
+price-file = "$price_dir/coindesk-bpi-USD-close.csv"
+"2014-01-01" = 770.4357
+"2014-01-02" = 808.0485
+"2014-01-03" = 830.024
+"2014-01-04" = 858.9833
+"2014-01-05" = 940.0972
+"2014-01-06" = 951.3865
+"2014-01-07" = 810.5833
+EOCONF
+
+
+
+
+# -----------------------------------------------------------------------------
+# main
+# -----------------------------------------------------------------------------
 
 sub MAIN($file) {
     # make config directory if it doesn't exist
@@ -29,6 +66,13 @@ sub MAIN($file) {
         die "Sorry, could not locate file: $file";
     }
 }
+
+
+
+
+# -----------------------------------------------------------------------------
+# usage
+# -----------------------------------------------------------------------------
 
 sub USAGE() {
     say "Usage: nightscape.pl <File>";
