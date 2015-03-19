@@ -231,6 +231,33 @@ $-500 USD
 ```
 
 
+Exchange Rates
+--------------
+
+- Exchange rates are optional
+- Exchange rates must be preceded by an `@` symbol and at least one
+  whitespace
+- Number syntax conventions apply to the given numeric rate
+
+
+#### Acceptable:
+
+```
+@ $830.024 USD
+@    $830.024 USD
+@ 830.024 USD
+@ USD 830.024
+```
+
+#### Unacceptable (missing leading `@` symbol and at least one whitespace)
+
+```
+$830.024 USD
+USD 830.024
+@USD 830.024
+```
+
+
 Comments
 --------
 
