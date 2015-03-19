@@ -37,7 +37,7 @@ EOTX
 
 {
     my $match = Nightscape::Parser.parse($content);
-    is($match.WHAT.perl, 'Match', 'Parses successfully');
+    is($match.WHAT.perl, 'Match', 'Parses simple journal successfully');
 }
 
 # vim: ft=perl6
