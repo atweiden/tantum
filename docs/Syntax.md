@@ -132,10 +132,10 @@ Accounts
   - liability / liabilitiEs
   - Equity / equitieS
 - Subaccount names are case sensitive
-- Subaccounts can contain letters (`A-Za-z`), numbers (`0-9`), periods
-  (`.`), dashes (`-`) and underscores (`_`)
+- Subaccounts can contain letters (`A-Za-z`), numbers (`0-9`), dashes
+  (`-`) and underscores (`_`)
 - Subaccounts cannot contain whitespace or any special characters besides
-  `.`, `-` and `_`
+  `-` and `_`
 - Subaccounts must be separated by `:`
 
 #### Unacceptable (use of unsupported main account name)
@@ -150,9 +150,10 @@ MyCustomMainAcct:Subaccount:Subaccount
 Assets:Bank of America:Checking
 ```
 
-#### Unacceptable (subaccounts cannot contain special chars besides `.`, `-` and `_`)
+#### Unacceptable (subaccounts cannot contain special chars besides `-` and `_`)
 
 ```
+Assets:Bank.of.America:Checking
 Assets:Bank\ of\ America:Checking
 Assets:C4$H
 ```

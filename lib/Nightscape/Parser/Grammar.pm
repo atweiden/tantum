@@ -57,7 +57,7 @@ token account_main {
 }
 
 token account_sub {
-    <[\w\d\.\-]>+
+    <[\w\d\-]>+
 }
 
 token account {
