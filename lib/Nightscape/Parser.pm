@@ -5,8 +5,7 @@ class Nightscape::Parser;
 
 method parse($content) {
     my $actions = Nightscape::Parser::Actions.new();
-    my $match = Nightscape::Parser::Grammar.parse($content, :$actions);
-    return $match;
+    Nightscape::Parser::Grammar.parse($content, :$actions);
 }
 
 # vim: ft=perl6
