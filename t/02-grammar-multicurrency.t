@@ -26,6 +26,11 @@ my $content = q:to/EOTX/;
   Expenses:Personal:Fuel             $20.00 USD
   Assets:Personal:Bankwest:Cheque   -$20.00 USD
 
+2014-01-03 "I bought ฿0.80000000 BTC on Coinbase.com for $670.66 USD at a price of $830.024 USD/BTC with a fee of $6.64 USD"
+  Assets:Personal:Coinbase:BTC           ฿0.80000000 BTC @ $830.024 USD
+  Expenses:Personal:CoinbaseFee          $6.64 USD
+  Assets:Personal:Bankwest:Cheque       -$670.66 USD
+
 
 # ending comment block
     # ending comment block
@@ -37,7 +42,7 @@ EOTX
 
 {
     my $match = Nightscape::Parser.parse($content);
-    is($match.WHAT.perl, 'Match', 'Parses simple journal successfully');
+    is($match.WHAT.perl, 'Match', 'Parses multicurrency journal successfully');
 }
 
 # vim: ft=perl6

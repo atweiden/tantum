@@ -57,7 +57,7 @@ token account_main {
 }
 
 token account_sub {
-    <[\w\d\.\-]>+
+    <[\w\d\-]>+
 }
 
 token account {
@@ -82,10 +82,18 @@ token commodity_quantity {
     || '.' \d+
 }
 
+token exchange_rate {
+    '@' \h+
+    [
+        <commodity_symbol>? \h* <commodity_quantity> \h+ <commodity_code>    # @ $830.024 USD
+        || <commodity_code> \h+ <commodity_quantity>                         # @ USD 830.024
+    ]
+}
+
 token transaction {
-    <commodity_minus>? <commodity_symbol>? \h* <commodity_quantity> \h+ <commodity_code>       # -$100.00 USD
-    || <commodity_symbol>? \h* <commodity_minus>? <commodity_quantity> \h+ <commodity_code>    # $-100.00 USD
-    || <commodity_code> \h+ <commodity_minus>? <commodity_quantity>                            # USD -100.00
+    <commodity_minus>? <commodity_symbol>? \h* <commodity_quantity> \h+ <commodity_code> [\h+ <exchange_rate>]?       # -$100.00 USD
+    || <commodity_symbol>? \h* <commodity_minus>? <commodity_quantity> \h+ <commodity_code> [\h+ <exchange_rate>]?    # $-100.00 USD
+    || <commodity_code> \h+ <commodity_minus>? <commodity_quantity> [\h+ <exchange_rate>]?                            # USD -100.00
 }
 
 token posting {

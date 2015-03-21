@@ -103,7 +103,6 @@ Descriptions
 
 ```
 2014-01-01 "I started the year with $1000 in Bankwest cheque account"
-2014-01-01 “I started the year with $1000 in Bankwest cheque account”
 2014-01-01 # descriptions are optional
 ```
 
@@ -133,10 +132,10 @@ Accounts
   - liability / liabilitiEs
   - Equity / equitieS
 - Subaccount names are case sensitive
-- Subaccounts can contain letters (`A-Za-z`), numbers (`0-9`), periods
-  (`.`), dashes (`-`) and underscores (`_`)
+- Subaccounts can contain letters (`A-Za-z`), numbers (`0-9`), dashes
+  (`-`) and underscores (`_`)
 - Subaccounts cannot contain whitespace or any special characters besides
-  `.`, `-` and `_`
+  `-` and `_`
 - Subaccounts must be separated by `:`
 
 #### Unacceptable (use of unsupported main account name)
@@ -151,9 +150,10 @@ MyCustomMainAcct:Subaccount:Subaccount
 Assets:Bank of America:Checking
 ```
 
-#### Unacceptable (subaccounts cannot contain special chars besides `.`, `-` and `_`)
+#### Unacceptable (subaccounts cannot contain special chars besides `-` and `_`)
 
 ```
+Assets:Bank.of.America:Checking
 Assets:Bank\ of\ America:Checking
 Assets:C4$H
 ```
@@ -179,7 +179,7 @@ Numbers
 - Negative numbers should avoid spaces between the negating `-` character
   and one of either the asset symbol or asset quantity.
 
-#### Unacceptable (lack of asset asset or currency code):
+#### Unacceptable (lack of asset asset or currency code)
 
 ```
 1000
@@ -196,13 +196,13 @@ $20. USD
 USD 20.
 ```
 
-#### Unacceptable (unsupported use of scientific notation):
+#### Unacceptable (unsupported use of scientific notation)
 
 ```
-1e2.45
+2.345e3
 ```
 
-#### Acceptable:
+#### Acceptable
 
 ```
 1000 USD
@@ -215,7 +215,7 @@ USD $1000
 USD $1000.00
 ```
 
-#### Acceptable:
+#### Acceptable
 
 ```
 -500 USD
@@ -223,11 +223,38 @@ USD $1000.00
 $-500 USD
 ```
 
-#### Unacceptable (whitespace appears after negative sign):
+#### Unacceptable (whitespace appears after negative sign)
 
 ```
 - 500 USD
 - $500 USD
+```
+
+
+Exchange Rates
+--------------
+
+- Exchange rates are optional
+- Exchange rates must be preceded by an `@` symbol and at least one
+  whitespace
+- Number syntax conventions apply to the given numeric rate
+
+
+#### Acceptable
+
+```
+@ $830.024 USD
+@    $830.024 USD
+@ 830.024 USD
+@ USD 830.024
+```
+
+#### Unacceptable (missing leading `@` symbol and at least one whitespace)
+
+```
+$830.024 USD
+USD 830.024
+@USD 830.024
 ```
 
 
