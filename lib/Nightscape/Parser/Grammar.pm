@@ -53,11 +53,11 @@ token account_main {
     || Income || Revenue[s]?
     || Liabilit[y|ies]
     || Equit[y|ies]
-    ] ** 1
+    ]
 }
 
 token account_sub {
-    <[\w\d\-]>+
+    <[\w\-]>+
 }
 
 token account {
