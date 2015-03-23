@@ -101,14 +101,14 @@ token posting {
 }
 
 token entry {
-    [ ^^ <header> \n ] ** 1
+    [ ^^ <header> $$ \n ] ** 1
     [ \h ** 2..* <posting> \n ]+
 }
 
 token journal {
-    ^^ \h* $$ \n                   # blank lines
-    || [ ^^ \h* <comment> \n ]+    # comment lines
-    || <entry>+                    # journal entries
+    ^^ \h* $$ \n                 # blank lines
+    || ^^ \h* <comment> $$ \n    # comment lines
+    || <entry>                   # journal entries
 }
 
 token TOP {
