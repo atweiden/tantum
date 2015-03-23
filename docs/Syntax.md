@@ -1,12 +1,6 @@
 Nightscape Syntax
 =================
 
-General
--------
-
-- Whitespace only. No tabs.
-
-
 Entries
 -------
 
@@ -116,8 +110,8 @@ Postings
 - Postings must appear one after the other
 
 
-Accounts
---------
+Main Accounts
+-------------
 
 - Accepted main account names
   - Asset / Assets
@@ -131,31 +125,69 @@ Accounts
   - income / revENuE / Revenues
   - liability / liabilitiEs
   - Equity / equitieS
-- Subaccount names are case sensitive
-- Subaccounts can contain letters (`A-Za-z`), numbers (`0-9`), dashes
-  (`-`) and underscores (`_`)
-- Subaccounts cannot contain whitespace or any special characters besides
-  `-` and `_`
-- Subaccounts must be separated by `:`
 
 #### Unacceptable (use of unsupported main account name)
 
 ```
-MyCustomMainAcct:Subaccount:Subaccount
+MyCustomMainAcct:FooEntity:BarSubaccount
 ```
 
-#### Unacceptable (subaccounts cannot contain whitespace)
+#### Acceptable
 
 ```
-Assets:Bank of America:Checking
+Assets:FooEntity:BarSubaccount
+```
+
+
+Entities
+--------
+
+- At least one entity must be listed, and must appear directly after
+  main account (`Assets`, `Expenses`, `Income`, `Liabilities`, or
+  `Equity`)
+- Entity names are case-insensitive
+- Entities can contain letters (`A-Za-z`), numbers (`0-9`), dashes (`-`)
+  and underscores (`_`)
+- Entities cannot contain whitespace or any special characters besides
+  `-` and `_`
+
+#### Unacceptable (no entity given)
+
+```transactions
+Assets
+```
+
+#### Unacceptable (entities cannot contain whitespace)
+
+```
+Assets:Chase Investment Bank
+```
+
+#### Acceptable
+
+```transactions
+Assets:ChaseInvestmentBank
+```
+
+
+Subaccounts
+-----------
+
+- Subaccounts are optional
+- Subaccount names are case-insensitive
+- Subaccounts must be separated by `:`
+
+```
+Assets:Bankwest # Bankwest is interpreted as an entity you own
+Assets:Personal:Bankwest # Bankwest is interpreted as a subaccount owned by you personally
 ```
 
 #### Unacceptable (subaccounts cannot contain special chars besides `-` and `_`)
 
 ```
-Assets:Bank.of.America:Checking
-Assets:Bank\ of\ America:Checking
-Assets:C4$H
+Assets:MyEntity:Bank.of.America:Checking
+Assets:MyEntity:Bank\ of\ America:Checking
+Assets:MyEntity:C4$H
 ```
 
 #### Acceptable
@@ -174,12 +206,12 @@ Numbers
   contain a leading zero before the decimal place.
 - A dot following a number can only be a decimal point if the following
   character is a digit
-- Fractions aren't allowed.
-- Scientific notation isn’t allowed.
-- Negative numbers should avoid spaces between the negating `-` character
-  and one of either the asset symbol or asset quantity.
+- Fractions (`½`) aren’t allowed.
+- Scientific notation (`1.23e3`) isn’t allowed.
+- Negative numbers must avoid giving whitespace between the negating
+  `-` character and one of either the asset symbol or asset quantity.
 
-#### Unacceptable (lack of asset asset or currency code)
+#### Unacceptable (lack of currency code / commodity code)
 
 ```
 1000
