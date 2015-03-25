@@ -102,7 +102,7 @@ token posting {
 
 token entry {
     [ ^^ <header> $$ \n ] ** 1
-    [ \h ** 2..* <posting> \n ]+
+    [ ^^ \h ** 2..* <posting> $$ \n ]+
 }
 
 token journal {
