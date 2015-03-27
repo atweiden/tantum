@@ -29,8 +29,7 @@ method transaction($/) {
             commodity_symbol => $<commodity_symbol>,
             commodity_quantity => $<commodity_quantity>,
             commodity_code => $<commodity_code>,
-            $<exchange_rate> ?? exchange_rate => $<exchange_rate>
-                             !! exchange_rate => Nil
+            exchange_rate => $<exchange_rate>
           );
 }
 
