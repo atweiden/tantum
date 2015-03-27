@@ -11,7 +11,8 @@ method iso_date($/) {
 method header($/) {
     make %( iso_date => $<iso_date>».made,
             $<description> ?? description => substr($<description>, 1, *-1)    # description with surrounding double quotes removed
-                           !! description => Nil                               # descriptions are optional
+                           !! description => Nil,                              # descriptions are optional
+            eol_comment => $<comment>
           );
 }
 
