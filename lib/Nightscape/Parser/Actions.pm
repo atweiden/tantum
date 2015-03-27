@@ -11,7 +11,7 @@ method iso_date($/) {
 method header($/) {
     make [ %( header =>
                 %( $<iso_date>».made,
-                    description => substr($<description>, 1, *-1) # description with surrounding double quotes removed
+                   description => substr($<description>, 1, *-1) # description with surrounding double quotes removed
                  )
             )
          ];
