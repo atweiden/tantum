@@ -97,7 +97,7 @@ token transaction {
 }
 
 token posting {
-    <comment> || <account> ** 1 \h+ <transaction> ** 1 [ \h+ <comment> ]?
+    <comment> || <account> ** 1 \h+ <transaction> ** 1 [\h+ <comment>]?
 }
 
 token entry {
