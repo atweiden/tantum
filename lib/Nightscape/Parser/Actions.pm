@@ -3,57 +3,63 @@ class Nightscape::Parser::Actions;
 
 method iso_date($/) {
     try {
-        make %( iso_date => Date.new("$/") );
+        make Date.new("$/");
         CATCH { say "Sorry, invalid date"; }
     }
 }
 
 method header($/) {
-    make [ %( header =>
-                %( $<iso_date>».made,
-                   description => substr($<description>, 1, *-1) # description with surrounding double quotes removed
-                 )
-            )
-         ];
+    make %( iso_date => $<iso_date>».made,
+            $<description> ?? description => substr($<description>, 1, *-1)    # description with surrounding double quotes removed
+                           !! description => Nil                               # descriptions are optional
+          );
 }
 
 method account($/) {
-    make [ %( account =>
-                %( account_full => join(':', $<account_main>, $<account_sub>».join(':')),
-                   account_main => $<account_main>,
-                   account_sub => $<account_sub>,
-                   entity => $<account_sub>.list[0]
-                 )
-            )
-         ];
+    make %( account_full => join(':', $<account_main>, $<account_sub>».join(':')),
+            account_main => $<account_main>,
+            account_sub => $<account_sub>,
+            entity => $<account_sub>.list[0]
+          );
 }
 
 method transaction($/) {
-    make [ %( transaction =>
-                %( commodity_minus => $<commodity_minus>,
-                   commodity_symbol => $<commodity_symbol>,
-                   commodity_quantity => $<commodity_quantity>,
-                   commodity_code => $<commodity_code>,
-                   exchange_rate => $<exchange_rate>
-                 )
-            )
-         ];
+    make %( commodity_minus => $<commodity_minus>,
+            commodity_symbol => $<commodity_symbol>,
+            commodity_quantity => $<commodity_quantity>,
+            commodity_code => $<commodity_code>,
+            $<exchange_rate> ?? exchange_rate => $<exchange_rate>
+                             !! exchange_rate => Nil
+          );
 }
 
 method posting($/) {
-    make %( $<account>».made,
-            $<transaction>».made
-          );
+    if $<account> && $<transaction> {
+        make %( account => $<account>».made,
+                transaction => $<transaction>».made,
+                eol_comment => $<comment>
+              );
+    } else {
+        make %( posting_comment => $<comment> );
+    }
 }
 
 method entry($/) {
-    make %( $<header>».made,
-            [ $<posting>».made ]
-          );
+    make [
+            %( header => $<header>».made,
+               posting => [ $<posting>».made ]
+             )
+         ];
 }
 
 method journal($/) {
-    make $<entry>».made;
+    if $<entry> {
+        make [ %( entry => $<entry>».made ) ];
+    } elsif $<comment> {
+        make [ %( comment_line => $<comment> ) ];
+    } else {
+        make [ %( blank_line => True ) ];
+    }
 }
 
 method TOP($/) {
