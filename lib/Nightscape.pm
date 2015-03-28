@@ -7,16 +7,10 @@ method it($file) {
     my $content = slurp $file;
     if my $parsed = Nightscape::Parser.parse($content) {
         for $parsed.made.list -> $m {
-            say ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;";
+            say "______________________________________________________";
             say $m;
-            say ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;";
         }
-        for $parsed<journal>.list -> $journal {
-            say "______________________________________________________\n",
-            $journal<entry>.made,
-            "\n______________________________________________________"
-            unless $journal<entry>.made ~~ Nil;
-        }
+        say "______________________________________________________";
         for $parsed<journal>.list -> $journal {
             for $journal<entry>.kv -> $key, $value {
                 given $key {
