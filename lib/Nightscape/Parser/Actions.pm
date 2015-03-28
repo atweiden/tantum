@@ -18,19 +18,20 @@ method header($/) {
 }
 
 method account($/) {
-    make %( account_full => join(':', $<account_main>, $<entity>, $<account_sub>».join(':')),
-            account_main => $<account_main>,
-            entity => $<entity>,
-            $<account_sub> ?? account_sub => $<account_sub>
+    make %( account_full => join(':', $<account_main>, $<entity>, $<account_sub>».join(':')).uc,
+            account_main => $<account_main>.uc,
+            entity => $<entity>.uc,
+            $<account_sub> ?? account_sub => $<account_sub>.uc
                            !! account_sub => Nil
           );
 }
 
 method transaction($/) {
-    make %( commodity_minus => $<commodity_minus>,
-            commodity_symbol => $<commodity_symbol>,
-            commodity_quantity => $<commodity_quantity>,
-            commodity_code => $<commodity_code>,
+    make %( $<commodity_minus> ?? commodity_minus => True
+                               !! commodity_minus => False,
+            commodity_symbol => $<commodity_symbol>.uc,
+            commodity_quantity => $<commodity_quantity>.abs,
+            commodity_code => $<commodity_code>.uc,
             exchange_rate => $<exchange_rate>
           );
 }
