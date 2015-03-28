@@ -10,9 +10,10 @@ method iso_date($/) {
 
 method header($/) {
     make %( iso_date => $<iso_date>».made,
-            $<description> ?? description => substr($<description>, 1, *-1)    # description with surrounding double quotes removed
-                           !! description => Nil,                              # descriptions are optional
-            eol_comment => $<comment>
+            $<description> ?? description => substr($<description>, 1, *-1).trim    # description less surrounding double quotes and whitespace
+                           !! description => Nil,                                   # descriptions are optional
+            $<comment> ?? eol_comment => substr($<comment>, 1, *-0).trim            # comment less leading pound symbol and surrounding whitespace
+                       !! eol_comment => Nil                                        # comments are optional
           );
 }
 
@@ -38,10 +39,13 @@ method posting($/) {
     if $<account> && $<transaction> {
         make %( account => $<account>».made,
                 transaction => $<transaction>».made,
-                eol_comment => $<comment>
+                $<comment> ?? eol_comment => substr($<comment>, 1, *-0).trim
+                           !! eol_comment => Nil
               );
     } else {
-        make %( posting_comment => $<comment> );
+        make %( $<comment> ?? posting_comment => substr($<comment>, 1, *-0).trim
+                           !! posting_comment => Nil
+              );
     }
 }
 
@@ -57,7 +61,8 @@ method journal($/) {
     if $<entry> {
         make [ %( entry => $<entry>».made ) ];
     } elsif $<comment> {
-        make [ %( comment_line => $<comment> ) ];
+        make [ %( $<comment> ?? comment_line => substr($<comment>, 1, *-0).trim
+                             !! comment_line => Nil ) ];
     } else {
         make [ %( blank_line => True ) ];
     }
