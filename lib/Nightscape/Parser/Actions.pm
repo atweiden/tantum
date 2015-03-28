@@ -21,7 +21,7 @@ method account($/) {
     make %( account_full => join(':', $<account_main>, $<entity>, $<account_sub>».join(':')).uc,
             account_main => $<account_main>.uc,
             entity => $<entity>.uc,
-            $<account_sub> ?? account_sub => $<account_sub>.uc
+            $<account_sub> ?? account_sub => $<account_sub>.list».uc
                            !! account_sub => Nil
           );
 }
