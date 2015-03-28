@@ -26,13 +26,21 @@ method account($/) {
           );
 }
 
+method exchange_rate($/) {
+    make %( commodity_symbol => $<commodity_symbol>.uc,
+            commodity_quantity => $<commodity_quantity>.abs,
+            commodity_code => $<commodity_code>.uc
+          );
+}
+
 method transaction($/) {
     make %( $<commodity_minus> ?? commodity_minus => True
                                !! commodity_minus => False,
             commodity_symbol => $<commodity_symbol>.uc,
             commodity_quantity => $<commodity_quantity>.abs,
             commodity_code => $<commodity_code>.uc,
-            exchange_rate => $<exchange_rate>
+            $<exchange_rate> ?? exchange_rate => $<exchange_rate>».made
+                             !! exchange_rate => Nil
           );
 }
 
