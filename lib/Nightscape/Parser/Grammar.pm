@@ -61,8 +61,9 @@ token account_sub {
 }
 
 token account {
-    <account_main> ** 1
-    [ ':' + <account_sub> ]*
+    <account_main>
+    ':' <entity=.account_sub>
+    [ ':' <account_sub> ]*
 }
 
 token commodity_minus {
