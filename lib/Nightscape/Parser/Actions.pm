@@ -17,10 +17,11 @@ method header($/) {
 }
 
 method account($/) {
-    make %( account_full => join(':', $<account_main>, $<account_sub>».join(':')),
+    make %( account_full => join(':', $<account_main>, $<entity>, $<account_sub>».join(':')),
             account_main => $<account_main>,
-            account_sub => $<account_sub>,
-            entity => $<account_sub>.list[0]
+            entity => $<entity>,
+            $<account_sub> ?? account_sub => $<account_sub>
+                           !! account_sub => Nil
           );
 }
 
