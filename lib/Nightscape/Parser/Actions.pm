@@ -8,10 +8,16 @@ method iso_date($/) {
     }
 }
 
+method hashtag($/) {
+    make substr($/, 1, *-0);
+}
+
 method header($/) {
-    make %( header => %( iso_date => $<iso_date>».made,
+    make %( header => %( iso_date => $<iso_date>».made.pairs[0].value,
                          $<description> ?? description => substr($<description>, 1, *-1).trim
                                         !! description => Nil,
+                         $<hashtag> ?? hashtags => [ $<hashtag>».made ]
+                                    !! hashtags => Nil,
                          $<comment> ?? eol_comment => substr($<comment>, 1, *-0).trim
                                     !! eol_comment => Nil
                        )
@@ -65,31 +71,25 @@ method posting($/) {
 }
 
 method entry($/) {
-    make %( entry => %( $<header>».made,
-                        postings => [ $<posting>».made ]
-                      )
+    make %( $<header>».made,
+            postings => [ $<posting>».made».value ]
           );
 }
 
 method journal($/) {
     if $<entry> {
-        make %( journal => %( entries => [ $<entry>».made ]
-                            )
-              );
+        make [ $<entry>».made ];
     } elsif $<comment> {
-        make %( journal => %( comment_line => substr($<comment>, 1, *-0).trim
-                            )
+        make %( comment_line => substr($<comment>, 1, *-0).trim
               );
     } else {
-        make %( journal => %( blank_line => True
-                            )
+        make %( blank_line => True
               );
     }
 }
 
 method TOP($/) {
-    make %( journals => $<journal>».made
-          );
+    make [ $<journal>».made ];
 }
 
 # vim: ft=perl6
