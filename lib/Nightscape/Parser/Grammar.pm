@@ -10,7 +10,7 @@ token ws {
 }
 
 token comment {
-    '#' \N*
+    ';' \N*
 }
 
 token year {
@@ -26,11 +26,11 @@ token day {
 }
 
 token iso_date {
-    <year> ** 1
-    '-'
-    <month> ** 1
-    '-'
-    <day> ** 1
+    <year> '-' <month> '-' <day>
+}
+
+token hashtag {
+    '#' \w+
 }
 
 token description {
@@ -41,8 +41,9 @@ token description {
 }
 
 token header {
-    <iso_date> ** 1
-    [ \h+ <description> ** 1 ]?
+    <iso_date>
+    [ \h+ <description> ]?
+    [ \h+ <hashtag> ]*
     [ \h+ <comment> ]?
 }
 
@@ -57,7 +58,11 @@ token account_main {
 }
 
 token account_sub {
-    <[\w\-]>+
+    [
+        <:Letter>
+        || <:Number>
+        || <[_-]>
+    ]+
 }
 
 token account {
