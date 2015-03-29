@@ -97,7 +97,7 @@ Descriptions
 
 ```
 2014-01-01 "I started the year with $1000 in Bankwest cheque account"
-2014-01-01 # descriptions are optional
+2014-01-01 ; descriptions are optional
 ```
 
 
@@ -178,8 +178,8 @@ Subaccounts
 - Subaccounts must be separated by `:`
 
 ```
-Assets:Bankwest # Bankwest is interpreted as an entity you own
-Assets:Personal:Bankwest # Bankwest is interpreted as a subaccount owned by you personally
+Assets:Bankwest             ; Bankwest is interpreted as an entity you own
+Assets:Personal:Bankwest    ; Bankwest is interpreted as a subaccount owned by you personally
 ```
 
 #### Unacceptable (subaccounts cannot contain special chars besides `-` and `_`)
@@ -293,7 +293,7 @@ USD 830.024
 Comments
 --------
 
-- Comments begin with a `#`
+- Comments begin with a `;`
 - Comments can appear anywhere, but trailing comments must have at least
   one leading whitespace
 - There is no special multiline comment syntax
