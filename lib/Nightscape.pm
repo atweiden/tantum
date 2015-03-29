@@ -9,37 +9,15 @@ method it($file) {
     say "________________________________________________________________________________";
     my $content = slurp $file;
     if my $parsed = Nightscape::Parser.parse($content) {
-        say "________________________________________________________________________________";
-        say "[HEADER]";
-        say $parsed.made.list[0]<journals>.pairs[2].value<journal><entries>.values[0]<entry><header>.perl;
-        say "";
-        say "[POSTINGS]";
-        say $parsed.made.list[0]<journals>.pairs[2].value<journal><entries>.values[0]<entry><postings>.perl;
-        say "________________________________________________________________________________";
-        say "";
-        say "________________________________________________________________________________";
-        say "[HEADER]";
-        say $parsed.made.list[0]<journals>.pairs[7].value<journal><entries>.values[0]<entry><header>.perl;
-        say "";
-        say "[POSTINGS]";
-        say $parsed.made.list[0]<journals>.pairs[7].value<journal><entries>.values[0]<entry><postings>.perl;
-        say "________________________________________________________________________________";
-        say "";
-        say "________________________________________________________________________________";
-        say "[HEADER]";
-        say $parsed.made.list[0]<journals>.pairs[9].value<journal><entries>.values[0]<entry><header>.perl;
-        say "";
-        say "[POSTINGS]";
-        say $parsed.made.list[0]<journals>.pairs[9].value<journal><entries>.values[0]<entry><postings>.perl;
-        say "________________________________________________________________________________";
-        say "";
-        say "________________________________________________________________________________";
-        say "[HEADER]";
-        say $parsed.made.list[0]<journals>.pairs[11].value<journal><entries>.values[0]<entry><header>.perl;
-        say "";
-        say "[POSTINGS]";
-        say $parsed.made.list[0]<journals>.pairs[11].value<journal><entries>.values[0]<entry><postings>.perl;
-        say "________________________________________________________________________________";
+        for $parsed.made.list -> $journal {
+            for $journal.kv -> $key, $value {
+                unless $key ~~ / blank_line || comment_line / {
+                    say "[HEADER]" if $value.key ~~ /header/;
+                    say "[POSTINGS]" if $value.key ~~ /postings/;
+                    say $value.key.perl, " => ", $value.value.perl, "\n";
+                }
+            }
+        };
     }
 }
 
