@@ -3,37 +3,43 @@ use Nightscape::Parser;
 class Nightscape;
 
 method it($file) {
+    say "________________________________________________________________________________";
+    say "[CONFIG]";
     say %Config::CONFIG.perl;
+    say "________________________________________________________________________________";
     my $content = slurp $file;
     if my $parsed = Nightscape::Parser.parse($content) {
-        for $parsed.made.list -> $m {
-            say "______________________________________________________";
-            say $m;
-        }
-        say "______________________________________________________";
-        for $parsed<journal>.list -> $journal {
-            for $journal<entry>.kv -> $key, $value {
-                given $key {
-                    when /header/ {
-                        say "------------------------------------------------------";
-                        for $value.list -> $header {
-                            say "Date: ", $header<iso_date>;
-                            say "Description: ", $header<description> if $header<description>;
-                        }
-                    }
-                    when /posting/ {
-                        for $value.list -> $posting {
-                            say "Account: ", $posting<account> if $posting<account>;
-                            say "Transaction: ", $posting<transaction> if $posting<transaction>;
-                            for $posting<transaction>.list -> $transaction {
-                                say "Exchange Rate: ", $transaction<exchange_rate> if $transaction<exchange_rate>;
-                            }
-                        }
-                        say "------------------------------------------------------";
-                    }
-                }
-            }
-        }
+        say "________________________________________________________________________________";
+        say "[HEADER]";
+        say $parsed.made.list[0]<journals>.pairs[2].value<journal><entries>.values[0]<entry><header>.perl;
+        say "";
+        say "[POSTINGS]";
+        say $parsed.made.list[0]<journals>.pairs[2].value<journal><entries>.values[0]<entry><postings>.perl;
+        say "________________________________________________________________________________";
+        say "";
+        say "________________________________________________________________________________";
+        say "[HEADER]";
+        say $parsed.made.list[0]<journals>.pairs[7].value<journal><entries>.values[0]<entry><header>.perl;
+        say "";
+        say "[POSTINGS]";
+        say $parsed.made.list[0]<journals>.pairs[7].value<journal><entries>.values[0]<entry><postings>.perl;
+        say "________________________________________________________________________________";
+        say "";
+        say "________________________________________________________________________________";
+        say "[HEADER]";
+        say $parsed.made.list[0]<journals>.pairs[9].value<journal><entries>.values[0]<entry><header>.perl;
+        say "";
+        say "[POSTINGS]";
+        say $parsed.made.list[0]<journals>.pairs[9].value<journal><entries>.values[0]<entry><postings>.perl;
+        say "________________________________________________________________________________";
+        say "";
+        say "________________________________________________________________________________";
+        say "[HEADER]";
+        say $parsed.made.list[0]<journals>.pairs[11].value<journal><entries>.values[0]<entry><header>.perl;
+        say "";
+        say "[POSTINGS]";
+        say $parsed.made.list[0]<journals>.pairs[11].value<journal><entries>.values[0]<entry><postings>.perl;
+        say "________________________________________________________________________________";
     }
 }
 
