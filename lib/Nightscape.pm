@@ -36,8 +36,8 @@ method it($file) {
                             unless $value.value[$i]<posting_comment> {
                                 if $value.value[$i]<account><account_main> {
                                     my %posting;
-                                    %posting<silo> = $value.value[$i]<account><account_main>;
-                                    %posting<drcr> = !$value.value[$i]<transaction><commodity_minus>;
+                                    %posting<silo> = Nightscape::Journal::Entry::Posting.mksilo: $value.value[$i]<account><account_main>;
+                                    %posting<drcr> = Nightscape::Journal::Entry::Posting.mkdrcr: $value.value[$i]<transaction><commodity_minus>;
                                     %posting<entity> = $value.value[$i]<account><entity>;
                                     %posting<subaccount> = $value.value[$i]<account><account_sub>;
                                     %posting<amounts> = %(
