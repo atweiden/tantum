@@ -43,10 +43,12 @@ method it($file) {
                                     %posting<amounts> = %(
                                         commodity_code => $value.value[$i]<transaction><commodity_code>,
                                         commodity_quantity => $value.value[$i]<transaction><commodity_quantity>,
-                                        exchange_rate => %(
+                                        $value.value[$i]<transaction><exchange_rate>
+                                        ?? exchange_rate => %(
                                             commodity_code => $value.value[$i]<transaction><exchange_rate><commodity_code>,
                                             commodity_quantity => $value.value[$i]<transaction><exchange_rate><commodity_quantity>
                                         )
+                                        !! exchange_rate => Nil
                                     );
                                     push @postings, Nightscape::Journal::Entry::Posting.new(|%posting);
                                 }
@@ -103,7 +105,7 @@ method it($file) {
         Data
         ----
         EOF
-        say @entries.perl;
+        say @entries.sort({ .date }).perl;
     }
 }
 
