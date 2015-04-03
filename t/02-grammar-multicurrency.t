@@ -6,16 +6,16 @@ use Nightscape::Parser;
 plan 1;
 
 my $content = q:to/EOTX/;
-# this is a preceding comment
-# this is a second preceding comment
-2014-01-01 "I started the year with $1000 in Bankwest cheque account #TAG1 #TAG2" # EODESC COMMENT
-  # this is a comment line
+; this is a preceding comment
+; this is a second preceding comment
+2014-01-01 "I started the year with $1000 in Bankwest cheque account #TAG1 #TAG2" ; EODESC COMMENT
+  ; this is a comment line
   Assets:Personal:Bankwest:Cheque    $1000.00 USD
-  # this is a second comment line
-  Equity:Personal                    $1000.00 USD # EOL COMMENT
-  # this is a third comment line
-# this is a stray comment
-# another
+  ; this is a second comment line
+  Equity:Personal                    $1000.00 USD ; EOL COMMENT
+  ; this is a third comment line
+; this is a stray comment
+; another
 
 
 2014-01-02 "I paid Exxon Mobile $10 for gas from Bankwest cheque account"
@@ -32,12 +32,12 @@ my $content = q:to/EOTX/;
   Assets:Personal:Bankwest:Cheque       -$670.66 USD
 
 
-# ending comment block
-    # ending comment block
-# ending comment block
-    # ending comment block
-# ending comment block
-        #
+; ending comment block
+    ; ending comment block
+; ending comment block
+    ; ending comment block
+; ending comment block
+        ;
 EOTX
 
 {
