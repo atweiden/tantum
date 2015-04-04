@@ -29,10 +29,6 @@ token iso_date {
     <year> '-' <month> '-' <day>
 }
 
-token hashtag {
-    '#' \w+
-}
-
 token var_char {
     <:Letter>
     || <:Number>
@@ -41,6 +37,10 @@ token var_char {
 
 token var_name {
     <var_char>+
+}
+
+token hashtag {
+    '#' <var_name>
 }
 
 token group_pos {
