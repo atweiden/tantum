@@ -1,5 +1,8 @@
 use v6;
+use Nightscape::Journal::Groups;
 class Nightscape::Parser::Actions;
+
+my Int $entry_number = 0;
 
 method iso_date($/) {
     try {
@@ -8,14 +11,32 @@ method iso_date($/) {
     }
 }
 
+method group($/) {
+    Nightscape::Journal::Groups.add($<group_name>.uc);
+    make [
+            %( group_name => $<group_name>.uc,
+               group_pos => $<group_pos>.abs
+             )
+         ];
+}
+
 method hashtag($/) {
     make substr($/, 1, *-0);
 }
 
 method header($/) {
-    make %( header => %( iso_date => $<iso_date>».made.pairs[0].value,
+    my $id = $entry_number;
+    $<group>».made.map({
+        Nightscape::Journal::Groups.update(group_name => .hash<group_name>,
+                                           group_pos => .hash<group_pos>,
+                                           id => $id);
+    });
+    make %( header => %( id => $id,
+                         iso_date => $<iso_date>».made.pairs[0].value,
                          $<description> ?? description => substr($<description>, 1, *-1).trim
                                         !! description => Nil,
+                         $<group> ?? groups => $<group>».made
+                                  !! groups => Nil,
                          $<hashtag> ?? hashtags => [ $<hashtag>».made ]
                                     !! hashtags => Nil,
                          $<comment> ?? eol_comment => substr($<comment>, 1, *-0).trim
@@ -74,6 +95,7 @@ method entry($/) {
     make %( $<header>».made,
             postings => [ $<posting>».made».value ]
           );
+    $entry_number++;
 }
 
 method journal($/) {
