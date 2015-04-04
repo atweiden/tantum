@@ -28,8 +28,10 @@ method it($file) {
                 # build Entry class
                 unless $key ~~ / blank_line || comment_line / {
                     if $value.key ~~ /header/ {
+                        %header<id> = $value.value<id>;
                         %header<date> = $value.value<iso_date>;
                         %header<description> = $value.value<description>;
+                        %header<groups> = $value.value<groups>;
                         %header<tags> = $value.value<hashtags>;
                     } elsif $value.key ~~ /postings/ {
                         loop (my $i = 0; $i < $value.value.elems; $i++) {
@@ -106,6 +108,12 @@ method it($file) {
         ----
         EOF
         say @entries.sort({ .date }).perl;
+        say "\n", q:to/EOF/;
+        Groups
+        ------
+        EOF
+        use Nightscape::Journal::Groups;
+        say @Nightscape::Journal::Groups::groups.perl;
     }
 }
 
