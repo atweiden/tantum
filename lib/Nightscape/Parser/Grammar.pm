@@ -33,6 +33,24 @@ token hashtag {
     '#' \w+
 }
 
+token var_char {
+    <:Letter>
+    || <:Number>
+    || <[_-]>
+}
+
+token var_name {
+    <var_char>+
+}
+
+token group_pos {
+    \d+
+}
+
+token group {
+    '@' <group_name=.var_name> '[' <group_pos> ']'
+}
+
 token description {
     '"'
     <-["\\]>*
@@ -43,8 +61,8 @@ token description {
 token header {
     <iso_date>
     [ \h+ <description> ]?
-    [ \h+ <hashtag> ]*
-    [ \h+ <comment> ]?
+    [ \h+ [ <hashtag> || <group> ] ]*
+    \h* <comment>?
 }
 
 token account_main {
@@ -58,11 +76,7 @@ token account_main {
 }
 
 token account_sub {
-    [
-        <:Letter>
-        || <:Number>
-        || <[_-]>
-    ]+
+    <var_char>+
 }
 
 token account {
