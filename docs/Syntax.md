@@ -297,3 +297,58 @@ Comments
 - Comments can appear anywhere, but trailing comments must have at least
   one leading whitespace
 - There is no special multiline comment syntax
+
+
+Hashtags
+--------
+
+- Hashtags begin with a `#`
+- Hashtag names must obey variable naming rules
+- Hashtags are case insensitive
+- There must be no leading space between the `#` and the hashtag name
+- Hashtags must come on the same single line of the description, trailing
+  the quoted description
+
+#### Unacceptable (invalid variable name)
+
+```transactions
+#for$za             ; invalid: contains invalid var_char dollar sign (`$`)
+#CanIDeductThis?    ; invalid: contains invalid var_char question mark (`?`)
+#                   ; invalid: missing hashtag name
+```
+
+#### Acceptable
+
+```transactions
+#for_business_luncheon
+```
+
+```transactions
+#for_business_luncheon #deductible
+```
+
+
+Groups
+------
+
+- Groups begin with a `@` and must contain a perl array index postfix
+  - `@luncheon[0]` assigns this journal entry to the `luncheon` group's
+    members list at position `0`
+  - array index given must be an integer >= 0
+- Group names must obey variable naming rules
+- Group names are case insensitive
+
+#### Unacceptable (array index is not an integer >= 0)
+
+```transactions
+@luncheon[1.2]
+@luncheon[10..20]
+@luncheon[*-1]
+@luncheon[-1]
+```
+
+#### Acceptable
+
+```transactions
+@luncheon[0]
+```
