@@ -4,8 +4,8 @@
 
 
 use v6;
-use Nightscape::Config;
 use Nightscape;
+use Nightscape::Config;
 
 
 
