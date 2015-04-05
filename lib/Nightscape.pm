@@ -107,7 +107,7 @@ method it($file) {
         Data
         ----
         EOF
-        say @entries.sort({ .date }).sort({ $^b.important > $^a.important }).perl;
+        say @entries.sort({ $^b.important > $^a.important }).sort({ .date }).perl;
     }
 }
 
