@@ -328,27 +328,26 @@ Hashtags
 ```
 
 
-Groups
-------
+Exclamation Marks
+-----------------
 
-- Groups begin with a `@` and must contain a perl array index postfix
-  - `@luncheon[0]` assigns this journal entry to the `luncheon` group's
-    members list at position `0`
-  - array index given must be an integer >= 0
-- Group names must obey variable naming rules
-- Group names are case insensitive
+- Description lines can be optionally accompanied with one or more
+  exclamation marks (`!`)
+- Like hashtags, at least one leading whitespace must precede the
+  exclamation marks
+- Exclamation marks may appear clustered together (`!!!`), separated
+  by whitespace or both (`! !! ! !!!`)
+  - Exclamation marks may also appear intermixed with hashtags, separated
+    by whitespace
 
-#### Unacceptable (array index is not an integer >= 0)
+#### Unacceptable (not a bare exclamation point)
 
 ```transactions
-@luncheon[1.2]
-@luncheon[10..20]
-@luncheon[*-1]
-@luncheon[-1]
+!a
 ```
 
 #### Acceptable
 
 ```transactions
-@luncheon[0]
+! !! ! !!!
 ```
