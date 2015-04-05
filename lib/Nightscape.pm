@@ -10,7 +10,7 @@ method it($file) {
     Config
     ------
     EOF
-    say "Hash: ", %Config::CONFIG.perl;
+    say "Hash: ", %Nightscape::Config::CONFIG.perl;
     say "";
     my $content = slurp $file;
     if my $parsed = Nightscape::Parser.parse($content) {

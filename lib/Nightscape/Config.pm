@@ -1,5 +1,5 @@
 use v6;
-class Config;
+class Nightscape::Config;
 
 # constants
 our $data_dir = "%*ENV<HOME>/.nightscape";
