@@ -31,7 +31,7 @@ method it($file) {
                         %header<id> = $value.value<id>;
                         %header<date> = $value.value<iso_date>;
                         %header<description> = $value.value<description>;
-                        %header<groups> = $value.value<groups>;
+                        %header<important> = $value.value<important>;
                         %header<tags> = $value.value<hashtags>;
                     } elsif $value.key ~~ /postings/ {
                         loop (my $i = 0; $i < $value.value.elems; $i++) {
@@ -107,13 +107,7 @@ method it($file) {
         Data
         ----
         EOF
-        say @entries.sort({ .date }).perl;
-        say "\n", q:to/EOF/;
-        Groups
-        ------
-        EOF
-        use Nightscape::Journal::Groups;
-        say @Nightscape::Journal::Groups::groups.perl;
+        say @entries.sort({ .date }).sort({ $^b.important > $^a.important }).perl;
     }
 }
 

@@ -43,12 +43,12 @@ token hashtag {
     '#' <var_name>
 }
 
-token group_pos {
-    \d+
+token exclamation_mark {
+    '!'
 }
 
-token group {
-    '@' <group_name=.var_name> '[' <group_pos> ']'
+token important {
+    <exclamation_mark>+
 }
 
 token description {
@@ -61,7 +61,7 @@ token description {
 token header {
     <iso_date>
     [ \h+ <description> ]?
-    [ \h+ [ <hashtag> || <group> ] ]*
+    [ \h+ [ <hashtag> || <important> ] ]*
     \h* <comment>?
 }
 

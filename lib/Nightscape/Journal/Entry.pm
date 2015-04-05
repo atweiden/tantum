@@ -5,7 +5,7 @@ class Nightscape::Journal::Entry;
 has $.id;
 has Date $.date;
 has $.description;
-has @.groups;
+has Int $.important;
 has @.tags;
 has Nightscape::Journal::Entry::Posting @.postings;
 
