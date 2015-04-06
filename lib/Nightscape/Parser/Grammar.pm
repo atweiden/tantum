@@ -10,7 +10,7 @@ token ws {
 }
 
 token comment {
-    ';' \N*
+    '#' \N*
 }
 
 token year {
@@ -39,8 +39,8 @@ token var_name {
     <var_char>+
 }
 
-token hashtag {
-    '#' <var_name>
+token tag {
+    '@' <var_name>
 }
 
 token exclamation_mark {
@@ -61,7 +61,7 @@ token description {
 token header {
     <iso_date>
     [ \h+ <description> ]?
-    [ \h+ [ <hashtag> || <important> ] ]*
+    [ \h+ [ <tag> || <important> ] ]*
     \h* <comment>?
 }
 

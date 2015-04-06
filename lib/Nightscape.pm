@@ -10,29 +10,23 @@ method it($file) {
     Config
     ------
     EOF
-    say "Hash: ", %Nightscape::Config::CONFIG.perl;
-    say "";
+    say %Nightscape::Config::CONFIG.perl, "\n";
     my $content = slurp $file;
     if my $parsed = Nightscape::Parser.parse($content) {
         use Nightscape::Journal::Entry;
         use Nightscape::Journal::Entry::Posting;
         my @entries;
-        say q:to/EOF/;
-        Entries
-        -------
-        EOF
         for $parsed.made.list -> $journal {
             my %header;
             my @postings;
             for $journal.kv -> $key, $value {
-                # build Entry class
                 unless $key ~~ / blank_line || comment_line / {
                     if $value.key ~~ /header/ {
                         %header<id> = $value.value<id>;
                         %header<date> = $value.value<iso_date>;
                         %header<description> = $value.value<description>;
                         %header<important> = $value.value<important>;
-                        %header<tags> = $value.value<hashtags>;
+                        %header<tags> = $value.value<tags>;
                     } elsif $value.key ~~ /postings/ {
                         loop (my $i = 0; $i < $value.value.elems; $i++) {
                             unless $value.value[$i]<posting_comment> {
@@ -58,51 +52,10 @@ method it($file) {
                         }
                     }
                 }
-
-                # output
-                unless $key ~~ / blank_line || comment_line / {
-                    if $value.key ~~ /header/ {
-                        print $value.value<iso_date>;
-                        if $value.value<description> {
-                            print " \"", $value.value<description>, "\"";
-                        }
-                        if $value.value<hashtags> {
-                            print " ";
-                            for $value.value<hashtags>».lc -> $hashtag {
-                                print "#", $hashtag, " ";
-                            }
-                        }
-                        say "";
-                    } elsif $value.key ~~ /postings/ {
-                        loop (my $i = 0; $i < $value.value.elems; $i++) {
-                            unless $value.value[$i]<posting_comment> {
-                                print "  ",
-                                    $value.value[$i]<account><account_main>.lc.tc,
-                                    ":",
-                                    $value.value[$i]<account><entity>.lc.tc;
-                                print ":",
-                                    $value.value[$i]<account><account_sub>».lc».tc.join(':')
-                                    if $value.value[$i]<account><account_sub>;
-                                print "\t" x 2,
-                                    $value.value[$i]<transaction><commodity_code>, " ",
-                                    $value.value[$i]<transaction><commodity_minus> ?? "-" !! "",
-                                    $value.value[$i]<transaction><commodity_quantity>;
-                                print " @ ",
-                                    $value.value[$i]<transaction><exchange_rate><commodity_code>,
-                                    " ",
-                                    $value.value[$i]<transaction><exchange_rate><commodity_quantity>
-                                    if $value.value[$i]<transaction><exchange_rate>;
-                                say "";
-                            }
-                        }
-                    }
-                    say "" if $key;
-                }
             }
-
             push @entries, Nightscape::Journal::Entry.new(|%header, postings => @postings)
             unless $journal.kv.pairs[0].value ~~ / blank_line || comment_line /;
-        };
+        }
         say q:to/EOF/;
         Data
         ----

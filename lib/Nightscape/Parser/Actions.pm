@@ -10,7 +10,7 @@ method iso_date($/) {
     }
 }
 
-method hashtag($/) {
+method tag($/) {
     make substr($/, 1, *-0);
 }
 
@@ -24,8 +24,8 @@ method header($/) {
                          iso_date => $<iso_date>».made.pairs[0].value,
                          $<description> ?? description => substr($<description>, 1, *-1).trim
                                         !! description => Nil,
-                         $<hashtag> ?? hashtags => [ $<hashtag>».made ]
-                                    !! hashtags => Nil,
+                         $<tag> ?? tags => [ $<tag>».made ]
+                                !! tags => Nil,
                          $<important> ?? important => $<important>».made.reduce: * + *
                                       !! important => 0,
                          $<comment> ?? eol_comment => substr($<comment>, 1, *-0).trim
