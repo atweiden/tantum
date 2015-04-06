@@ -97,7 +97,7 @@ Descriptions
 
 ```
 2014-01-01 "I started the year with $1000 in Bankwest cheque account"
-2014-01-01 ; descriptions are optional
+2014-01-01 # descriptions are optional
 ```
 
 
@@ -178,8 +178,8 @@ Subaccounts
 - Subaccounts must be separated by `:`
 
 ```
-Assets:Bankwest             ; Bankwest is interpreted as an entity you own
-Assets:Personal:Bankwest    ; Bankwest is interpreted as a subaccount owned by you personally
+Assets:Bankwest             # Bankwest is interpreted as an entity you own
+Assets:Personal:Bankwest    # Bankwest is interpreted as a subaccount owned by you personally
 ```
 
 #### Unacceptable (subaccounts cannot contain special chars besides `-` and `_`)
@@ -293,38 +293,38 @@ USD 830.024
 Comments
 --------
 
-- Comments begin with a `;`
+- Comments begin with a `#`
 - Comments can appear anywhere, but trailing comments must have at least
   one leading whitespace
 - There is no special multiline comment syntax
 
 
-Hashtags
---------
+Tags
+----
 
-- Hashtags begin with a `#`
-- Hashtag names must obey variable naming rules
-- Hashtags are case insensitive
-- There must be no leading space between the `#` and the hashtag name
-- Hashtags must come on the same single line of the description, trailing
+- Tags begin with a `@`
+- Tag names must obey variable naming rules
+- Tags are case insensitive
+- There must be no leading space between the `@` and the tag name
+- Tags must come on the same single line of the description, trailing
   the quoted description
 
 #### Unacceptable (invalid variable name)
 
 ```transactions
-#for$za             ; invalid: contains invalid var_char dollar sign (`$`)
-#CanIDeductThis?    ; invalid: contains invalid var_char question mark (`?`)
-#                   ; invalid: missing hashtag name
+@for$za             # invalid: contains invalid var_char dollar sign (`$`)
+@CanIDeductThis?    # invalid: contains invalid var_char question mark (`?`)
+@                   # invalid: missing tag name
 ```
 
 #### Acceptable
 
 ```transactions
-#for_business_luncheon
+@for_business_luncheon
 ```
 
 ```transactions
-#for_business_luncheon #deductible
+@for_business_luncheon @deductible
 ```
 
 
@@ -333,11 +333,11 @@ Exclamation Marks
 
 - Description lines can be optionally accompanied with one or more
   exclamation marks (`!`)
-- Like hashtags, at least one leading whitespace must precede the
-  exclamation marks
+- Like tags, at least one leading whitespace must precede the exclamation
+  marks
 - Exclamation marks may appear clustered together (`!!!`), separated
   by whitespace or both (`! !! ! !!!`)
-  - Exclamation marks may also appear intermixed with hashtags, separated
+  - Exclamation marks may also appear intermixed with tags, separated
     by whitespace
 
 #### Unacceptable (not a bare exclamation point)
