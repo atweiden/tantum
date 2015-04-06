@@ -1,7 +1,13 @@
 use v6;
 class Nightscape;
 
+our $conf;
 our $journal;
+
+method mkconf(%conf?) {
+    use Nightscape::Config;
+    $conf = Nightscape::Config.new(|%conf);
+}
 
 method mkjournal($file) {
     use Nightscape::Parser;
