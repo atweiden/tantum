@@ -1,25 +1,19 @@
 use v6;
-use Nightscape::Parser;
 class Nightscape;
 
-method it($file) {
-    say q:to/EOF/;
-    Diagnostics
-    ===========
+our $journal;
 
-    Config
-    ------
-    EOF
-    say %Nightscape::Config::CONFIG.perl, "\n";
-    my $content = slurp $file;
-    if my $parsed = Nightscape::Parser.parse($content) {
+method mkjournal($file) {
+    use Nightscape::Parser;
+    if my $parsed = Nightscape::Parser.parse(slurp $file) {
+        use Nightscape::Journal;
         use Nightscape::Journal::Entry;
         use Nightscape::Journal::Entry::Posting;
         my @entries;
-        for $parsed.made.list -> $journal {
+        for $parsed.made.list -> $parse {
             my %header;
             my @postings;
-            for $journal.kv -> $key, $value {
+            for $parse.kv -> $key, $value {
                 unless $key ~~ / blank_line || comment_line / {
                     if $value.key ~~ /header/ {
                         %header<id> = $value.value<id>;
@@ -54,13 +48,9 @@ method it($file) {
                 }
             }
             push @entries, Nightscape::Journal::Entry.new(|%header, postings => @postings)
-            unless $journal.kv.pairs[0].value ~~ / blank_line || comment_line /;
+            unless $parse.kv.pairs[0].value ~~ / blank_line || comment_line /;
         }
-        say q:to/EOF/;
-        Data
-        ----
-        EOF
-        say @entries.sort({ $^b.important > $^a.important }).sort({ .date }).perl;
+        $journal = Nightscape::Journal.new( entries => @entries.sort({ $^b.important > $^a.important }).sort({ .date }) );
     }
 }
 

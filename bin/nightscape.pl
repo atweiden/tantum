@@ -36,7 +36,8 @@ sub MAIN($file) {
     Nightscape::Config.init(%(from-toml $config_toml));
 
     if $file.IO.e {
-        Nightscape.it($file);
+        Nightscape.mkjournal($file);
+        say $Nightscape::journal;
     } else {
         die "Sorry, could not locate file: $file";
     }
