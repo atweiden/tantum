@@ -133,7 +133,21 @@ sub MAIN($file, :$config, :$data-dir, :$log-dir, :$price-dir) {
 # -----------------------------------------------------------------------------
 
 sub USAGE() {
-    say "Usage: nightscape.pl <File>";
+    my Str $help_text = q:to/EOF/;
+    Usage:
+      nightscape [-h] [--config=CONFIG_FILE] TRANSACTION_JOURNAL
+
+    optional arguments:
+      --config=CONFIG_FILE
+        the location of the configuration file
+      --data-dir=DATA_DIR
+        the location of the general data directory
+      --log-dir=LOG_DIR
+        the location of the log directory
+      --price-dir=PRICE_DIR
+        the location of the price data directory
+    EOF
+    say $help_text.trim;
 }
 
 # vim: ft=perl6
