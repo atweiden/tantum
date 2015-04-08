@@ -13,7 +13,7 @@ use Nightscape;
 # main
 # -----------------------------------------------------------------------------
 
-sub MAIN($file, :$config, :$data-dir, :$log-dir, :$price-dir) {
+sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$price-dir) {
     {
         # create default config profile
         Nightscape.mkconf;
@@ -138,7 +138,7 @@ sub USAGE() {
       nightscape [-h] [--config=CONFIG_FILE] TRANSACTION_JOURNAL
 
     optional arguments:
-      --config=CONFIG_FILE
+      -c, --config=CONFIG_FILE
         the location of the configuration file
       --data-dir=DATA_DIR
         the location of the general data directory
