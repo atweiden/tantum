@@ -75,14 +75,21 @@ token account_main {
     ]
 }
 
+token reserved {
+    [ :i
+       currencies
+    || 'base-currency'
+    ]
+}
+
 token account_sub {
     <var_char>+
 }
 
 token account {
     <account_main>
-    ':' <entity=.account_sub>
-    [ ':' <account_sub> ]*
+    ':' <entity=.account_sub> { $/ !~~ / [ :i currencies || 'base-currency' ] / or die "Sorry, use of any reserved word as an entity or account name is forbidden"; }
+    [ ':' <account_sub> { $/ !~~ / [ :i currencies || 'base-currency' ] / or die "Sorry, use of any reserved word as an entity or account name is forbidden"; } ]*
 }
 
 token commodity_minus {
