@@ -72,6 +72,49 @@ Config
   - GamblingWinnings
 
 - Configurable price data
+  - Entity-specific pricing data
+
+if you don't specify:
+
+```toml
+[EntityNamedFoo.Currencies.BTC.Prices.USD]
+```
+
+for `[EntityNamedFoo]`, then Nightscape will default to looking for
+exchange rate pricing in the config_file section titled:
+
+```
+[Currencies.$aux_currency_code.Prices.$entity_base_currency_code]
+```
+
+```toml
+[Currencies.BTC.Prices.USD]
+```
+
+if you specify:
+
+```toml
+[EntityNamedFoo.Currencies.BTC.Prices.USD]
+"2014-01-01" = 770000.4357
+```
+
+then Nightscape will ignore all other pricing data contained in the
+config_file for EntityNamedFoo’s transactions, and exclusively read
+pricing directives given under EntityNamedFoo.
+
+alternatively, if you specify:
+
+```toml
+[EntityNamedFoo.Currencies.BTC.Prices.USD]
+use-global-pricing = True
+```
+
+then prices in the global Currencies group will merge with prices given
+for EntityNamedFoo, with EntityNamedFoo pricing taking precedence.
+
+implementation detail: be sure that only the pricing pairs (`"2014-01-01"
+= 770.4357`) merge, with any price-file directives resolving to the
+pricing pairs before merger.
 
 - Configurable documents directory
 
