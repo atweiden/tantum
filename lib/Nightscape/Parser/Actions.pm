@@ -1,5 +1,8 @@
 use v6;
+use Nightscape::Config;
 class Nightscape::Parser::Actions;
+
+has Nightscape::Config $.conf;
 
 my Int $entry_number = 0;
 
@@ -66,6 +69,19 @@ method transaction($/) {
 
 method posting($/) {
     if $<account> && $<transaction> {
+
+        # say self.conf;
+        # my $posting_entity = $<account>».made.hash<account><entity>;
+        # my $posting_entity_base_currency = self.conf.entities{$posting_entity}<base-currency>;
+        # my $posting_commodity_code = $<transaction>».made.hash<transaction><commodity_code>;
+        # my $posting_commodity_quantity = $<transaction>».made.hash<transaction><commodity_quantity>;
+        # say $posting_commodity_quantity, " ", $posting_commodity_code, " [", $posting_entity, "]";
+        # say $posting_entity_base_currency;
+
+        # if $posting_commodity_code !eq $posting_entity_base_currency {
+        #     say "commodity code doesn't match";
+        # }
+
         make %( posting => %( $<account>».made,
                               $<transaction>».made,
                               $<comment> ?? eol_comment => substr($<comment>, 1, *-0).trim
