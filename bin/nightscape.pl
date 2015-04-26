@@ -4,7 +4,6 @@
 
 
 use v6;
-use Nightscape;
 
 
 
@@ -13,10 +12,14 @@ use Nightscape;
 # main
 # -----------------------------------------------------------------------------
 
-sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$price-dir) {
+sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$currencies-dir) {
+    use Nightscape;
+    my Nightscape $nightscape = Nightscape.new;
+
+    # initialize config profile from cmdline args
     {
         # create default config profile
-        Nightscape.mkconf;
+        $nightscape.mkconf;
 
         my %config;
         if $config {
@@ -28,7 +31,7 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$price-dir) {
             }
         } else {
             # make default config directory if it doesn't exist
-            my $config_dir = IO::Path.new($Nightscape::conf.config_file).dirname;
+            my $config_dir = IO::Path.new($nightscape.conf.config_file).dirname;
             if !$config_dir.IO.d {
                 say "Config directory doesn't exist.";
                 print "Creating config directory in $config_dir… ";
@@ -36,12 +39,12 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$price-dir) {
                 say "done.";
             }
             # write default config file if it doesn't exist
-            if !$Nightscape::conf.config_file.IO.e {
+            if !$nightscape.conf.config_file.IO.e {
                 my $config_text = q:to/EOCONF/;
                 base-currency = "USD"
                 EOCONF
-                print "Placing default config file at ", $Nightscape::conf.config_file, "… ";
-                spurt $Nightscape::conf.config_file, $config_text, :createonly;
+                print "Placing default config file at ", $nightscape.conf.config_file, "… ";
+                spurt $nightscape.conf.config_file, $config_text, :createonly;
                 say "done.";
             }
         }
@@ -55,10 +58,10 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$price-dir) {
             }
         } else {
             # make default data directory if it doesn't exist
-            if !$Nightscape::conf.data_dir.IO.d {
+            if !$nightscape.conf.data_dir.IO.d {
                 say "Data directory doesn't exist.";
-                print "Creating data directory in ", $Nightscape::conf.data_dir, "… ";
-                mkdir $Nightscape::conf.data_dir or die "Sorry, couldn't create data directory: ", $Nightscape::conf.data_dir;
+                print "Creating data directory in ", $nightscape.conf.data_dir, "… ";
+                mkdir $nightscape.conf.data_dir or die "Sorry, couldn't create data directory: ", $nightscape.conf.data_dir;
                 say "done.";
             }
         }
@@ -72,57 +75,78 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$price-dir) {
             }
         } else {
             # make default log directory if it doesn't exist
-            if !$Nightscape::conf.log_dir.IO.d {
+            if !$nightscape.conf.log_dir.IO.d {
                 say "Log directory doesn't exist.";
-                print "Creating log directory in ", $Nightscape::conf.log_dir, "… ";
-                mkdir $Nightscape::conf.log_dir or die "Sorry, couldn't create log directory: ", $Nightscape::conf.log_dir;
+                print "Creating log directory in ", $nightscape.conf.log_dir, "… ";
+                mkdir $nightscape.conf.log_dir or die "Sorry, couldn't create log directory: ", $nightscape.conf.log_dir;
                 say "done.";
             }
         }
 
-        if $price-dir {
-            # check price dir passed as cmdline arg exists
-            if $price-dir.IO.d {
-                %config<price_dir> = "$price-dir";
+        if $currencies-dir {
+            # check currencies dir passed as cmdline arg exists
+            if $currencies-dir.IO.d {
+                %config<currencies_dir> = "$currencies-dir";
             } else {
-                die "Sorry, couldn't locate the given price directory: $price-dir";
+                die "Sorry, couldn't locate the given currencies directory: $currencies-dir";
             }
         } else {
-            # make default price directory if it doesn't exist
-            if !$Nightscape::conf.price_dir.IO.d {
-                say "Price directory doesn't exist.";
-                print "Creating price directory in ", $Nightscape::conf.price_dir, "… ";
-                mkdir $Nightscape::conf.price_dir or die "Sorry, couldn't create price directory: ", $Nightscape::conf.price_dir;
+            # make default currencies directory if it doesn't exist
+            if !$nightscape.conf.currencies_dir.IO.d {
+                say "Currencies directory doesn't exist.";
+                print "Creating currencies directory in ", $nightscape.conf.currencies_dir, "… ";
+                mkdir $nightscape.conf.currencies_dir or die "Sorry, couldn't create currencies directory: ", $nightscape.conf.currencies_dir;
                 say "done.";
             }
         }
 
         # assemble config from cmdline args
-        Nightscape.mkconf(%config);
+        $nightscape.mkconf(%config);
     }
 
-    # read config options
-    use TOML;
-    my $config_toml = slurp $Nightscape::conf.config_file or die "Sorry, couldn't read config file: ", $Nightscape::conf.config_file;
+    # prepare entities and currencies for transaction journal parsing
+    {
+        # parse TOML config
+        my %toml;
+        try {
+            use TOML;
+            my $toml_text = slurp $nightscape.conf.config_file or die "Sorry, couldn't read config file: ", $nightscape.conf.config_file;
+            %toml = %(from-toml $toml_text);
+            CATCH { say "Sorry, couldn't parse TOML syntax in config file: ", $nightscape.conf.config_file; }
+        }
+
+        # populate entities
+        for $nightscape.conf.ls_entities(%toml).kv -> $name, $rest {
+            $nightscape.conf.entities{$name} = $rest;
+        }
+
+        # populate currencies
+        for $nightscape.conf.ls_currencies(%toml).kv -> $name, $rest {
+            $nightscape.conf.currencies{$name} = $rest;
+        }
+    }
+
     say qq:to/EOF/;
     Diagnostics
     ===========
-
-    Config
-    ------
     EOF
-    say %(from-toml $config_toml).perl, "\n";
 
     if $file.IO.e {
-        Nightscape.mkjournal($file);
+        $nightscape.mkjournal($file);
         say qq:to/EOF/;
         Journal
         -------
         EOF
-        say $Nightscape::journal;
+        say $nightscape.journal;
     } else {
         die "Sorry, couldn't locate file: $file";
     }
+
+    say "\n", qq:to/EOF/;
+    Config
+    ------
+    EOF
+    say $nightscape.conf.perl;
 }
 
 
@@ -144,8 +168,8 @@ sub USAGE() {
         the location of the general data directory
       --log-dir=LOG_DIR
         the location of the log directory
-      --price-dir=PRICE_DIR
-        the location of the price data directory
+      --currencies-dir=CURRENCIES_DIR
+        the location of the currencies data directory
     EOF
     say $help_text.trim;
 }
