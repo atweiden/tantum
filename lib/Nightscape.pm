@@ -1,18 +1,18 @@
 use v6;
+use Nightscape::Config;
+use Nightscape::Journal;
 class Nightscape;
 
-our $conf;
-our $journal;
+has Nightscape::Config $.conf;
+has Nightscape::Journal $.journal;
 
 method mkconf(%conf?) {
-    use Nightscape::Config;
-    $conf = Nightscape::Config.new(|%conf);
+    $!conf = Nightscape::Config.new(|%conf);
 }
 
 method mkjournal($file) {
     use Nightscape::Parser;
-    if my $parsed = Nightscape::Parser.parse(slurp $file) {
-        use Nightscape::Journal;
+    if my $parsed = Nightscape::Parser.parse(slurp($file), self.conf) {
         use Nightscape::Journal::Entry;
         use Nightscape::Journal::Entry::Posting;
         my @entries;
@@ -25,7 +25,7 @@ method mkjournal($file) {
                         %header<id> = $value.value<id>;
                         %header<date> = $value.value<iso_date>;
                         %header<description> = $value.value<description>;
-                        %header<important> = $value.value<important>;
+                        %header<important> = $value.value<important>.abs;
                         %header<tags> = $value.value<tags>;
                     } elsif $value.key ~~ /postings/ {
                         loop (my $i = 0; $i < $value.value.elems; $i++) {
@@ -56,7 +56,7 @@ method mkjournal($file) {
             push @entries, Nightscape::Journal::Entry.new(|%header, postings => @postings)
             unless $parse.kv.pairs[0].value ~~ / blank_line || comment_line /;
         }
-        $journal = Nightscape::Journal.new( entries => @entries.sort({ $^b.important > $^a.important }).sort({ .date }) );
+        $!journal = Nightscape::Journal.new( entries => @entries.sort({ $^b.important > $^a.important }).sort({ .date }) );
     }
 }
 
