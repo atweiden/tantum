@@ -121,6 +121,7 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$currencies-dir) {
         }
 
         # populate currencies
+        $nightscape.conf.base_currency = %toml<base-currency> or die "Sorry, could not find global base-currency in config (mandatory).";
         for $nightscape.conf.ls_currencies(%toml).kv -> $name, $rest {
             $nightscape.conf.currencies{$name} = $rest;
         }
