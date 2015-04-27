@@ -5,6 +5,7 @@ has Str $.config_file = "%*ENV<HOME>/.config/nightscape/config.toml";
 has Str $.data_dir = "%*ENV<HOME>/.nightscape";
 has Str $.log_dir = "$!data_dir/logs";
 has Str $.currencies_dir = "$!data_dir/currencies";
+has Str $.base_currency is rw;
 has %.entities is rw;
 has %.currencies is rw;
 
@@ -33,6 +34,29 @@ method ls_currencies(%toml) {
         return %toml{$currencies_header};
     } else {
         return Nil;
+    }
+}
+
+# return base-currency of entity
+# if not configured for entity, return toplevel base-currency
+# if toplevel base-currency not configured, exit with an error
+method get_base_currency(Str $entity) returns Str {
+    if my $entity_base_currency = self.entities{$entity}<base-currency> {
+        return $entity_base_currency;
+    } elsif my $toplevel_base_currency = self.base_currency {
+        return $toplevel_base_currency;
+    } else {
+        my $c = self.config_file;
+        die qq:to/EOF/;
+        Sorry, could not find base-currency for 「$entity」
+
+        Please check that the entity is configured with a base currency,
+        or that the config file contains a toplevel base-currency
+        directive.
+
+        entity: 「$entity」
+        config file: 「$c」
+        EOF
     }
 }
 
