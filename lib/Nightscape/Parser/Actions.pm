@@ -5,6 +5,7 @@ class Nightscape::Parser::Actions;
 has Nightscape::Config $.conf;
 
 my Int $entry_number = 0;
+my Date $entry_date;
 
 method iso_date($/) {
     try {
@@ -23,8 +24,9 @@ method important($/) {
 
 method header($/) {
     my $id = $entry_number;
+    $entry_date = $<iso_date>».made.pairs[0].value;
     make %( header => %( id => $id,
-                         iso_date => $<iso_date>».made.pairs[0].value,
+                         iso_date => $entry_date,
                          $<description> ?? description => substr($<description>, 1, *-1).trim
                                         !! description => Nil,
                          $<tag> ?? tags => [ $<tag>».made ]
@@ -38,19 +40,19 @@ method header($/) {
 }
 
 method account($/) {
-    make %( account => %( account_full => join(':', $<account_main>, $<entity>, $<account_sub>».join(':')).uc,
-                          account_main => $<account_main>.uc,
-                          entity => $<entity>.uc,
-                          $<account_sub> ?? account_sub => [ $<account_sub>.list».uc ]
+    make %( account => %( account_full => join(':', $<account_main>, $<entity>, $<account_sub>».join(':')).Str,
+                          account_main => $<account_main>.Str,
+                          entity => $<entity>.Str,
+                          $<account_sub> ?? account_sub => [ $<account_sub>.list».Str ]
                                          !! account_sub => Nil
                         )
           );
 }
 
 method exchange_rate($/) {
-    make %( exchange_rate => %( commodity_symbol => $<commodity_symbol>.uc,
+    make %( exchange_rate => %( commodity_symbol => $<commodity_symbol>.Str,
                                 commodity_quantity => $<commodity_quantity>.abs,
-                                commodity_code => $<commodity_code>.uc
+                                commodity_code => $<commodity_code>.Str
                               )
           );
 }
@@ -58,9 +60,9 @@ method exchange_rate($/) {
 method transaction($/) {
     make %( transaction => %( $<commodity_minus> ?? commodity_minus => True
                                                  !! commodity_minus => False,
-                              commodity_symbol => $<commodity_symbol>.uc,
+                              commodity_symbol => $<commodity_symbol>.Str,
                               commodity_quantity => $<commodity_quantity>.abs,
-                              commodity_code => $<commodity_code>.uc,
+                              commodity_code => $<commodity_code>.Str,
                               $<exchange_rate> ?? $<exchange_rate>».made
                                                !! exchange_rate => Nil
                             )
@@ -70,17 +72,60 @@ method transaction($/) {
 method posting($/) {
     if $<account> && $<transaction> {
 
-        # say self.conf;
-        # my $posting_entity = $<account>».made.hash<account><entity>;
-        # my $posting_entity_base_currency = self.conf.entities{$posting_entity}<base-currency>;
-        # my $posting_commodity_code = $<transaction>».made.hash<transaction><commodity_code>;
-        # my $posting_commodity_quantity = $<transaction>».made.hash<transaction><commodity_quantity>;
-        # say $posting_commodity_quantity, " ", $posting_commodity_code, " [", $posting_entity, "]";
-        # say $posting_entity_base_currency;
+        my $posting_entity = $<account>».made.hash<account><entity>;
+        my $posting_entity_base_currency = self.conf.get_base_currency($posting_entity);
+        my $posting_commodity_code = $<transaction>».made.hash<transaction><commodity_code>;
+        my $posting_commodity_quantity = $<transaction>».made.hash<transaction><commodity_quantity>;
+        my $posting_value;
 
-        # if $posting_commodity_code !eq $posting_entity_base_currency {
-        #     say "commodity code doesn't match";
-        # }
+        # search for exchange rate if posting commodity code differs from entity's base-currency
+        if $posting_commodity_code !eq $posting_entity_base_currency {
+            if my $exchange_rate = $<transaction>».made.hash<transaction><exchange_rate> {
+                # calculating posting value in base currency based on exchange rate given in transaction journal
+                if $exchange_rate<commodity_code> eq $posting_entity_base_currency {
+                    $posting_value = $posting_commodity_quantity * $exchange_rate<commodity_quantity>;
+                } else {
+                    # error: exchange rate given in transaction journal doesn't match the posting entity's base-currency
+                    my $help_text_faulty_exchange_rate = qq:to/EOF/;
+                    Sorry, exchange rate detected in transaction journal doesn't
+                    match the parsed entity's base-currency:
+
+                        entity: 「$posting_entity」
+                        base-currency: 「$posting_entity_base_currency」
+                        exchange rate currency code given in journal: 「$exchange_rate<commodity_code>」
+
+                    To debug, verify that the entity has been configured with the
+                    correct base-currency. Then verify the transaction journal
+                    gives a matching base-currency code for entry number
+                    $entry_number.
+                    EOF
+                    die $help_text_faulty_exchange_rate.trim;
+                }
+            } elsif my $price = self.conf.currencies{$posting_commodity_code}<Prices>{$posting_entity_base_currency}{$entry_date} {
+                # calculating posting value in base currency based on exchange rate given in config file
+                $posting_value = $posting_commodity_quantity * $price;
+            } else {
+                # error: missing exchange rate
+                my $help_text_faulty_exchange_rate_in_config_file = qq:to/EOF/;
+                Sorry, exchange rate missing for posting in transaction
+                journal.
+
+                The transaction journal does not offer an exchange rate
+                with @ syntax, and the config file does not offer an
+                exchange rate for the posting entity's base-currency on
+                the date of the posting:
+
+                        date: 「$entry_date」
+                        entity: 「$posting_entity」
+                        base-currency: 「$posting_entity_base_currency」
+                        exchange rate currency code given in config: 「$exchange_rate<commodity_code>」
+
+                To debug, verify that the entity has been configured with
+                the correct base-currency for entry number $entry_number.
+                EOF
+                die $help_text_faulty_exchange_rate_in_config_file.trim;
+            }
+        }
 
         make %( posting => %( $<account>».made,
                               $<transaction>».made,
