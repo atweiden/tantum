@@ -116,6 +116,10 @@ implementation detail: be sure that only the pricing pairs (`"2014-01-01"
 = 770.4357`) merge, with any price-file directives resolving to the
 pricing pairs before merger.
 
+  - Tag-specific pricing data
+
+["@coinbase".Currencies.BTC.Prices.USD]
+
 - Configurable documents directory
 
 
