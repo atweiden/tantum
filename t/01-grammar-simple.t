@@ -1,7 +1,7 @@
 use v6;
 use lib 'lib';
 use Test;
-use Nightscape::Parser;
+use Nightscape::Parser::Grammar;
 
 plan 1;
 
@@ -36,7 +36,7 @@ my $content = q:to/EOTX/;
 EOTX
 
 {
-    my $match = Nightscape::Parser.parse($content);
+    my $match = Nightscape::Parser::Grammar.parse($content);
     is($match.WHAT.perl, 'Match', 'Parses simple journal successfully');
 }
 
