@@ -30,6 +30,12 @@
   Expenses:Personal:Fuel             $20.00 USD
   Assets:Personal:Bankwest:Cheque   -$20.00 USD
 
+2014-11-11 "I bought ฿1.11111111 BTC on Coinbase.com for $1121.11 USD at a price of $999.999 USD/BTC with a fee of $10.00 USD"
+  Assets:Personal:Coinbase:BTC           ฿1.11111111 BTC # no exchange rate given in journal
+  Expenses:Personal:CoinbaseFee          $10.00 USD
+  Assets:Personal:Bankwest:Cheque       -$1121.11 USD
+
+
 
 # ending comment block
     # ending comment block
