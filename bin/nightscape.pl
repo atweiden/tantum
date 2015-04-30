@@ -122,8 +122,8 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$currencies-dir) {
 
         # populate currencies
         $nightscape.conf.base_currency = %toml<base-currency> or die "Sorry, could not find global base-currency in config (mandatory).";
-        for $nightscape.conf.ls_currencies(%toml).kv -> $name, $rest {
-            $nightscape.conf.currencies{$name} = $rest;
+        for $nightscape.conf.ls_currencies(%toml).kv -> $code, $prices {
+            $nightscape.conf.currencies{$code} = $nightscape.conf.gen_pricesheet(:prices($prices<Prices>));
         }
     }
 
@@ -143,7 +143,7 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$currencies-dir) {
         die "Sorry, couldn't locate file: $file";
     }
 
-    say "\n", qq:to/EOF/;
+    say "\n", q:to/EOF/;
     Config
     ------
     EOF
