@@ -7,85 +7,123 @@ has Nightscape::Config $.conf;
 my Int $entry_number = 0;
 my Date $entry_date;
 
-method iso_date($/) {
-    try {
+method iso_date($/)
+{
+    try
+    {
         make Date.new("$/");
         CATCH { say "Sorry, invalid date"; }
     }
 }
 
-method tag($/) {
+method tag($/)
+{
     make substr($/, 1, *-0);
 }
 
-method important($/) {
+method important($/)
+{
     make $/.chars;
 }
 
-method header($/) {
+method header($/)
+{
     my $id = $entry_number;
     $entry_date = $<iso_date>».made.pairs[0].value;
-    make %( header => %( id => $id,
-                         iso_date => $entry_date,
-                         $<description> ?? description => substr($<description>, 1, *-1).trim
-                                        !! description => Nil,
-                         $<tag> ?? tags => [ $<tag>».made ]
-                                !! tags => Nil,
-                         $<important> ?? important => $<important>».made.reduce: * + *
-                                      !! important => 0,
-                         $<comment> ?? eol_comment => substr($<comment>, 1, *-0).trim
-                                    !! eol_comment => Nil
-                       )
-          );
+    make %(
+        header => %(
+            id => $id,
+            iso_date => $entry_date,
+            $<description> ?? description => substr($<description>, 1, *-1).trim
+                           !! description => Nil,
+            $<tag> ?? tags => [ $<tag>».made ]
+                   !! tags => Nil,
+            $<important> ?? important => $<important>».made.reduce: * + *
+                         !! important => 0,
+            $<comment> ?? eol_comment => substr($<comment>, 1, *-0).trim
+                       !! eol_comment => Nil
+        )
+    );
 }
 
-method account($/) {
-    make %( account => %( account_full => join(':', $<account_main>, $<entity>, $<account_sub>».join(':')).Str,
-                          account_main => $<account_main>.Str,
-                          entity => $<entity>.Str,
-                          $<account_sub> ?? account_sub => [ $<account_sub>.list».Str ]
-                                         !! account_sub => Nil
-                        )
-          );
+method account($/)
+{
+    make %(
+        account => %(
+            account_full => join(
+                ':', $<account_main>, $<entity>, $<account_sub>».join(':')
+            ).Str,
+            account_main => $<account_main>.Str,
+            entity => $<entity>.Str,
+            $<account_sub> ?? account_sub => [ $<account_sub>.list».Str ]
+                           !! account_sub => Nil
+        )
+    );
 }
 
-method exchange_rate($/) {
-    make %( exchange_rate => %( commodity_symbol => $<commodity_symbol>.Str,
-                                commodity_quantity => $<commodity_quantity>.abs,
-                                commodity_code => $<commodity_code>.Str
-                              )
-          );
+method exchange_rate($/)
+{
+    make %(
+        exchange_rate => %(
+            commodity_symbol => $<commodity_symbol>.Str,
+            commodity_quantity => $<commodity_quantity>.abs,
+            commodity_code => $<commodity_code>.Str
+        )
+    );
 }
 
-method transaction($/) {
-    make %( transaction => %( $<commodity_minus> ?? commodity_minus => True
-                                                 !! commodity_minus => False,
-                              commodity_symbol => $<commodity_symbol>.Str,
-                              commodity_quantity => $<commodity_quantity>.abs,
-                              commodity_code => $<commodity_code>.Str,
-                              $<exchange_rate> ?? $<exchange_rate>».made
-                                               !! exchange_rate => Nil
-                            )
-          );
+method transaction($/)
+{
+    make %(
+        transaction => %(
+            $<commodity_minus> ?? commodity_minus => True
+                               !! commodity_minus => False,
+            commodity_symbol => $<commodity_symbol>.Str,
+            commodity_quantity => $<commodity_quantity>.abs,
+            commodity_code => $<commodity_code>.Str,
+            $<exchange_rate> ?? $<exchange_rate>».made
+                             !! exchange_rate => Nil
+        )
+    );
 }
 
-method posting($/) {
-    if $<account> && $<transaction> {
+method posting($/)
+{
+    if $<account> && $<transaction>
+    {
 
-        my $posting_entity = $<account>».made.hash<account><entity>;
-        my $posting_entity_base_currency = self.conf.get_base_currency($posting_entity);
-        my $posting_commodity_code = $<transaction>».made.hash<transaction><commodity_code>;
-        my $posting_commodity_quantity = $<transaction>».made.hash<transaction><commodity_quantity>;
+        my $posting_entity =
+            $<account>».made.hash<account><entity>;
+
+        my $posting_entity_base_currency =
+            self.conf.get_base_currency($posting_entity);
+
+        my $posting_commodity_code =
+            $<transaction>».made.hash<transaction><commodity_code>;
+
+        my $posting_commodity_quantity =
+            $<transaction>».made.hash<transaction><commodity_quantity>;
+
         my $posting_value;
 
-        # search for exchange rate if posting commodity code differs from entity's base-currency
-        if $posting_commodity_code !eq $posting_entity_base_currency {
-            if my $exchange_rate = $<transaction>».made.hash<transaction><exchange_rate> {
-                # calculating posting value in base currency based on exchange rate given in transaction journal
-                if $exchange_rate<commodity_code> eq $posting_entity_base_currency {
-                    $posting_value = $posting_commodity_quantity * $exchange_rate<commodity_quantity>;
-                } else {
-                    # error: exchange rate given in transaction journal doesn't match the posting entity's base-currency
+        # search for exchange rate?
+        if $posting_commodity_code !eq $posting_entity_base_currency
+        {
+            # is an exchange rate given in the transaction journal?
+            if my $exchange_rate =
+                $<transaction>».made.hash<transaction><exchange_rate>
+            {
+                # try calculating posting value in base currency
+                if $exchange_rate<commodity_code>
+                    eq $posting_entity_base_currency
+                {
+                    $posting_value =
+                        $posting_commodity_quantity
+                            * $exchange_rate<commodity_quantity>;
+                }
+                else
+                {
+                    # error: suitable exchange rate not found
                     my $xecc = $exchange_rate<commodity_code>;
                     my $help_text_faulty_exchange_rate = qq:to/EOF/;
                     Sorry, exchange rate detected in transaction journal doesn't
@@ -102,14 +140,19 @@ method posting($/) {
                     EOF
                     die $help_text_faulty_exchange_rate.trim;
                 }
-            } elsif my $price = self.conf.getprice(
+            }
+            # is an exchange rate given in config?
+            elsif my $price = self.conf.getprice(
                 aux => $posting_commodity_code,
                 base => $posting_entity_base_currency,
-                date => $entry_date) {
-                # calculating posting value in base currency based on exchange rate given in config file
+                date => $entry_date)
+            {
+                # try calculating posting value in base currency
                 $posting_value = $posting_commodity_quantity * $price;
-            } else {
-                # error: missing exchange rate
+            }
+            else
+            {
+                # error: suitable exchange rate not found
                 my $help_text_faulty_exchange_rate_in_config_file = qq:to/EOF/;
                 Sorry, exchange rate missing for posting in transaction
                 journal.
@@ -133,41 +176,64 @@ method posting($/) {
             }
         }
 
-        make %( posting => %( $<account>».made,
-                              $<transaction>».made,
-                              $<comment> ?? eol_comment => substr($<comment>, 1, *-0).trim
-                                         !! eol_comment => Nil
-                            )
-              );
-    } else {
-        make %( posting => %( $<comment> ?? posting_comment => substr($<comment>, 1, *-0).trim
-                                         !! posting_comment => Nil
-                            );
-              );
+        make %(
+            posting => %(
+                $<account>».made,
+                $<transaction>».made,
+                $<comment> ?? eol_comment => substr($<comment>, 1, *-0).trim
+                           !! eol_comment => Nil
+            )
+        );
+    }
+    else
+    {
+        make %(
+            posting => %(
+                $<comment> ?? posting_comment => substr($<comment>, 1, *-0).trim
+                           !! posting_comment => Nil
+            )
+        );
     }
 }
 
-method entry($/) {
-    make %( $<header>».made,
-            postings => [ $<posting>».made».value ]
-          );
+method entry($/)
+{
+    make %(
+        $<header>».made,
+        postings => [
+            $<posting>».made».value
+        ]
+    );
     $entry_number++;
 }
 
-method journal($/) {
-    if $<entry> {
-        make [ $<entry>».made ];
-    } elsif $<comment> {
-        make %( comment_line => substr($<comment>, 1, *-0).trim
-              );
-    } else {
-        make %( blank_line => True
-              );
+method journal($/)
+{
+    if $<entry>
+    {
+        make [
+            $<entry>».made
+        ];
+    }
+    elsif $<comment>
+    {
+        make %(
+            comment_line => substr($<comment>, 1, *-0).trim
+        );
+    }
+    else
+    {
+        make %(
+            blank_line => True
+        );
     }
 }
 
-method TOP($/) {
-    make [ $<journal>».made ];
+method TOP($/)
+{
+    make [
+        $<journal>».made
+    ];
 }
 
 # vim: ft=perl6

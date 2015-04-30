@@ -37,28 +37,43 @@ has %.entities is rw;
 #
 
 # filter currencies from unvalidated %toml config
-method ls_currencies(%toml) {
+method ls_currencies(%toml)
+{
     my Str $currencies_header;
-    %toml.map({ $currencies_header = $/.orig.Str if $_.keys ~~ m:i / ^currencies /; });
-    if $currencies_header {
+    %toml.map({
+        $currencies_header = $/.orig.Str if $_.keys ~~ m:i / ^currencies /;
+    });
+
+    if $currencies_header
+    {
         return %toml{$currencies_header};
-    } else {
+    }
+    else
+    {
         return Nil;
     }
 }
 
 # filter entities from unvalidated %toml config
-method ls_entities(%toml) {
+method ls_entities(%toml)
+{
     my Str @entities_found;
     use Nightscape::Parser::Grammar;
     %toml.map({
-        if my $parsed_section = Nightscape::Parser::Grammar.parse($_.keys, :rule<account_sub>) {
-            push @entities_found, $parsed_section.orig.Str unless Nightscape::Parser::Grammar.parse($parsed_section.orig, :rule<reserved>);
+        if my $parsed_section = Nightscape::Parser::Grammar.parse(
+            $_.keys,
+            :rule<account_sub>
+        )
+        {
+            push @entities_found, $parsed_section.orig.Str
+            unless Nightscape::Parser::Grammar.parse($parsed_section.orig,
+                                                     :rule<reserved>);
         }
     });
 
     my %entities_found;
-    for @entities_found -> $entity_found {
+    for @entities_found -> $entity_found
+    {
         %entities_found{$entity_found} = %toml{$entity_found};
     }
     %entities_found;
@@ -67,12 +82,18 @@ method ls_entities(%toml) {
 # return base-currency of entity
 # if not configured for entity, return toplevel base-currency
 # if toplevel base-currency not configured, exit with an error
-method get_base_currency(Str $entity) returns Str {
-    if my $entity_base_currency = self.entities{$entity}<base-currency> {
+method get_base_currency(Str $entity) returns Str
+{
+    if my $entity_base_currency = self.entities{$entity}<base-currency>
+    {
         return $entity_base_currency;
-    } elsif my $toplevel_base_currency = self.base_currency {
+    }
+    elsif my $toplevel_base_currency = self.base_currency
+    {
         return $toplevel_base_currency;
-    } else {
+    }
+    else
+    {
         my $c = self.config_file;
         die qq:to/EOF/;
         Sorry, could not find base-currency for 「$entity」
@@ -88,12 +109,14 @@ method get_base_currency(Str $entity) returns Str {
 }
 
 # return date-price hash by resolving price-file config option (NYI)
-method !read_price_file(:$price_file!) returns Hash[Price,Date] {
+method !read_price_file(:$price_file!) returns Hash[Price,Date]
+{
     say "Reading price file: $price_file…";
 }
 
 # return Nightscape::Pricesheet from unvalidated <Currencies>{$code}<Prices> config
-method gen_pricesheet(:%prices!) returns Nightscape::Pricesheet {
+method gen_pricesheet(:%prices!) returns Nightscape::Pricesheet
+{
     # incoming: {
     #             :USD(
     #                  :2014-01-01(876.54),
@@ -129,22 +152,37 @@ method gen_pricesheet(:%prices!) returns Nightscape::Pricesheet {
     #           }<>
 
     my Nightscape::Pricesheet $pricesheet;
-    for %prices.kv -> $currency, $rest {
+    for %prices.kv -> $currency, $rest
+    {
         my Price %dates_and_prices{Date};
         my Price %dates_and_prices_from_file{Date};
 
         # gather date-price pairs from toplevel Currencies config section
-        $rest.keys.grep({ Date.new($_) ~~ Date }).map({ %dates_and_prices{Date.new($_)} = $rest{Date.new($_)} });
+        $rest.keys.grep({
+            Date.new($_) ~~ Date
+        }).map({
+            %dates_and_prices{Date.new($_)} = $rest{Date.new($_)}
+        });
 
         # gather date-price pairs from price-file if it exists
         my Str $price_file;
-        $rest.keys.grep({ / 'price-file' / }).map({ $price_file = $rest{$_} });
-        if $price_file {
+        $rest.keys.grep({
+            / 'price-file' /
+        }).map({
+            $price_file = $rest{$_}
+        });
+        if $price_file
+        {
             # if price-file directive given, check that the file exists
             # TODO: if price-file is given as relative path, prepend to it self.currencies_dir
-            if $price_file.IO.e {
-                %dates_and_prices_from_file = self.read_price_file(:$price_file);
-            } else {
+            if $price_file.IO.e
+            {
+                %dates_and_prices_from_file = self.read_price_file(
+                    :$price_file
+                );
+            }
+            else
+            {
                 die "Sorry, could not locate price file at 「$price_file」";
             }
         }
@@ -154,7 +192,7 @@ method gen_pricesheet(:%prices!) returns Nightscape::Pricesheet {
         # values from equivalent %dates_and_prices_from_file keys
         my Price %xe{Date} = (%dates_and_prices_from_file, %dates_and_prices);
         $pricesheet = Nightscape::Pricesheet.new(
-            :prices( %($currency => %xe) )
+            prices => %($currency => %xe)
         );
     }
     $pricesheet;
@@ -162,7 +200,14 @@ method gen_pricesheet(:%prices!) returns Nightscape::Pricesheet {
 
 # given posting commodity code (aux), base commodity code (base), and
 # a date, return price of aux in terms of base on date.
-method getprice(Str :$aux!, Str :$base!, Date :$date!, Str :$entity, Str :$tag) returns Price {
+method getprice(
+    Str :$aux!,
+    Str :$base!,
+    Date :$date!,
+    Str :$entity,
+    Str :$tag
+) returns Price
+{
     # in-journal > tag-specific > entity-specific > toplevel
     # if tag-specific
     # elsif entity-specific

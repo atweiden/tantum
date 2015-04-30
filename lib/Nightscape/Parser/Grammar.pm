@@ -1,7 +1,8 @@
 use v6;
 grammar Nightscape::Parser::Grammar;
 
-token ws {
+token ws
+{
     # When parsing file formats where some whitespace (for example
     # vertical whitespace) is significant, it is advisable to
     # override ws:
@@ -9,63 +10,76 @@ token ws {
     \h*      # only match horizontal whitespace
 }
 
-token comment {
+token comment
+{
     '#' \N*
 }
 
-token year {
+token year
+{
     \d ** 4
 }
 
-token month {
+token month
+{
     0 <[1..9]> || 1 <[0..2]>
 }
 
-token day {
+token day
+{
     <[0..2]> \d || 3 <[0..1]>
 }
 
-token iso_date {
+token iso_date
+{
     <year> '-' <month> '-' <day>
 }
 
-token var_char {
+token var_char
+{
     <:Letter>
     || <:Number>
     || <[_-]>
 }
 
-token var_name {
+token var_name
+{
     <var_char>+
 }
 
-token tag {
+token tag
+{
     '@' <var_name>
 }
 
-token exclamation_mark {
+token exclamation_mark
+{
     '!'
 }
 
-token important {
+token important
+{
     <exclamation_mark>+
 }
 
-token description {
+token description
+{
     '"'
     <-["\\]>*
     [ \\ . <-["\\]>* ]*
     '"'
 }
 
-token header {
+token header
+{
     <iso_date>
     [ \h+ <description> ]?
     [ \h+ [ <tag> || <important> ] ]*
     \h* <comment>?
 }
 
-token account_main {
+token account_main
+{
     [ :i
        Asset[s]?
     || Expense[s]?
@@ -75,41 +89,61 @@ token account_main {
     ]
 }
 
-token reserved {
+token reserved
+{
     [ :i
        currencies
     || 'base-currency'
     ]
 }
 
-token account_sub {
+token account_sub
+{
     <var_char>+
 }
 
-token account {
+token account
+{
     <account_main>
-    ':' <entity=.account_sub> { $/ !~~ / [ :i currencies || 'base-currency' ] / or die "Sorry, use of any reserved word as an entity or account name is forbidden"; }
-    [ ':' <account_sub> { $/ !~~ / [ :i currencies || 'base-currency' ] / or die "Sorry, use of any reserved word as an entity or account name is forbidden"; } ]*
+    ':' <entity=.account_sub>
+    {
+        $/ !~~ / [ :i currencies || 'base-currency' ] /
+            or die "Sorry, use of any reserved word as an entity or",
+                " account name is forbidden";
+    }
+    [
+        ':' <account_sub>
+        {
+            $/ !~~ / [ :i currencies || 'base-currency' ] /
+                or die "Sorry, use of any reserved word as an entity or",
+                    " account name is forbidden";
+        }
+    ]*
 }
 
-token commodity_minus {
+token commodity_minus
+{
     '-'
 }
 
-token commodity_symbol {
+token commodity_symbol
+{
     \D+
 }
 
-token commodity_code {
+token commodity_code
+{
     <:Letter>+
 }
 
-token commodity_quantity {
+token commodity_quantity
+{
     \d+ [ '.' \d+ ]?
     || '.' \d+
 }
 
-token exchange_rate {
+token exchange_rate
+{
     '@' \h+
     [
         <commodity_symbol>? \h* <commodity_quantity> \h+ <commodity_code>    # @ $830.024 USD
@@ -117,28 +151,36 @@ token exchange_rate {
     ]
 }
 
-token transaction {
-    <commodity_minus>? <commodity_symbol>? \h* <commodity_quantity> \h+ <commodity_code> [\h+ <exchange_rate>]?       # -$100.00 USD
-    || <commodity_symbol>? \h* <commodity_minus>? <commodity_quantity> \h+ <commodity_code> [\h+ <exchange_rate>]?    # $-100.00 USD
-    || <commodity_code> \h+ <commodity_minus>? <commodity_quantity> [\h+ <exchange_rate>]?                            # USD -100.00
+token transaction
+{
+    <commodity_minus>? <commodity_symbol>? \h* <commodity_quantity>
+        \h+ <commodity_code> [\h+ <exchange_rate>]?                       # -$100.00 USD
+    || <commodity_symbol>? \h* <commodity_minus>? <commodity_quantity>
+            \h+ <commodity_code> [\h+ <exchange_rate>]?                   # $-100.00 USD
+    || <commodity_code> \h+ <commodity_minus>? <commodity_quantity>
+        [\h+ <exchange_rate>]?                                            # USD -100.00
 }
 
-token posting {
+token posting
+{
     <comment> || <account> ** 1 \h+ <transaction> ** 1 [\h+ <comment>]?
 }
 
-token entry {
+token entry
+{
     [ ^^ <header> $$ \n ] ** 1
     [ ^^ \h ** 2..* <posting> $$ \n ]+
 }
 
-token journal {
+token journal
+{
     ^^ \h* $$ \n                 # blank lines
     || ^^ \h* <comment> $$ \n    # comment lines
     || <entry>                   # journal entries
 }
 
-token TOP {
+token TOP
+{
     <journal>*
 }
 

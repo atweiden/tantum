@@ -19,7 +19,8 @@ has $.entity;
 has @.subaccount;
 has %.amounts;
 
-method mksilo(Str $str) returns Silo {
+method mksilo(Str $str) returns Silo
+{
     my Silo %silo = "ASSETS" => ASSETS,
                     "EXPENSES" => EXPENSES,
                     "INCOME" => INCOME,
@@ -28,10 +29,14 @@ method mksilo(Str $str) returns Silo {
     return %silo{$str};
 }
 
-method mkdrcr(Bool $commodity_minus) returns DrCr {
-    if $commodity_minus {
+method mkdrcr(Bool $commodity_minus) returns DrCr
+{
+    if $commodity_minus
+    {
         return DEBIT;
-    } else {
+    }
+    else
+    {
         return CREDIT;
     }
 }
