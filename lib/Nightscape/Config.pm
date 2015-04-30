@@ -23,9 +23,7 @@ has %.entities is rw;
 # |                         |                    |
 # |        +-----------------------------------+ |
 # |        | Nightscape::Pricesheet has a      | |
-# |        | C<hash of                         | |
 # |        | C<hash of Prices indexed by Date> | |
-# |        | indexed by commodity code>        | |
 # |        | indexed by commodity code         | |
 # |        |                                   | |
 # |        |        +------------------------+ | |
@@ -117,14 +115,14 @@ method gen_pricesheet(:%prices!) returns Nightscape::Pricesheet {
     #                   :USD(
     #                       Date.new("2014-01-01") => 876.54,
     #                       Date.new("2014-01-02") => 765.43,
-    #                       Date.new("2014-01-03") => 654.32,
-    #                       Date.new("2014-01-04") => 543.21,    # from price-file
-    #                       Date.new("2014-01-05") => 432.10     # from price-file
+    #                       Date.new("2014-01-03") => 654.32,    # from price-file
+    #                       Date.new("2014-01-04") => 543.21     # from price-file
     #                   ),
     #                   :EUR(
     #                       Date.new("2014-01-01") => 500.00,
     #                       Date.new("2014-01-02") => 400.00,
-    #                       Date.new("2014-01-03") => 300.00     # from price-file
+    #                       Date.new("2014-01-03") => 300.00,    # from price-file
+    #                       Date.new("2014-01-03") => 200.00     # from price-file
     #                   )
     #               )
     #             )
@@ -154,8 +152,7 @@ method gen_pricesheet(:%prices!) returns Nightscape::Pricesheet {
         # merge %dates_and_prices_from_file with %dates_and_prices,
         # with values from %dates_and_prices keys overwriting
         # values from equivalent %dates_and_prices_from_file keys
-        my Price %xz{Date} = (%dates_and_prices_from_file, %dates_and_prices);
-        my Price %xe{Date} = %xz;
+        my Price %xe{Date} = (%dates_and_prices_from_file, %dates_and_prices);
         $pricesheet = Nightscape::Pricesheet.new(
             :prices( %($currency => %xe) )
         );
