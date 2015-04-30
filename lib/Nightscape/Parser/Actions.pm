@@ -86,13 +86,14 @@ method posting($/) {
                     $posting_value = $posting_commodity_quantity * $exchange_rate<commodity_quantity>;
                 } else {
                     # error: exchange rate given in transaction journal doesn't match the posting entity's base-currency
+                    my $xecc = $exchange_rate<commodity_code>;
                     my $help_text_faulty_exchange_rate = qq:to/EOF/;
                     Sorry, exchange rate detected in transaction journal doesn't
                     match the parsed entity's base-currency:
 
                         entity: 「$posting_entity」
                         base-currency: 「$posting_entity_base_currency」
-                        exchange rate currency code given in journal: 「$exchange_rate<commodity_code>」
+                        exchange rate currency code given in journal: 「$xecc」
 
                     To debug, verify that the entity has been configured with the
                     correct base-currency. Then verify the transaction journal
@@ -101,7 +102,10 @@ method posting($/) {
                     EOF
                     die $help_text_faulty_exchange_rate.trim;
                 }
-            } elsif my $price = self.conf.currencies{$posting_commodity_code}<Prices>{$posting_entity_base_currency}{$entry_date} {
+            } elsif my $price = self.conf.getprice(
+                aux => $posting_commodity_code,
+                base => $posting_entity_base_currency,
+                date => $entry_date) {
                 # calculating posting value in base currency based on exchange rate given in config file
                 $posting_value = $posting_commodity_quantity * $price;
             } else {
@@ -118,10 +122,12 @@ method posting($/) {
                         date: 「$entry_date」
                         entity: 「$posting_entity」
                         base-currency: 「$posting_entity_base_currency」
-                        exchange rate currency code given in config: 「$exchange_rate<commodity_code>」
+                        currency code given in journal: 「$posting_commodity_code」
 
-                To debug, verify that the entity has been configured with
-                the correct base-currency for entry number $entry_number.
+                To debug, confirm that the data for price pair $posting_entity_base_currency/$posting_commodity_code
+                on $entry_date was entered accurately for entry number
+                $entry_number. Verify that the entity has been configured
+                with the correct base-currency.
                 EOF
                 die $help_text_faulty_exchange_rate_in_config_file.trim;
             }
