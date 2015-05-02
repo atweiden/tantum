@@ -1,8 +1,7 @@
 use v6;
+use Nightscape::Specs;
 class Nightscape::Pricesheet;
 
-subset Price of Rat is export where * > 0;
-
-has Hash[Price,Date] %.prices{Str};
+has Hash[Price,Date] %.prices{CommodityCode};
 
 # vim: ft=perl6
