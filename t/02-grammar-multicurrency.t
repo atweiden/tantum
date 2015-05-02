@@ -42,7 +42,11 @@ EOTX
 
 {
     my $match = Nightscape::Parser::Grammar.parse($content);
-    is($match.WHAT.perl, 'Match', 'Parses multicurrency journal successfully');
+    is(
+        $match.WHAT.perl,
+        'Match',
+        'Parses multicurrency journal successfully'
+    );
 }
 
 # vim: ft=perl6
