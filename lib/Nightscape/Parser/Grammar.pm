@@ -10,6 +10,11 @@ token ws
     \h*      # only match horizontal whitespace
 }
 
+token blank_line
+{
+    ^^ \h* $$ \n
+}
+
 token comment
 {
     '#' \N*
@@ -75,10 +80,10 @@ token header
     <iso_date>
     [ \h+ <description> ]?
     [ \h+ [ <tag> || <important> ] ]*
-    \h* <comment>?
+    \h* <eol_comment=.comment>?
 }
 
-token account_main
+token silo
 {
     [ :i
        Asset[s]?
@@ -104,18 +109,18 @@ token account_sub
 
 token account
 {
-    <account_main>
+    <silo>
     ':' <entity=.account_sub>
     {
         $/ !~~ / [ :i currencies || 'base-currency' ] /
-            or die "Sorry, use of any reserved word as an entity or",
+            or die "Sorry, use of reserved word ($/) as an entity or",
                 " account name is forbidden";
     }
     [
         ':' <account_sub>
         {
             $/ !~~ / [ :i currencies || 'base-currency' ] /
-                or die "Sorry, use of any reserved word as an entity or",
+                or die "Sorry, use of reserved word ($/) as an entity or",
                     " account name is forbidden";
         }
     ]*
@@ -151,7 +156,7 @@ token exchange_rate
     ]
 }
 
-token transaction
+token amount
 {
     <commodity_minus>? <commodity_symbol>? \h* <commodity_quantity>
         \h+ <commodity_code> [\h+ <exchange_rate>]?                       # -$100.00 USD
@@ -163,20 +168,26 @@ token transaction
 
 token posting
 {
-    <comment> || <account> ** 1 \h+ <transaction> ** 1 [\h+ <comment>]?
+    <account> ** 1 \h+ <amount> ** 1 [\h+ <eol_comment=.comment>]?
 }
 
 token entry
 {
     [ ^^ <header> $$ \n ] ** 1
-    [ ^^ \h ** 2..* <posting> $$ \n ]+
+    [
+        ^^ \h ** 2..*
+        [
+            <posting> || <posting_comment=.comment>
+        ]
+        $$ \n
+    ]+
 }
 
 token journal
 {
-    ^^ \h* $$ \n                 # blank lines
-    || ^^ \h* <comment> $$ \n    # comment lines
-    || <entry>                   # journal entries
+    <blank_line>                               # blank lines
+    || ^^ \h* <comment_line=.comment> $$ \n    # comment lines
+    || <entry>                                 # journal entries
 }
 
 token TOP
