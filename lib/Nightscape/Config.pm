@@ -81,7 +81,7 @@ method ls_entities(%toml)
 # return base-currency of entity
 # if not configured for entity, return toplevel base-currency
 # if toplevel base-currency not configured, exit with an error
-method get_base_currency(VarName $entity) returns VarName
+method get_base_currency(VarName $entity) returns CommodityCode
 {
     if my $entity_base_currency = self.entities{$entity}<base-currency>
     {
