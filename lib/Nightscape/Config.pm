@@ -1,13 +1,14 @@
 use v6;
 use Nightscape::Pricesheet;
+use Nightscape::Specs;
 class Nightscape::Config;
 
 has Str $.config_file = "%*ENV<HOME>/.config/nightscape/config.toml";
 has Str $.data_dir = "%*ENV<HOME>/.nightscape";
 has Str $.log_dir = "$!data_dir/logs";
 has Str $.currencies_dir = "$!data_dir/currencies";
-has Str $.base_currency is rw;
-has Nightscape::Pricesheet %.currencies{Str} is rw;
+has CommodityCode $.base_currency is rw;
+has Nightscape::Pricesheet %.currencies{CommodityCode} is rw;
 has %.entities is rw;
 
 #  %.currencies
@@ -39,7 +40,7 @@ has %.entities is rw;
 # filter currencies from unvalidated %toml config
 method ls_currencies(%toml)
 {
-    my Str $currencies_header;
+    my VarName $currencies_header;
     %toml.map({
         $currencies_header = $/.orig.Str if $_.keys ~~ m:i / ^currencies /;
     });
@@ -57,17 +58,15 @@ method ls_currencies(%toml)
 # filter entities from unvalidated %toml config
 method ls_entities(%toml)
 {
-    my Str @entities_found;
+    my VarName @entities_found;
     use Nightscape::Parser::Grammar;
     %toml.map({
-        if my $parsed_section = Nightscape::Parser::Grammar.parse(
-            $_.keys,
-            :rule<account_sub>
-        )
+        if my $parsed_section =
+            Nightscape::Parser::Grammar.parse($_.keys, :rule<account_sub>)
         {
             push @entities_found, $parsed_section.orig.Str
-            unless Nightscape::Parser::Grammar.parse($parsed_section.orig,
-                                                     :rule<reserved>);
+                unless Nightscape::Parser::Grammar.parse($parsed_section.orig,
+                                                         :rule<reserved>);
         }
     });
 
@@ -82,7 +81,7 @@ method ls_entities(%toml)
 # return base-currency of entity
 # if not configured for entity, return toplevel base-currency
 # if toplevel base-currency not configured, exit with an error
-method get_base_currency(Str $entity) returns Str
+method get_base_currency(VarName $entity) returns VarName
 {
     if my $entity_base_currency = self.entities{$entity}<base-currency>
     {
@@ -201,11 +200,9 @@ method gen_pricesheet(:%prices!) returns Nightscape::Pricesheet
 # given posting commodity code (aux), base commodity code (base), and
 # a date, return price of aux in terms of base on date.
 method getprice(
-    Str :$aux!,
-    Str :$base!,
-    Date :$date!,
-    Str :$entity,
-    Str :$tag
+    CommodityCode :$aux!,
+    CommodityCode :$base!,
+    Date :$date!
 ) returns Price
 {
     # in-journal > tag-specific > entity-specific > toplevel
