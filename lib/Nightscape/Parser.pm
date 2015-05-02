@@ -5,7 +5,8 @@ class Nightscape::Parser;
 
 method parse($content, $conf)
 {
-    my $actions = Nightscape::Parser::Actions.new(:$conf);
+    my Nightscape::Parser::Actions $actions =
+        Nightscape::Parser::Actions.new(:$conf);
     Nightscape::Parser::Grammar.parse($content, :$actions);
 }
 
