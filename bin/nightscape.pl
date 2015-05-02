@@ -20,8 +20,9 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$currencies-dir)
     # initialize config profile from cmdline args
     {
         # create default config profile
-        $nightscape.mkconf;
+        $nightscape.conf = $nightscape.gen_conf;
 
+        # assemble config from cmdline args
         my %config;
         if $config
         {
@@ -63,7 +64,8 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$currencies-dir)
             }
         }
 
-        if $data-dir {
+        if $data-dir
+        {
             # check data dir passed as cmdline arg exists
             if $data-dir.IO.d
             {
@@ -146,8 +148,8 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$currencies-dir)
             }
         }
 
-        # assemble config from cmdline args
-        $nightscape.mkconf(%config);
+        # apply config
+        $nightscape.conf = $nightscape.gen_conf(%config);
     }
 
     # prepare entities and currencies for transaction journal parsing
@@ -192,12 +194,13 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$currencies-dir)
 
     if $file.IO.e
     {
-        $nightscape.mkjournal($file);
+        $nightscape.txjournal = $nightscape.gen_txjournal($file);
+
         say qq:to/EOF/;
         Journal
         -------
         EOF
-        say $nightscape.journal;
+        say $nightscape.txjournal.perl;
     }
     else
     {
