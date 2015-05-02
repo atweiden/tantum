@@ -16,7 +16,7 @@ method gen_txjournal(Str $file)
     use Nightscape::Parser;
     if my $parsed = Nightscape::Parser.parse(slurp($file), self.conf)
     {
-        # filter entries, sort by importance descending then by date ascending
+        # filter entries, sorted by date ascending then by importance descending
         $parsed.made.grep({
             .entry
         }).sort({
