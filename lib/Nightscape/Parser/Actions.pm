@@ -19,7 +19,7 @@ method iso_date($/)
     try
     {
         make Date.new("$/");
-        CATCH { say "Sorry, invalid date ($/)"; }
+        CATCH { say "Sorry, invalid date 「$/」"; }
     }
 }
 
