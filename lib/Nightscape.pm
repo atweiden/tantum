@@ -11,13 +11,13 @@ method gen_conf(%conf?) returns Nightscape::Config
     Nightscape::Config.new(|%conf);
 }
 
-method gen_txjournal(Str $file)
+method gen_txjournal(Str $file) returns Array[Nightscape::Journal]
 {
     use Nightscape::Parser;
     if my $parsed = Nightscape::Parser.parse(slurp($file), self.conf)
     {
-        # filter entries, sorted by date ascending then by importance descending
-        $parsed.made.grep({
+        # return entries, sorted by date ascending then by importance descending
+        my Nightscape::Journal @txjournal = $parsed.made.grep({
             .entry
         }).sort({
             $^b.entry.header.important > $^a.entry.header.important
