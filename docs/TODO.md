@@ -241,3 +241,44 @@ Reports
 -------
 
 - Generate reports
+
+
+Tentative
+---------
+
+#### implement hard check of one entity per journal entry
+
+#### implement lib/Nightscape/Entity.pm
+
+```perl6
+has Date $.open;
+has Date $.close;
+has VarName $.name;
+has Nightscape::Entity::SubAccount %.subaccount{VarName};
+#inventory?
+```
+
+#### implement lib/Nightscape/Entity/SubAccount.pm
+
+- open / closed
+- inventory
+  - for tracking FIFO
+- config stuff
+  - must_balance?
+
+#### implement name option for accounts and title option for journal
+
+```toml
+title = "My Transactions" # this title used in generated reports
+
+[FooBar]
+name = "Foo Bar Enterprises Ltd." # this name used in generated reports
+```
+
+#### implement @@ exchange rate parsing rules
+
+```transactions
+2014-01-01 "I bought coins on Coinbase"
+  Assets:Personal:Coinbase:BTC         0.40 BTC @@ $100.00 USD
+  Assets:Personal:Bankwest:Cheque  -$100.00 USD
+```
