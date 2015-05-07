@@ -144,7 +144,7 @@ method gen_pricesheet(:%prices!) returns Nightscape::Pricesheet
     #                       Date.new("2014-01-01") => 500.00,
     #                       Date.new("2014-01-02") => 400.00,
     #                       Date.new("2014-01-03") => 300.00,    # from price-file
-    #                       Date.new("2014-01-03") => 200.00     # from price-file
+    #                       Date.new("2014-01-04") => 200.00     # from price-file
     #                   )
     #               )
     #             )
