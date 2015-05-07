@@ -45,28 +45,16 @@ method header($/)
     $entry_date = $<iso_date>».made.pairs[0].value;
 
     # entry description
-    my Str $description;
-    $<description>
-        ?? ( $description = substr($<description>, 1, *-1).trim )
-        !! ( $description = Nil );
+    my Str $description = try {substr($<description>, 1, *-1).trim} // Nil;
 
     # entry importance
-    my Int $important;
-    $<important>
-        ?? ( $important = [+] $<important>».made )
-        !! ( $important = 0 );
+    my Int $important = [+] $<important>».made // 0;
 
     # entry tags
-    my VarName @tags;
-    $<tag>
-        ?? ( @tags = $<tag>».made )
-        !! ( @tags = Nil );
+    my VarName @tags = $<tag>».made // Nil;
 
     # entry eol comment
-    my Str $eol_comment;
-    $<eol_comment>
-        ?? ( $eol_comment = substr($<eol_comment>, 1, *-0).trim )
-        !! ( $eol_comment = Nil );
+    my Str $eol_comment = try {substr($<eol_comment>, 1, *-0).trim} // Nil;
 
     # make entry header
     make Nightscape::Journal::Entry::Header.new(
@@ -88,10 +76,7 @@ method account($/)
     my VarName $entity = $<entity>.Str;
 
     # subaccount
-    my VarName @subaccount;
-    $<account_sub>
-        ?? ( @subaccount = $<account_sub>.list».Str )
-        !! ( @subaccount = Nil );
+    my VarName @subaccount = $<account_sub>.list».Str // Nil;
 
     # make account
     make Nightscape::Journal::Entry::Posting::Account.new(
@@ -104,10 +89,7 @@ method account($/)
 method exchange_rate($/)
 {
     # commodity symbol
-    my Str $commodity_symbol;
-    $<commodity_symbol>
-        ?? ( $commodity_symbol = $<commodity_symbol>.Str )
-        !! ( $commodity_symbol = Nil );
+    my Str $commodity_symbol = $<commodity_symbol>.Str // Nil;
 
     # commodity code
     my CommodityCode $commodity_code = $<commodity_code>.Str;
@@ -126,10 +108,7 @@ method exchange_rate($/)
 method amount($/)
 {
     # commodity symbol
-    my Str $commodity_symbol;
-    $<commodity_symbol>
-        ?? ( $commodity_symbol = $<commodity_symbol>.Str )
-        !! ( $commodity_symbol = Nil );
+    my Str $commodity_symbol = $<commodity_symbol>.Str // Nil;
 
     # commodity code
     my CommodityCode $commodity_code = $<commodity_code>.Str;
@@ -141,10 +120,8 @@ method amount($/)
     my Str $commodity_minus = $<commodity_minus>.Str;
 
     # exchange rate
-    my Nightscape::Journal::Entry::Posting::Amount::XE $exchange_rate;
-    $<exchange_rate>
-        ?? ( $exchange_rate = $<exchange_rate>».made.pairs[0].value )
-        !! ( $exchange_rate = Nil );
+    my Nightscape::Journal::Entry::Posting::Amount::XE $exchange_rate =
+        $<exchange_rate>».made.pairs[0].value // Nil;
 
     # make amount
     make Nightscape::Journal::Entry::Posting::Amount.new(
@@ -170,26 +147,27 @@ method posting($/)
     my DrCr $drcr = Nightscape::Specs.mkdrcr: $amount.commodity_minus.Bool;
 
     # entity
-    my $posting_entity = $account.entity;
+    my VarName $posting_entity = $account.entity;
 
     # entity's base currency
-    my $posting_entity_base_currency =
+    my CommodityCode $posting_entity_base_currency =
         self.conf.get_base_currency($posting_entity);
 
     # posting commodity code
-    my $posting_commodity_code = $amount.commodity_code;
+    my CommodityCode $posting_commodity_code = $amount.commodity_code;
 
     # posting commodity quantity
-    my $posting_commodity_quantity = $amount.commodity_quantity;
+    my Rat $posting_commodity_quantity = $amount.commodity_quantity;
 
     # posting value
-    my $posting_value;
+    my Rat $posting_value;
 
     # search for exchange rate?
     if $posting_commodity_code !eq $posting_entity_base_currency
     {
         # is an exchange rate given in the transaction journal?
-        if my $exchange_rate = $amount.exchange_rate
+        if my Nightscape::Journal::Entry::Posting::Amount::XE $exchange_rate =
+            $amount.exchange_rate
         {
             # try calculating posting value in base currency
             if $exchange_rate.commodity_code eq $posting_entity_base_currency
@@ -201,8 +179,8 @@ method posting($/)
             else
             {
                 # error: suitable exchange rate not found
-                my $xecc = $exchange_rate.commodity_code;
-                my $help_text_faulty_exchange_rate = qq:to/EOF/;
+                my CommodityCode $xecc = $exchange_rate.commodity_code;
+                my Str $help_text_faulty_exchange_rate = qq:to/EOF/;
                 Sorry, exchange rate detected in transaction journal
                 doesn't match the parsed entity's base-currency:
 
@@ -219,19 +197,26 @@ method posting($/)
             }
         }
         # is an exchange rate given in config?
-        elsif my $price = self.conf.getprice(
+        elsif my Price $price = self.conf.getprice(
             aux => $posting_commodity_code,
             base => $posting_entity_base_currency,
             date => $entry_date
         )
         {
+            # set exchange rate
+            $amount.exchange_rate =
+                Nightscape::Journal::Entry::Posting::Amount::XE.new(
+                    commodity_code => $posting_entity_base_currency,
+                    commodity_quantity => $price
+                );
+
             # try calculating posting value in base currency
             $posting_value = $posting_commodity_quantity * $price;
         }
         else
         {
             # error: suitable exchange rate not found
-            my $help_text_faulty_exchange_rate_in_config_file = qq:to/EOF/;
+            my Str $help_text_faulty_exchange_rate_in_config_file = qq:to/EOF/;
             Sorry, exchange rate missing for posting in transaction
             journal.
 
@@ -277,11 +262,8 @@ method entry($/)
         @<posting>».made.list.values;
 
     # posting comments
-    my Str @posting_comments;
-    $<posting_comment>
-        ?? ( @posting_comments =
-                 $<posting_comment>».Str».map({ substr($_, 1, *-0).trim }) )
-        !! ( @posting_comments = Nil );
+    my Str @posting_comments =
+        $<posting_comment>».Str».map({ try {substr($_, 1, *-0).trim} }) // Nil;
 
     # verify entry is limited to one entity
     my VarName @entities;
@@ -304,19 +286,12 @@ method journal($/)
     my Bool $is_blank_line = $<blank_line>.Bool;
 
     # comment line
-    my Str $comment_line;
-    $<comment_line>
-        ?? ( $comment_line =
-                 $<comment_line>.Str.map({
-                     substr($_, 1, *-0).trim
-                 }).pairs[0].value )
-        !! ( $comment_line = Nil );
+    my Str $comment_line =
+        $<comment_line>.Str.map({ try {substr($_, 1, *-0).trim} }).pairs[0].value // Nil;
 
     # journal entry
     my Nightscape::Journal::Entry $entry;
-    $<entry>
-        ?? ( $entry = $<entry>».made.pairs[0].value )
-        !! ( $entry = Nil );
+    $entry = $<entry>».made.pairs[0].value // Nil;
 
     # make journal
     make Nightscape::Journal.new(
