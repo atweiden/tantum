@@ -18,6 +18,7 @@ method iso_date($/)
 {
     try
     {
+        # make valid ISO 8601 date or exit with an error
         make Date.new("$/");
         CATCH { say "Sorry, invalid date 「$/」"; }
     }
@@ -25,11 +26,13 @@ method iso_date($/)
 
 method tag($/)
 {
+    # make tag (with leading @ stripped)
     make substr($/, 1, *-0);
 }
 
 method important($/)
 {
+    # make important the quantity of exclamation marks
     make $/.chars;
 }
 
@@ -255,6 +258,7 @@ method posting($/)
         }
     }
 
+    # make posting
     make Nightscape::Journal::Entry::Posting.new(
         account => $account,
         amount => $amount,
