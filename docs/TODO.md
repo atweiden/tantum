@@ -246,7 +246,7 @@ Reports
 Tentative
 ---------
 
-#### implement hard check of one entity per journal entry
+#### implement hard check of one entity per journal entry [CHECK]
 
 #### implement lib/Nightscape/Entity.pm
 

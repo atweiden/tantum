@@ -270,7 +270,7 @@ method entry($/)
 
     # postings
     my Nightscape::Journal::Entry::Posting @postings =
-        $<posting>».made.pairs[0].value;
+        @<posting>».made.list.values;
 
     # posting comments
     my Str @posting_comments;
@@ -279,6 +279,13 @@ method entry($/)
                  $<posting_comment>».Str».map({ substr($_, 1, *-0).trim }) )
         !! ( @posting_comments = Nil );
 
+    # verify entry is limited to one entity
+    my VarName @entities;
+    push @entities, $_.account.entity for @postings;
+    die "Sorry, only one entity per journal entry allowed"
+        if @entities.grep({ $_ ~~ @entities[0] }).elems != @entities.elems;
+
+    # make entry
     make Nightscape::Journal::Entry.new(
         header => $header,
         postings => @postings,
