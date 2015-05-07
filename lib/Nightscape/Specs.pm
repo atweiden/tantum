@@ -1,7 +1,7 @@
 use v6;
 class Nightscape::Specs;
 
-subset Price of Rat is export where * > 0;
+subset Price of Rat is export where * >= 0;
 
 subset VarName of Str is export where
 {
