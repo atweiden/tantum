@@ -5,7 +5,7 @@ class Nightscape::Journal::Entry::Posting::Amount;
 
 has CommodityCode $.commodity_code;
 has Str $.commodity_minus;
-has Rat $.commodity_quantity;
+has Quantity $.commodity_quantity;
 has Str $.commodity_symbol;
 has Nightscape::Journal::Entry::Posting::Amount::XE $.exchange_rate is rw;
 

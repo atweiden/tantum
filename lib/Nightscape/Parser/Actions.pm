@@ -95,7 +95,7 @@ method exchange_rate($/)
     my CommodityCode $commodity_code = $<commodity_code>.Str;
 
     # commodity quantity
-    my Rat $commodity_quantity = $<commodity_quantity>.abs;
+    my Quantity $commodity_quantity = $<commodity_quantity>.abs;
 
     # make exchange rate
     make Nightscape::Journal::Entry::Posting::Amount::XE.new(
@@ -114,7 +114,7 @@ method amount($/)
     my CommodityCode $commodity_code = $<commodity_code>.Str;
 
     # commodity quantity
-    my Rat $commodity_quantity = $<commodity_quantity>.abs;
+    my Quantity $commodity_quantity = $<commodity_quantity>.abs;
 
     # commodity minus
     my Str $commodity_minus = $<commodity_minus>.Str;
@@ -157,10 +157,10 @@ method posting($/)
     my CommodityCode $posting_commodity_code = $amount.commodity_code;
 
     # posting commodity quantity
-    my Rat $posting_commodity_quantity = $amount.commodity_quantity;
+    my Quantity $posting_commodity_quantity = $amount.commodity_quantity;
 
     # posting value
-    my Rat $posting_value;
+    my Quantity $posting_value;
 
     # search for exchange rate?
     if $posting_commodity_code !eq $posting_entity_base_currency

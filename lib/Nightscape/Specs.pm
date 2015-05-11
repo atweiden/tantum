@@ -3,6 +3,8 @@ class Nightscape::Specs;
 
 subset Price of Rat is export where * >= 0;
 
+subset Quantity of Rat is export where * >= 0;
+
 subset VarName of Str is export where
 {
     use Nightscape::Parser::Grammar;
