@@ -152,7 +152,7 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$currencies-dir)
         $nightscape.conf = $nightscape.gen_conf(%config);
     }
 
-    # prepare entities and currencies for transaction journal parsing
+    # prepare currencies and entities for transaction journal parsing
     {
         # parse TOML config
         my %toml;
@@ -170,20 +170,22 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$currencies-dir)
             }
         }
 
+        # set base currency from mandatory toplevel config directive
+        $nightscape.conf.base_currency = %toml<base-currency>
+            or die "Sorry, could not find global base-currency",
+                " in config (mandatory).";
+
+        # populate currencies
+        for $nightscape.conf.ls_currencies(%toml).kv -> $code, $prices
+        {
+            $nightscape.conf.currencies{$code} =
+                $nightscape.conf.gen_pricesheet( prices => $prices<Prices> );
+        }
+
         # populate entities
         for $nightscape.conf.ls_entities(%toml).kv -> $name, $rest
         {
             $nightscape.conf.entities{$name} = $rest;
-        }
-
-        # populate currencies
-        $nightscape.conf.base_currency = %toml<base-currency>
-            or die "Sorry, could not find global base-currency",
-                " in config (mandatory).";
-        for $nightscape.conf.ls_currencies(%toml).kv -> $code, $prices
-        {
-            $nightscape.conf.currencies{$code} =
-                $nightscape.conf.gen_pricesheet( prices => $prices<Prices>);
         }
     }
 
