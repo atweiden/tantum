@@ -44,7 +44,7 @@ my Nightscape $nightscape = Nightscape.new(
     for $nightscape.conf.ls_currencies(%toml).kv -> $code, $prices
     {
         $nightscape.conf.currencies{$code} =
-            $nightscape.conf.gen_pricesheet( prices => $prices<Prices>);
+            $nightscape.conf.gen_pricesheet(prices => $prices<Prices>);
     }
 }
 
