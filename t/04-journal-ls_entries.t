@@ -95,7 +95,7 @@ else
     # Lorem
     my @entries_by_entity_lorem = Nightscape.ls_entries(
         :txjournal($nightscape.txjournal),
-        :entity("Lorem")
+        :entity(/Lorem/)
     );
     is(
         @entries_by_entity_lorem.elems,
@@ -103,7 +103,7 @@ else
         q:to/EOF/
         ♪ [ls_entries] - 3 of 4
         ┏━━━━━━━━━━━━━┓
-        ┃             ┃  ∙ Passed argument of :entity("Lorem") returns 0
+        ┃             ┃  ∙ Passed argument of :entity(/Lorem/) returns 0
         ┃   Success   ┃    entries, as expected.
         ┃             ┃
         ┗━━━━━━━━━━━━━┛
@@ -116,7 +116,7 @@ else
     # Personal
     my @entries_by_entity_personal = Nightscape.ls_entries(
         :txjournal($nightscape.txjournal),
-        :entity("Personal")
+        :entity(/Personal/)
     );
     is(
         @entries_by_entity_personal.elems,
@@ -124,7 +124,7 @@ else
         q:to/EOF/
         ♪ [ls_entries] - 4 of 4
         ┏━━━━━━━━━━━━━┓
-        ┃             ┃  ∙ Passed argument of :entity("Personal") returns 7
+        ┃             ┃  ∙ Passed argument of :entity(/Personal/) returns 7
         ┃   Success   ┃    entries, as expected.
         ┃             ┃
         ┗━━━━━━━━━━━━━┛

@@ -35,20 +35,20 @@ method gen_txjournal(Str $file) returns Array[Nightscape::Journal]
 method ls_entries(
     Nightscape::Journal :@txjournal!,
     Date :$date,
-    Str :$description,
-    Str :$entity,
+    Regex :$description,
+    Regex :$entity,
     Int :$id,
     Int :$important,
-    Str :$tag
+    Regex :$tag
 ) returns Array[Nightscape::Journal]
 {
     my Nightscape::Journal @entries = @txjournal;
     @entries = self._ls_entries(:txjournal(@entries), :$date) if $date;
-    @entries = self._ls_entries(:txjournal(@entries), :$description) if $description;
-    @entries = self._ls_entries(:txjournal(@entries), :$entity) if $entity;
+    @entries = self._ls_entries(:txjournal(@entries), :$description) if defined $description;
+    @entries = self._ls_entries(:txjournal(@entries), :$entity) if defined $entity;
     @entries = self._ls_entries(:txjournal(@entries), :$id) if $id;
     @entries = self._ls_entries(:txjournal(@entries), :$important) if $important;
-    @entries = self._ls_entries(:txjournal(@entries), :$tag) if $tag;
+    @entries = self._ls_entries(:txjournal(@entries), :$tag) if defined $tag;
     @entries;
 }
 
@@ -65,7 +65,7 @@ multi method _ls_entries(
 # list entries by entity
 multi method _ls_entries(
     Nightscape::Journal :@txjournal!,
-    Str :$entity!
+    Regex :$entity!
 ) returns Array[Nightscape::Journal]
 {
     my Nightscape::Journal @entries =
