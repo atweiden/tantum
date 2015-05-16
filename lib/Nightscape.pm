@@ -83,9 +83,8 @@ multi submethod _ls_entries(
     Date :$date!
 ) returns Array[Nightscape::Journal]
 {
-    my Nightscape::Journal @entries = @txjournal.grep({
-        .entry.header.date ~~ $date
-    });
+    my Nightscape::Journal @entries =
+        @txjournal.grep({ .entry.header.date ~~ $date });
     @entries;
 }
 
@@ -96,9 +95,7 @@ multi submethod _ls_entries(
 ) returns Array[Nightscape::Journal]
 {
     my Nightscape::Journal @entries =
-        @txjournal.grep({
-            .entry.postings[0].account.entity ~~ $entity
-        });
+        @txjournal.grep({ .entry.postings[0].account.entity ~~ $entity });
     @entries;
 }
 
