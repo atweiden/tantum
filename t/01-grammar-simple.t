@@ -40,7 +40,14 @@ EOTX
     is(
         $match.WHAT.perl,
         'Match',
-        'Parses simple journal successfully'
+        q:to/EOF/
+        ♪ [Nightscape::Parser::Grammar.parse($content)] - 1 of 1
+        ┏━━━━━━━━━━━━━┓
+        ┃             ┃  ∙ Parses simple journal successfully
+        ┃   Success   ┃
+        ┃             ┃
+        ┗━━━━━━━━━━━━━┛
+        EOF
     );
 }
 

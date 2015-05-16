@@ -45,7 +45,14 @@ EOTX
     is(
         $match.WHAT.perl,
         'Match',
-        'Parses multicurrency journal successfully'
+        q:to/EOF/
+        ♪ [Nightscape::Parser::Grammar.parse($content)] - 1 of 1
+        ┏━━━━━━━━━━━━━┓
+        ┃             ┃  ∙ Parses multicurrency journal successfully
+        ┃   Success   ┃
+        ┃             ┃
+        ┗━━━━━━━━━━━━━┛
+        EOF
     );
 }
 
