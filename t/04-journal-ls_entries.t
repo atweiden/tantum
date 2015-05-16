@@ -3,7 +3,7 @@ use lib 'lib';
 use Test;
 use Nightscape;
 
-plan 3;
+plan 4;
 
 my Str $file = "examples/sample.transactions";
 
@@ -69,8 +69,11 @@ else
         1,
         q:to/EOF/
         ♪ [ls_entries] - 1 of 4
-        Passed argument of :date(Date.new("2014-01-03")) returns 1 entry,
-        as expected.
+        ┏━━━━━━━━━━━━━┓
+        ┃             ┃  ∙ Passed argument of :date(Date.new("2014-01-03"))
+        ┃   Success   ┃    returns 1 entry, as expected.
+        ┃             ┃
+        ┗━━━━━━━━━━━━━┛
         EOF
     );
     is(
@@ -78,8 +81,11 @@ else
         Date.new("2014-01-03"),
         q:to/EOF/
         ♪ [ls_entries] - 2 of 4
-        Passed argument of :date(Date.new("2014-01-03")) returns entries
-        with entry header date of Date.new(2014-01-03), as expected.
+        ┏━━━━━━━━━━━━━┓
+        ┃             ┃  ∙ Passed argument of :date(Date.new("2014-01-03"))
+        ┃   Success   ┃    returns entries with entry header date of
+        ┃             ┃    Date.new("2014-01-03"), as expected.
+        ┗━━━━━━━━━━━━━┛
         EOF
     );
 }
@@ -89,15 +95,18 @@ else
     # Lorem
     my @entries_by_entity_lorem = Nightscape.ls_entries(
         :txjournal($nightscape.txjournal),
-        :entity(/Lorem/)
+        :entity("Lorem")
     );
     is(
         @entries_by_entity_lorem.elems,
         0,
         q:to/EOF/
         ♪ [ls_entries] - 3 of 4
-        Passed argument of :entity(/Lorem/) returns 0 entries, as
-        expected.
+        ┏━━━━━━━━━━━━━┓
+        ┃             ┃  ∙ Passed argument of :entity("Lorem") returns 0
+        ┃   Success   ┃    entries, as expected.
+        ┃             ┃
+        ┗━━━━━━━━━━━━━┛
         EOF
     );
 }
@@ -105,19 +114,22 @@ else
 {
     # check that the list of returned entries has 7 entries by entity
     # Personal
-    # my @entries_by_entity_personal = Nightscape.ls_entries(
-    #     :txjournal($nightscape.txjournal),
-    #     :entity(/Personal/)
-    # );
-    # is(
-    #     @entries_by_entity_personal.elems,
-    #     7,
-    #     q:to/EOF/
-    #     ♪ [ls_entries] - 4 of 4
-    #     Passed argument of :entity(/Personal/) returns 7 entries,
-    #     as expected.
-    #     EOF
-    # );
+    my @entries_by_entity_personal = Nightscape.ls_entries(
+        :txjournal($nightscape.txjournal),
+        :entity("Personal")
+    );
+    is(
+        @entries_by_entity_personal.elems,
+        7,
+        q:to/EOF/
+        ♪ [ls_entries] - 4 of 4
+        ┏━━━━━━━━━━━━━┓
+        ┃             ┃  ∙ Passed argument of :entity("Personal") returns 7
+        ┃   Success   ┃    entries, as expected.
+        ┃             ┃
+        ┗━━━━━━━━━━━━━┛
+        EOF
+    );
 }
 
 # vim: ft=perl6
