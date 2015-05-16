@@ -40,6 +40,5 @@ $ PERL6LIB=lib ./bin/nightscape.pl examples/sample.transactions
 Licensing
 ---------
 
-Nightscape is Copyright (C) 2015, Andy Weidenbaum. Nightscape is
-distributed under the terms of the Artistic License 2.0. For more details,
-see the full text of the license in the file LICENSE.
+This is free and unencumbered public domain software. For more
+information, see http://unlicense.org/ or the accompanying UNLICENSE file.
