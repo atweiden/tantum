@@ -32,7 +32,7 @@ method gen_txjournal(Str $file) returns Array[Nightscape::Journal]
 }
 
 # list entries from txjournal, with optional filters
-multi method ls_entries(
+method ls_entries(
     Nightscape::Journal :@txjournal!,
     Date :$date,
     Str :$description,
@@ -43,60 +43,33 @@ multi method ls_entries(
 ) returns Array[Nightscape::Journal]
 {
     my Nightscape::Journal @entries = @txjournal;
-
-    # by date
-    @entries =
-        self._ls_entries(:txjournal(@entries), :$date)
-            if $date;
-
-    # by description
-    @entries =
-        self._ls_entries(:txjournal(@entries), :$description)
-            if $description;
-
-    # by entity
-    @entries =
-        self._ls_entries(:txjournal(@entries), :$entity)
-            if $entity;
-
-    # by id
-    @entries =
-        self._ls_entries(:txjournal(@entries), :$id)
-            if $id;
-
-    # by important
-    @entries =
-        self._ls_entries(:txjournal(@entries), :$important)
-            if $important;
-
-    # by tag
-    @entries =
-        self._ls_entries(:txjournal(@entries), :$tag)
-            if $tag;
-
+    @entries = self._ls_entries(:txjournal(@entries), :$date) if $date;
+    @entries = self._ls_entries(:txjournal(@entries), :$description) if $description;
+    @entries = self._ls_entries(:txjournal(@entries), :$entity) if $entity;
+    @entries = self._ls_entries(:txjournal(@entries), :$id) if $id;
+    @entries = self._ls_entries(:txjournal(@entries), :$important) if $important;
+    @entries = self._ls_entries(:txjournal(@entries), :$tag) if $tag;
     @entries;
 }
 
 # list entries by date
-multi submethod _ls_entries(
+multi method _ls_entries(
     Nightscape::Journal :@txjournal!,
     Date :$date!
 ) returns Array[Nightscape::Journal]
 {
     my Nightscape::Journal @entries =
         @txjournal.grep({ .entry.header.date ~~ $date });
-    @entries;
 }
 
 # list entries by entity
-multi submethod _ls_entries(
+multi method _ls_entries(
     Nightscape::Journal :@txjournal!,
     Str :$entity!
 ) returns Array[Nightscape::Journal]
 {
     my Nightscape::Journal @entries =
         @txjournal.grep({ .entry.postings[0].account.entity ~~ $entity });
-    @entries;
 }
 
 # vim: ft=perl6
