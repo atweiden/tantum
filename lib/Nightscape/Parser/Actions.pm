@@ -1,11 +1,11 @@
 use v6;
 use Nightscape::Config;
-use Nightscape::Journal::Entry;
-use Nightscape::Journal::Entry::Header;
-use Nightscape::Journal::Entry::Posting;
-use Nightscape::Journal::Entry::Posting::Account;
-use Nightscape::Journal::Entry::Posting::Amount;
-use Nightscape::Journal::Entry::Posting::Amount::XE;
+use Nightscape::Entry;
+use Nightscape::Entry::Header;
+use Nightscape::Entry::Posting;
+use Nightscape::Entry::Posting::Account;
+use Nightscape::Entry::Posting::Amount;
+use Nightscape::Entry::Posting::Amount::XE;
 use Nightscape::Specs;
 class Nightscape::Parser::Actions;
 
@@ -57,7 +57,7 @@ method header($/)
     my Str $eol_comment = try {substr($<eol_comment>, 1, *-0).trim} // Nil;
 
     # make entry header
-    make Nightscape::Journal::Entry::Header.new(
+    make Nightscape::Entry::Header.new(
         id => $id,
         date => $entry_date,
         description => $description,
@@ -79,7 +79,7 @@ method account($/)
     my VarName @subaccount = $<account_sub>.list».Str // Nil;
 
     # make account
-    make Nightscape::Journal::Entry::Posting::Account.new(
+    make Nightscape::Entry::Posting::Account.new(
         silo => $silo,
         entity => $entity,
         subaccount => @subaccount
@@ -98,7 +98,7 @@ method exchange_rate($/)
     my Quantity $commodity_quantity = $<commodity_quantity>.abs;
 
     # make exchange rate
-    make Nightscape::Journal::Entry::Posting::Amount::XE.new(
+    make Nightscape::Entry::Posting::Amount::XE.new(
         commodity_symbol => $commodity_symbol,
         commodity_code => $commodity_code,
         commodity_quantity => $commodity_quantity
@@ -120,11 +120,11 @@ method amount($/)
     my Str $commodity_minus = $<commodity_minus>.Str;
 
     # exchange rate
-    my Nightscape::Journal::Entry::Posting::Amount::XE $exchange_rate =
+    my Nightscape::Entry::Posting::Amount::XE $exchange_rate =
         $<exchange_rate>».made.pairs[0].value // Nil;
 
     # make amount
-    make Nightscape::Journal::Entry::Posting::Amount.new(
+    make Nightscape::Entry::Posting::Amount.new(
         commodity_code => $commodity_code,
         commodity_quantity => $commodity_quantity,
         commodity_symbol => $commodity_symbol,
@@ -136,11 +136,11 @@ method amount($/)
 method posting($/)
 {
     # account
-    my Nightscape::Journal::Entry::Posting::Account $account =
+    my Nightscape::Entry::Posting::Account $account =
         $<account>».made.pairs[0].value;
 
     # amount
-    my Nightscape::Journal::Entry::Posting::Amount $amount =
+    my Nightscape::Entry::Posting::Amount $amount =
         $<amount>».made.pairs[0].value;
 
     # debit / credit
@@ -166,7 +166,7 @@ method posting($/)
     if $posting_commodity_code !eq $posting_entity_base_currency
     {
         # is an exchange rate given in the transaction journal?
-        if my Nightscape::Journal::Entry::Posting::Amount::XE $exchange_rate =
+        if my Nightscape::Entry::Posting::Amount::XE $exchange_rate =
             $amount.exchange_rate
         {
             # try calculating posting value in base currency
@@ -205,7 +205,7 @@ method posting($/)
         {
             # set exchange rate
             $amount.exchange_rate =
-                Nightscape::Journal::Entry::Posting::Amount::XE.new(
+                Nightscape::Entry::Posting::Amount::XE.new(
                     commodity_code => $posting_entity_base_currency,
                     commodity_quantity => $price
                 );
@@ -244,7 +244,7 @@ method posting($/)
     }
 
     # make posting
-    make Nightscape::Journal::Entry::Posting.new(
+    make Nightscape::Entry::Posting.new(
         account => $account,
         amount => $amount,
         drcr => $drcr
@@ -254,11 +254,11 @@ method posting($/)
 method entry($/)
 {
     # header
-    my Nightscape::Journal::Entry::Header $header =
+    my Nightscape::Entry::Header $header =
         $<header>».made.pairs[0].value;
 
     # postings
-    my Nightscape::Journal::Entry::Posting @postings =
+    my Nightscape::Entry::Posting @postings =
         @<posting>».made.list.values;
 
     # posting comments
@@ -271,8 +271,8 @@ method entry($/)
     die "Sorry, only one entity per journal entry allowed"
         if @entities.grep({ $_ ~~ @entities[0] }).elems != @entities.elems;
 
-    # make entry
-    make Nightscape::Journal::Entry.new(
+    # make hash intended to become Entry class
+    make %(
         header => $header,
         postings => @postings,
         posting_comments => @posting_comments
@@ -289,16 +289,21 @@ method journal($/)
     my Str $comment_line =
         $<comment_line>.Str.map({ try {substr($_, 1, *-0).trim} }).pairs[0].value // Nil;
 
-    # journal entry
-    my Nightscape::Journal::Entry $entry;
-    $entry = $<entry>».made.pairs[0].value // Nil;
+    if $<entry>
+    {
+        # journal entry
+        my %entry = $<entry>».made;
+        my Nightscape::Entry::Header $header = %entry<header>;
+        my Nightscape::Entry::Posting @postings = %entry<postings>.list;
+        my Str @posting_comments = %entry<posting_comments>.list;
 
-    # make journal
-    make Nightscape::Journal.new(
-        comment_line => $comment_line,
-        entry => $entry,
-        is_blank_line => $is_blank_line
-    );
+        # make entry
+        make Nightscape::Entry.new(
+            header => $header,
+            postings => @postings,
+            posting_comments => @posting_comments
+        );
+    }
 }
 
 method TOP($/)

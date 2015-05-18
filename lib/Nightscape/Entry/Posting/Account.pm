@@ -1,6 +1,6 @@
 use v6;
 use Nightscape::Specs;
-class Nightscape::Journal::Entry::Posting::Account;
+class Nightscape::Entry::Posting::Account;
 
 has Silo $.silo;
 has VarName $.entity;

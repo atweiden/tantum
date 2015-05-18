@@ -20,7 +20,8 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$currencies-dir)
     # initialize config profile from cmdline args
     {
         # create default config profile
-        $nightscape.conf = $nightscape.gen_conf;
+        use Nightscape::Config;
+        $nightscape.conf = Nightscape::Config.new;
 
         # assemble config from cmdline args
         my %config;
@@ -149,7 +150,7 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$currencies-dir)
         }
 
         # apply config
-        $nightscape.conf = $nightscape.gen_conf(%config);
+        $nightscape.conf = Nightscape::Config.new(|%config);
     }
 
     # prepare currencies and entities for transaction journal parsing
@@ -176,14 +177,14 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$currencies-dir)
                 " in config (mandatory).";
 
         # populate currencies
-        for $nightscape.conf.ls_currencies(%toml).kv -> $code, $prices
+        for $nightscape.conf.detoml_currencies(%toml).kv -> $code, $prices
         {
             $nightscape.conf.currencies{$code} =
                 $nightscape.conf.gen_pricesheet( prices => $prices<Prices> );
         }
 
         # populate entities
-        for $nightscape.conf.ls_entities(%toml).kv -> $name, $rest
+        for $nightscape.conf.detoml_entities(%toml).kv -> $name, $rest
         {
             $nightscape.conf.entities{$name} = $rest;
         }
@@ -196,13 +197,13 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$currencies-dir)
 
     if $file.IO.e
     {
-        $nightscape.txjournal = $nightscape.gen_txjournal($file);
+        $nightscape.entries = $nightscape.ls_entries(:$file);
 
         say qq:to/EOF/;
         Journal
         -------
         EOF
-        say $nightscape.txjournal.perl;
+        say $nightscape.entries.perl;
     }
     else
     {

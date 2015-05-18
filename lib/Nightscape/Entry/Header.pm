@@ -1,6 +1,6 @@
 use v6;
 use Nightscape::Specs;
-class Nightscape::Journal::Entry::Header;
+class Nightscape::Entry::Header;
 
 has Int $.id;
 has Date $.date;

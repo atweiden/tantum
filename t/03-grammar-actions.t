@@ -32,7 +32,7 @@ my Nightscape $nightscape = Nightscape.new(
     }
 
     # populate entities
-    for $nightscape.conf.ls_entities(%toml).kv -> $name, $rest
+    for $nightscape.conf.detoml_entities(%toml).kv -> $name, $rest
     {
         $nightscape.conf.entities{$name} = $rest;
     }
@@ -41,7 +41,7 @@ my Nightscape $nightscape = Nightscape.new(
     $nightscape.conf.base_currency = %toml<base-currency>
         or die "Sorry, could not find global base-currency",
             " in config (mandatory).";
-    for $nightscape.conf.ls_currencies(%toml).kv -> $code, $prices
+    for $nightscape.conf.detoml_currencies(%toml).kv -> $code, $prices
     {
         $nightscape.conf.currencies{$code} =
             $nightscape.conf.gen_pricesheet(prices => $prices<Prices>);

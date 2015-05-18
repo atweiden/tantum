@@ -38,7 +38,7 @@ has %.entities is rw;
 #
 
 # filter currencies from unvalidated %toml config
-method ls_currencies(%toml)
+method detoml_currencies(%toml)
 {
     my VarName $currencies_header;
     %toml.map({
@@ -56,7 +56,7 @@ method ls_currencies(%toml)
 }
 
 # filter entities from unvalidated %toml config
-method ls_entities(%toml)
+method detoml_entities(%toml)
 {
     my VarName @entities_found;
     use Nightscape::Parser::Grammar;

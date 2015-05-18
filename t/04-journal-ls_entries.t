@@ -32,7 +32,7 @@ my Nightscape $nightscape = Nightscape.new(
     }
 
     # populate entities
-    for $nightscape.conf.ls_entities(%toml).kv -> $name, $rest
+    for $nightscape.conf.detoml_entities(%toml).kv -> $name, $rest
     {
         $nightscape.conf.entities{$name} = $rest;
     }
@@ -41,7 +41,7 @@ my Nightscape $nightscape = Nightscape.new(
     $nightscape.conf.base_currency = %toml<base-currency>
         or die "Sorry, could not find global base-currency",
             " in config (mandatory).";
-    for $nightscape.conf.ls_currencies(%toml).kv -> $code, $prices
+    for $nightscape.conf.detoml_currencies(%toml).kv -> $code, $prices
     {
         $nightscape.conf.currencies{$code} =
             $nightscape.conf.gen_pricesheet(prices => $prices<Prices>);
@@ -50,7 +50,7 @@ my Nightscape $nightscape = Nightscape.new(
 
 if $file.IO.e
 {
-    $nightscape.txjournal = $nightscape.gen_txjournal($file);
+    $nightscape.entries = $nightscape.ls_entries(:$file);
 }
 else
 {
@@ -60,8 +60,8 @@ else
 {
     # check that the list of returned entries has only one entry on
     # date 2014-01-03, and that the returned entry's date is 2014-01-03
-    my @entries_by_date = Nightscape.ls_entries(
-        :txjournal($nightscape.txjournal),
+    my @entries_by_date = $nightscape.ls_entries(
+        :entries($nightscape.entries),
         :date(Date.new("2014-01-03"))
     );
     is(
@@ -77,7 +77,7 @@ else
         EOF
     );
     is(
-        @entries_by_date[0].entry.header.date,
+        @entries_by_date[0].header.date,
         Date.new("2014-01-03"),
         q:to/EOF/
         ♪ [ls_entries] - 2 of 4
@@ -93,8 +93,8 @@ else
 {
     # check that the list of returned entries has 0 entries by entity
     # Lorem
-    my @entries_by_entity_lorem = Nightscape.ls_entries(
-        :txjournal($nightscape.txjournal),
+    my @entries_by_entity_lorem = $nightscape.ls_entries(
+        :entries($nightscape.entries),
         :entity(/Lorem/)
     );
     is(
@@ -114,8 +114,8 @@ else
 {
     # check that the list of returned entries has 7 entries by entity
     # Personal
-    my @entries_by_entity_personal = Nightscape.ls_entries(
-        :txjournal($nightscape.txjournal),
+    my @entries_by_entity_personal = $nightscape.ls_entries(
+        :entries($nightscape.entries),
         :entity(/Personal/)
     );
     is(
