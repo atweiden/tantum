@@ -1,5 +1,5 @@
 use v6;
-use Nightscape::Pricesheet;
+use Nightscape::Config::Pricesheet;
 use Nightscape::Specs;
 class Nightscape::Config;
 
@@ -8,22 +8,19 @@ has Str $.data_dir = "%*ENV<HOME>/.nightscape";
 has Str $.log_dir = "$!data_dir/logs";
 has Str $.currencies_dir = "$!data_dir/currencies";
 has CommodityCode $.base_currency is rw;
-has Nightscape::Pricesheet %.currencies{CommodityCode} is rw;
+has Nightscape::Config::Pricesheet %.currencies{CommodityCode} is rw;
 has %.entities is rw;
 
 #  %.currencies
 #  ============
 #
-#  self.currencies =
-#        hash of C<Nightscape::Pricesheet>s
-#        indexed by commodity code
+#  self.currencies = hash of Pricesheets indexed by commodity code
 #
 # +----------------------------------------------+
-# |     self.currencies<BTC> is a                |
-# |               Nightscape::Pricesheet         |
+# |     self.currencies<BTC> is a Pricesheet     |
 # |                         |                    |
 # |        +-----------------------------------+ |
-# |        | Nightscape::Pricesheet has a      | |
+# |        | Each Pricesheet is a              | |
 # |        | C<hash of Prices indexed by Date> | |
 # |        | indexed by commodity code         | |
 # |        |                                   | |
@@ -113,8 +110,8 @@ method !read_price_file(:$price_file!) returns Hash[Price,Date]
     say "Reading price file: $price_file…";
 }
 
-# return Nightscape::Pricesheet from unvalidated <Currencies>{$code}<Prices> config
-method gen_pricesheet(:%prices!) returns Nightscape::Pricesheet
+# return Pricesheet from unvalidated <Currencies>{$code}<Prices> config
+method gen_pricesheet(:%prices!) returns Nightscape::Config::Pricesheet
 {
     # incoming: {
     #             :USD(
@@ -132,7 +129,7 @@ method gen_pricesheet(:%prices!) returns Nightscape::Pricesheet
     # merges price-file directives if price-file given...
     #
     # outgoing: {
-    #             Nightscape::Pricesheet.new(
+    #             Nightscape::Config::Pricesheet.new(
     #               :prices(
     #                   :USD(
     #                       Date.new("2014-01-01") => 876.54,
@@ -150,7 +147,7 @@ method gen_pricesheet(:%prices!) returns Nightscape::Pricesheet
     #             )
     #           }<>
 
-    my Nightscape::Pricesheet $pricesheet;
+    my Nightscape::Config::Pricesheet $pricesheet;
     for %prices.kv -> $currency, $rest
     {
         my Price %dates_and_prices{Date};
@@ -190,7 +187,7 @@ method gen_pricesheet(:%prices!) returns Nightscape::Pricesheet
         # with values from %dates_and_prices keys overwriting
         # values from equivalent %dates_and_prices_from_file keys
         my Price %xe{Date} = (%dates_and_prices_from_file, %dates_and_prices);
-        $pricesheet = Nightscape::Pricesheet.new(
+        $pricesheet = Nightscape::Config::Pricesheet.new(
             prices => %($currency => %xe)
         );
     }
