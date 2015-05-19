@@ -1,5 +1,6 @@
 use v6;
 use Nightscape::Config;
+use Nightscape::Entity;
 use Nightscape::Entry;
 use Nightscape::Specs;
 class Nightscape;
