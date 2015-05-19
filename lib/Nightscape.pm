@@ -11,22 +11,28 @@ has Nightscape::Config $.conf is rw;
 has Nightscape::Entry @.entries is rw;
 
 # entities, indexed by name
-# has Nightscape::Entity %.entities{VarName} is rw;
+has Nightscape::Entity %.entities{VarName} is rw;
 
 # list entries from on disk transaction journal
-multi method ls_entries(Str :$file!) returns Array[Nightscape::Entry]
+multi method ls_entries(
+    Str :$file!,
+    Bool :$sort
+) returns Array[Nightscape::Entry]
 {
     use Nightscape::Parser;
     if my $parsed = Nightscape::Parser.parse(slurp($file), self.conf)
     {
-        # return entries, sorted by date ascending then by importance descending
-        my Nightscape::Entry @entries = $parsed.made.grep({
-            .defined
-        }).sort({
+        # entries, unsorted
+        my Nightscape::Entry @entries = $parsed.made.grep({ .defined });
+
+        # entries, sorted by date ascending then by importance descending
+        @entries = @entries.sort({
             $^b.header.important > $^a.header.important
         }).sort({
             .header.date
-        });
+        }) if $sort;
+
+        @entries;
     }
     else
     {

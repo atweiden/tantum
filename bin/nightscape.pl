@@ -197,7 +197,7 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$currencies-dir)
 
     if $file.IO.e
     {
-        $nightscape.entries = $nightscape.ls_entries(:$file);
+        $nightscape.entries = $nightscape.ls_entries(:$file, :sort);
 
         say qq:to/EOF/;
         Journal
