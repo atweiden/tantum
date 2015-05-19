@@ -203,7 +203,7 @@ method posting($/)
             date => $entry_date
         )
         {
-            # set exchange rate
+            # assign exchange rate because one was not included in the journal
             $amount.exchange_rate =
                 Nightscape::Entry::Posting::Amount::XE.new(
                     commodity_code => $posting_entity_base_currency,
