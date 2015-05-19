@@ -63,8 +63,8 @@ method do(Nightscape::Entry::Posting :$posting!)
     # debit/credit
     &deref(self.wallet{$silo}, @subwallet).setbalance(
         $commodity_code,
-        $drcr,
-        $commodity_quantity
+        $commodity_quantity,
+        $drcr
     );
 }
 

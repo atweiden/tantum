@@ -29,8 +29,8 @@ method getbalance(CommodityCode $commodity_code) returns Rat
 # set wallet balance
 method setbalance(
     CommodityCode $commodity_code,
-    DrCr $drcr,
-    Quantity $commodity_quantity
+    Quantity $commodity_quantity,
+    DrCr $drcr
 )
 {
     if $drcr
