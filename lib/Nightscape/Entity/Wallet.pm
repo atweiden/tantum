@@ -11,7 +11,7 @@ has Nightscape::Entity::Wallet %.subwallet{VarName} is rw;
 # get wallet balance, recursively
 method getbalance(CommodityCode $commodity_code) returns Rat
 {
-    my Rat $balance = self.balance{$commodity_code} // 0;
+    my Rat $balance = self.balance{$commodity_code} // 0.0;
 
     # is there a subwallet?
     if self.subwallet
