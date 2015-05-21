@@ -3,7 +3,7 @@ use lib 'lib';
 use Test;
 use Nightscape;
 use Nightscape::Entity;
-use Nightscape::Specs;
+use Nightscape::Types;
 
 plan 2;
 

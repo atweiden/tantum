@@ -6,7 +6,7 @@ use Nightscape::Entry::Posting;
 use Nightscape::Entry::Posting::Account;
 use Nightscape::Entry::Posting::Amount;
 use Nightscape::Entry::Posting::Amount::XE;
-use Nightscape::Specs;
+use Nightscape::Types;
 class Nightscape::Parser::Actions;
 
 has Nightscape::Config $.conf;
@@ -70,7 +70,7 @@ method header($/)
 method account($/)
 {
     # silo (assets, expenses, income, liabilities, equity)
-    my Silo $silo = Nightscape::Specs.mksilo: $<silo>.uc;
+    my Silo $silo = Nightscape::Types.mksilo: $<silo>.uc;
 
     # entity
     my VarName $entity = $<entity>.Str;
@@ -144,7 +144,7 @@ method posting($/)
         $<amount>».made.pairs[0].value;
 
     # debit / credit
-    my DrCr $drcr = Nightscape::Specs.mkdrcr: $amount.commodity_minus.Bool;
+    my DrCr $drcr = Nightscape::Types.mkdrcr: $amount.commodity_minus.Bool;
 
     # entity
     my VarName $posting_entity = $account.entity;

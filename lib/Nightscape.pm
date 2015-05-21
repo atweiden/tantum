@@ -2,7 +2,7 @@ use v6;
 use Nightscape::Config;
 use Nightscape::Entity;
 use Nightscape::Entry;
-use Nightscape::Specs;
+use Nightscape::Types;
 class Nightscape;
 
 # config options, extracted from on disk conf and cmdline flags

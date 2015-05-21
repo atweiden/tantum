@@ -1,5 +1,5 @@
 use v6;
-use Nightscape::Specs;
+use Nightscape::Types;
 class Nightscape::Entity::Wallet;
 
 # balance, indexed by commodity code

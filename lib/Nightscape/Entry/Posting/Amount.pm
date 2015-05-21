@@ -1,6 +1,6 @@
 use v6;
 use Nightscape::Entry::Posting::Amount::XE;
-use Nightscape::Specs;
+use Nightscape::Types;
 class Nightscape::Entry::Posting::Amount;
 
 has CommodityCode $.commodity_code;

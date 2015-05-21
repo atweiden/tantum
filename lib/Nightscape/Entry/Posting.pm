@@ -1,7 +1,7 @@
 use v6;
 use Nightscape::Entry::Posting::Account;
 use Nightscape::Entry::Posting::Amount;
-use Nightscape::Specs;
+use Nightscape::Types;
 class Nightscape::Entry::Posting;
 
 has Nightscape::Entry::Posting::Account $.account;
