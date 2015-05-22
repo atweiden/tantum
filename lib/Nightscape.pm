@@ -21,7 +21,7 @@ multi method ls_entries(
 ) returns Array[Nightscape::Entry]
 {
     use Nightscape::Parser;
-    if my $parsed = Nightscape::Parser.parse(slurp($file), self.conf)
+    if my $parsed = Nightscape::Parser.parse(slurp($file))
     {
         # entries, unsorted
         my Nightscape::Entry @entries = $parsed.made.grep({ .defined });

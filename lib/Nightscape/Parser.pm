@@ -3,10 +3,9 @@ use Nightscape::Parser::Actions;
 use Nightscape::Parser::Grammar;
 class Nightscape::Parser;
 
-method parse($content, $conf)
+method parse($content)
 {
-    my Nightscape::Parser::Actions $actions =
-        Nightscape::Parser::Actions.new(:$conf);
+    my Nightscape::Parser::Actions $actions = Nightscape::Parser::Actions.new;
     Nightscape::Parser::Grammar.parse($content, :$actions);
 }
 

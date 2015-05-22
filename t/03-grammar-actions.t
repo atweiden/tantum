@@ -84,7 +84,7 @@ my $content = q:to/EOTX/;
 EOTX
 
 {
-    my $match = Nightscape::Parser.parse($content, $nightscape.conf);
+    my $match = Nightscape::Parser.parse($content);
     is(
         $match.WHAT.perl,
         'Match',
