@@ -12,7 +12,7 @@ has Nightscape::Entity::Wallet %.wallet{Silo} is rw;
 sub deref(Nightscape::Entity::Wallet $wallet, *@subwallet) is rw
 {
     # make $subwallet point to the same scalar container as $wallet
-    my $subwallet := $wallet;
+    my Nightscape::Entity::Wallet $subwallet := $wallet;
 
     # the subwallet name list
     my VarName @s = @subwallet;
