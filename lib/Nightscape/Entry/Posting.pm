@@ -3,7 +3,7 @@ use Nightscape::Config;
 use Nightscape::Entry::Posting::Account;
 use Nightscape::Entry::Posting::Amount;
 use Nightscape::Types;
-class Nightscape::Entry::Posting;
+unit class Nightscape::Entry::Posting;
 
 has Nightscape::Entry::Posting::Account $.account;
 has Nightscape::Entry::Posting::Amount $.amount;

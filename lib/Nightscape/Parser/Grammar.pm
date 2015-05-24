@@ -1,5 +1,5 @@
 use v6;
-grammar Nightscape::Parser::Grammar;
+unit grammar Nightscape::Parser::Grammar;
 
 token ws
 {

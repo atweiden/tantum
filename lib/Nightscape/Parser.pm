@@ -1,7 +1,7 @@
 use v6;
 use Nightscape::Parser::Actions;
 use Nightscape::Parser::Grammar;
-class Nightscape::Parser;
+unit class Nightscape::Parser;
 
 method parse($content)
 {

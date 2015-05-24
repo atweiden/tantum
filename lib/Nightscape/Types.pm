@@ -1,5 +1,5 @@
 use v6;
-class Nightscape::Types;
+unit class Nightscape::Types;
 
 subset Price of Rat is export where * >= 0;
 

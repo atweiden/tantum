@@ -2,7 +2,7 @@ use v6;
 use Nightscape::Entity::Wallet;
 use Nightscape::Entry::Posting;
 use Nightscape::Types;
-class Nightscape::Entity;
+unit class Nightscape::Entity;
 
 # wallets indexed by silo
 has Nightscape::Entity::Wallet %.wallet{Silo} is rw;

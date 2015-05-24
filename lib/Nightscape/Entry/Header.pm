@@ -1,6 +1,6 @@
 use v6;
 use Nightscape::Types;
-class Nightscape::Entry::Header;
+unit class Nightscape::Entry::Header;
 
 has Int $.id;
 has Date $.date;

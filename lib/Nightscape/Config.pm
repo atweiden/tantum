@@ -1,7 +1,7 @@
 use v6;
 use Nightscape::Config::Pricesheet;
 use Nightscape::Types;
-class Nightscape::Config;
+unit class Nightscape::Config;
 
 has Str $.config_file = "%*ENV<HOME>/.config/nightscape/config.toml";
 has Str $.data_dir = "%*ENV<HOME>/.nightscape";

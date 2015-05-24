@@ -6,7 +6,7 @@ use Nightscape::Entry::Posting::Account;
 use Nightscape::Entry::Posting::Amount;
 use Nightscape::Entry::Posting::Amount::XE;
 use Nightscape::Types;
-class Nightscape::Parser::Actions;
+unit class Nightscape::Parser::Actions;
 
 my Int $entry_number = 0;
 my Date $entry_date;

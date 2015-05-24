@@ -1,6 +1,6 @@
 use v6;
 use Nightscape::Types;
-class Nightscape::Entity::Wallet;
+unit class Nightscape::Entity::Wallet;
 
 # balance, indexed by commodity code
 has Rat %.balance{CommodityCode};
