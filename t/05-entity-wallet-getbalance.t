@@ -72,10 +72,34 @@ else
     # do postings for entity Personal
     for @entries_by_entity_personal -> $entry
     {
-        for $entry.postings -> $posting
-        {
-            $entity_personal.do(:$posting);
-        }
+        $entity_personal.do(:posting($_)) for $entry.postings;
+
+        # is entry balanced?
+        # errors out on rakudo 2015.04
+        # p6 t/05-entity-wallet-getbalance.t
+        # 1..2
+        # Invocant requires a 'Quantity' instance, but a type object
+        # was passed. Did you forget a .new?
+        #   in sub infix:<*> at src/gen/m-CORE.setting:13754
+        #   in method is_balanced at lib/Nightscape/Entry.pm:55
+        #   in block  at t/05-entity-wallet-getbalance.t:76
+        #   in block <unit> at t/05-entity-wallet-getbalance.t:62
+        #
+        # # Looks like you planned 2 tests, but ran 0
+        #
+        # if $entry.is_balanced($nightscape.conf)
+        # {
+        #     # make debits / credits for each posting in entry
+        #     $entity_personal.do(:posting($_)) for $entry.postings;
+        # }
+        # else
+        # {
+        #     die qq:to/EOF/;
+        #     Sorry, given entry does not balance:
+        #
+        #     「$entry」
+        #     EOF
+        # }
     }
 
     # check that the balance of entity Personal's ASSETS is -837.84 USD
