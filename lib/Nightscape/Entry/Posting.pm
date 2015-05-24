@@ -9,7 +9,23 @@ has Nightscape::Entry::Posting::Account $.account;
 has Nightscape::Entry::Posting::Amount $.amount;
 has DrCr $.drcr;
 
-method validate(Nightscape::Config $conf, Date $date, Int $id)
+# get posting value in entity's base currency
+#
+# if posting commodity code equivalent to entity's base currency, return
+# commodity_quantity from posting
+#
+# if posting commodity code differs from entity's base currency, seek
+# exchange rate, first in transaction journal, then in config file
+#
+# if exchange rate found in config file, has side effect of instantiating
+# XE class based on price data from config file
+#
+# if suitable exchange rate not found anywhere, exit with an error
+method getvalue(
+    Nightscape::Config $conf,
+    Date $date,
+    Int $id
+) returns Quantity
 {
     # account
     my Nightscape::Entry::Posting::Account $account = self.account;
@@ -114,6 +130,12 @@ method validate(Nightscape::Config $conf, Date $date, Int $id)
             EOF
             die $help_text_faulty_exchange_rate_in_config_file.trim;
         }
+
+        $posting_value;
+    }
+    else
+    {
+        $posting_value;
     }
 }
 
