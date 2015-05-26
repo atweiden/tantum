@@ -42,7 +42,8 @@ method header($/)
     $entry_date = $<iso_date>».made.pairs[0].value;
 
     # entry description
-    my Str $description = try {substr($<description>, 1, *-1).trim} // Nil;
+    my Str $description;
+    $description = substr($<description>, 1, *-1).trim if $<description>;
 
     # entry importance
     my Int $important = [+] $<important>».made // 0;
@@ -51,7 +52,8 @@ method header($/)
     my VarName @tags = $<tag>».made // Nil;
 
     # entry eol comment
-    my Str $eol_comment = try {substr($<eol_comment>, 1, *-0).trim} // Nil;
+    my Str $eol_comment;
+    $eol_comment = substr($<eol_comment>, 1, *-0).trim if $<eol_comment>;
 
     # make entry header
     make Nightscape::Entry::Header.new(
@@ -86,7 +88,8 @@ method account($/)
 method exchange_rate($/)
 {
     # commodity symbol
-    my Str $commodity_symbol = $<commodity_symbol>.Str // Nil;
+    my Str $commodity_symbol;
+    $commodity_symbol = $<commodity_symbol>.Str if $<commodity_symbol>;
 
     # commodity code
     my CommodityCode $commodity_code = $<commodity_code>.Str;
@@ -105,7 +108,8 @@ method exchange_rate($/)
 method amount($/)
 {
     # commodity symbol
-    my Str $commodity_symbol = $<commodity_symbol>.Str // Nil;
+    my Str $commodity_symbol;
+    $commodity_symbol = $<commodity_symbol>.Str if $<commodity_symbol>;
 
     # commodity code
     my CommodityCode $commodity_code = $<commodity_code>.Str;
@@ -114,7 +118,8 @@ method amount($/)
     my Quantity $commodity_quantity = $<commodity_quantity>.abs;
 
     # commodity minus
-    my Str $commodity_minus = $<commodity_minus>.Str;
+    my Str $commodity_minus;
+    $commodity_minus = $<commodity_minus>.Str if $<commodity_minus>;
 
     # exchange rate
     my Nightscape::Entry::Posting::Amount::XE $exchange_rate =
@@ -154,12 +159,10 @@ method posting($/)
 method entry($/)
 {
     # header
-    my Nightscape::Entry::Header $header =
-        $<header>».made.pairs[0].value;
+    my Nightscape::Entry::Header $header = $<header>».made.pairs[0].value;
 
     # postings
-    my Nightscape::Entry::Posting @postings =
-        @<posting>».made.list.values;
+    my Nightscape::Entry::Posting @postings = @<posting>».made.list.values;
 
     # posting comments
     my Str @posting_comments =
@@ -186,8 +189,9 @@ method journal($/)
     my Bool $is_blank_line = $<blank_line>.Bool;
 
     # comment line
-    my Str $comment_line =
-        $<comment_line>.Str.map({ try {substr($_, 1, *-0).trim} }).pairs[0].value // Nil;
+    my Str $comment_line;
+    $comment_line =
+        try {substr($<comment_line>, 1, *-0).trim} if $<comment_line>;
 
     if $<entry>
     {
