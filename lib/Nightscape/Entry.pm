@@ -64,8 +64,15 @@ method is_balanced(Nightscape::Config $conf) returns Bool
     # does the entry balance?
     if $total != 0
     {
-        # TODO: provide room for rounding errors
-        False;
+        # TODO: make error margin configurable
+        if $total.abs < 0.01
+        {
+            True;
+        }
+        else
+        {
+            False;
+        }
     }
     else
     {

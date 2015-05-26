@@ -135,7 +135,7 @@ method getvalue(
     }
     else
     {
-        $posting_value;
+        $posting_commodity_quantity;
     }
 }
 
