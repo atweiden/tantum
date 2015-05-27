@@ -9,7 +9,6 @@ use Nightscape::Types;
 unit class Nightscape::Parser::Actions;
 
 my Int $entry_number = 0;
-my Date $entry_date;
 
 method iso_date($/)
 {
@@ -39,7 +38,7 @@ method header($/)
     my Int $id = $entry_number;
 
     # entry date
-    $entry_date = $<iso_date>».made.pairs[0].value;
+    my Date $date = $<iso_date>».made.pairs[0].value;
 
     # entry description
     my Str $description;
@@ -57,12 +56,12 @@ method header($/)
 
     # make entry header
     make Nightscape::Entry::Header.new(
-        id => $id,
-        date => $entry_date,
-        description => $description,
-        important => $important,
-        tags => @tags,
-        eol_comment => $eol_comment
+        :$id,
+        :$date,
+        :$description,
+        :$important,
+        :@tags,
+        :$eol_comment
     );
 }
 
@@ -79,9 +78,9 @@ method account($/)
 
     # make account
     make Nightscape::Entry::Posting::Account.new(
-        silo => $silo,
-        entity => $entity,
-        subaccount => @subaccount
+        :$silo,
+        :$entity,
+        :@subaccount
     );
 }
 
@@ -99,9 +98,9 @@ method exchange_rate($/)
 
     # make exchange rate
     make Nightscape::Entry::Posting::Amount::XE.new(
-        commodity_symbol => $commodity_symbol,
-        commodity_code => $commodity_code,
-        commodity_quantity => $commodity_quantity
+        :$commodity_symbol,
+        :$commodity_code,
+        :$commodity_quantity
     );
 }
 
@@ -127,11 +126,11 @@ method amount($/)
 
     # make amount
     make Nightscape::Entry::Posting::Amount.new(
-        commodity_code => $commodity_code,
-        commodity_quantity => $commodity_quantity,
-        commodity_symbol => $commodity_symbol,
-        commodity_minus => $commodity_minus,
-        exchange_rate => $exchange_rate
+        :$commodity_code,
+        :$commodity_quantity,
+        :$commodity_symbol,
+        :$commodity_minus,
+        :$exchange_rate
     );
 }
 
@@ -150,9 +149,9 @@ method posting($/)
 
     # make posting
     make Nightscape::Entry::Posting.new(
-        account => $account,
-        amount => $amount,
-        drcr => $drcr
+        :$account,
+        :$amount,
+        :$drcr
     );
 }
 
@@ -176,9 +175,9 @@ method entry($/)
 
     # make hash intended to become Entry class
     make %(
-        header => $header,
-        postings => @postings,
-        posting_comments => @posting_comments
+        :$header,
+        :@postings,
+        :@posting_comments
     );
     $entry_number++;
 }
@@ -203,9 +202,9 @@ method journal($/)
 
         # make entry
         make Nightscape::Entry.new(
-            header => $header,
-            postings => @postings,
-            posting_comments => @posting_comments
+            :$header,
+            :@postings,
+            :@posting_comments
         );
     }
 }
