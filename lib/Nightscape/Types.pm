@@ -34,11 +34,13 @@ enum DrCr is export
 
 method mksilo(Str $str) returns Silo
 {
-    my Silo %silo = "ASSETS" => ASSETS,
-                    "EXPENSES" => EXPENSES,
-                    "INCOME" => INCOME,
-                    "LIABILITIES" => LIABILITIES,
-                    "EQUITY" => EQUITY;
+    my Silo %silo =
+        "ASSETS" => ASSETS,
+        "EXPENSES" => EXPENSES,
+        "INCOME" => INCOME,
+        "LIABILITIES" => LIABILITIES,
+        "EQUITY" => EQUITY;
+
     return %silo{$str};
 }
 
