@@ -55,10 +55,8 @@ method do(Nightscape::Entry::Posting :$posting!)
     my Quantity $commodity_quantity = $amount.commodity_quantity;
 
     # ensure $silo wallet exists
-    unless self.wallet{$silo}
-    {
-        self.wallet{$silo} = Nightscape::Entity::Wallet.new;
-    }
+    self.wallet{$silo} = Nightscape::Entity::Wallet.new
+        if !self.wallet{$silo};
 
     # debit/credit
     &deref(self.wallet{$silo}, @subwallet).setbalance(
