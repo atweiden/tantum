@@ -81,4 +81,50 @@ multi method _ls_entries(
         @entries.grep({ .postings[0].account.entity ~~ $entity });
 }
 
+# list postings from entries
+multi method ls_postings(
+    Nightscape::Entry :@entries!
+) returns Array[Nightscape::Entry::Posting]
+{
+    my Nightscape::Entry::Posting @postings;
+    for @entries -> $entry
+    {
+        push @postings, $_ for $entry.postings;
+    }
+    @postings;
+}
+
+# filter postings
+multi method ls_postings(
+    Nightscape::Entry::Posting :@postings!,
+    Regex :$commodity_code,
+    Silo :$silo
+) returns Array[Nightscape::Entry::Posting]
+{
+    my Nightscape::Entry::Posting @p = @postings;
+    @p = self._ls_postings(:postings(@p), :$commodity_code) if defined $commodity_code;
+    @p = self._ls_postings(:postings(@p), :$silo) if defined $silo;
+    @p;
+}
+
+# list postings by commodity code
+multi method _ls_postings(
+    Nightscape::Entry::Posting :@postings!,
+    Regex :$commodity_code!
+) returns Array[Nightscape::Entry::Posting]
+{
+    my Nightscape::Entry::Posting @p =
+        @postings.grep({ .amount.commodity_code ~~ $commodity_code });
+}
+
+# list postings by silo
+multi method _ls_postings(
+    Nightscape::Entry::Posting :@postings!,
+    Silo :$silo!
+) returns Array[Nightscape::Entry::Posting]
+{
+    my Nightscape::Entry::Posting @p =
+        @postings.grep({ .account.silo ~~ $silo });
+}
+
 # vim: ft=perl6
