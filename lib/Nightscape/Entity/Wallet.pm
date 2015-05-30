@@ -30,17 +30,17 @@ method getbalance(CommodityCode $commodity_code) returns Rat
 method setbalance(
     CommodityCode $commodity_code,
     Quantity $commodity_quantity,
-    DrCr $drcr
+    DecInc $decinc
 )
 {
-    if $drcr
+    if $decinc
     {
-        # credit: increase balance
+        # increase balance
         %!balance{$commodity_code} += $commodity_quantity;
     }
     else
     {
-        # debit: decrease balance
+        # decrease balance
         %!balance{$commodity_code} -= $commodity_quantity;
     }
 }

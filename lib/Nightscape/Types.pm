@@ -26,10 +26,10 @@ enum Silo is export
     EQUITY
 >;
 
-enum DrCr is export
+enum DecInc is export
 <
-    DEBIT
-    CREDIT
+    DEC
+    INC
 >;
 
 method mksilo(Str $str) returns Silo
@@ -44,15 +44,15 @@ method mksilo(Str $str) returns Silo
     return %silo{$str};
 }
 
-method mkdrcr(Bool $commodity_minus) returns DrCr
+method mkdecinc(Bool $commodity_minus) returns DecInc
 {
     if $commodity_minus
     {
-        return DEBIT;
+        return DEC;
     }
     else
     {
-        return CREDIT;
+        return INC;
     }
 }
 

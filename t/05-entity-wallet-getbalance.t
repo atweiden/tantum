@@ -74,7 +74,7 @@ else
     {
         if $entry.is_balanced($nightscape.conf)
         {
-            # make debits / credits for each posting in entry
+            # dec/inc applicable wallet balance for each posting in entry
             $entity_personal.do(:posting($_)) for $entry.postings;
         }
         else

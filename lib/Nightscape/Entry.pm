@@ -42,21 +42,21 @@ method is_balanced(Nightscape::Config $conf) returns Bool
         # get posting silo
         my Silo $silo = $posting.account.silo;
 
-        # get posting drcr
-        my DrCr $drcr = $posting.drcr;
+        # get posting decinc
+        my DecInc $decinc = $posting.decinc;
 
         # get multiplier
         my Int $multiplier = %multiplier{$silo};
 
         # adjust running total
-        if $drcr
+        if $decinc
         {
-            # credit: increase running total
+            # increase running total
             $total += $posting_value * $multiplier;
         }
         else
         {
-            # debit: decrease running total
+            # decrease running total
             $total -= $posting_value * $multiplier;
         }
     }

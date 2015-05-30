@@ -144,14 +144,14 @@ method posting($/)
     my Nightscape::Entry::Posting::Amount $amount =
         $<amount>».made.pairs[0].value;
 
-    # debit / credit
-    my DrCr $drcr = Nightscape::Types.mkdrcr: $amount.commodity_minus.Bool;
+    # dec / inc
+    my DecInc $decinc = Nightscape::Types.mkdecinc: $amount.commodity_minus.Bool;
 
     # make posting
     make Nightscape::Entry::Posting.new(
         :$account,
         :$amount,
-        :$drcr
+        :$decinc
     );
 }
 

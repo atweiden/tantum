@@ -35,7 +35,7 @@ sub deref(Nightscape::Entity::Wallet $wallet, *@subwallet) is rw
     $subwallet;
 }
 
-# given a posting, debit/credit the applicable wallet
+# given a posting, dec/inc the applicable wallet balance
 method do(Nightscape::Entry::Posting :$posting!)
 {
     use Nightscape::Entry::Posting::Account;
@@ -44,7 +44,7 @@ method do(Nightscape::Entry::Posting :$posting!)
     # from Nightscape::Entry::Posting
     my Nightscape::Entry::Posting::Account $account = $posting.account;
     my Nightscape::Entry::Posting::Amount $amount = $posting.amount;
-    my DrCr $drcr = $posting.drcr;
+    my DecInc $decinc = $posting.decinc;
 
     # from Nightscape::Entry::Posting::Account
     my Silo $silo = $account.silo;
@@ -58,11 +58,11 @@ method do(Nightscape::Entry::Posting :$posting!)
     self.wallet{$silo} = Nightscape::Entity::Wallet.new
         if !self.wallet{$silo};
 
-    # debit/credit
+    # dec/inc wallet balance
     &deref(self.wallet{$silo}, @subwallet).setbalance(
         $commodity_code,
         $commodity_quantity,
-        $drcr
+        $decinc
     );
 }
 

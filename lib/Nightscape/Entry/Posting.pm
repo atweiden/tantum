@@ -7,7 +7,7 @@ unit class Nightscape::Entry::Posting;
 
 has Nightscape::Entry::Posting::Account $.account;
 has Nightscape::Entry::Posting::Amount $.amount;
-has DrCr $.drcr;
+has DecInc $.decinc;
 
 # get posting value in entity's base currency
 #
