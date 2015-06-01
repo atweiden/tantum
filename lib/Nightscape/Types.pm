@@ -11,10 +11,10 @@ subset VarName of Str is export where
     Nightscape::Parser::Grammar.parse($_, :rule<var_name>);
 };
 
-subset CommodityCode of Str is export where
+subset AssetCode of Str is export where
 {
     use Nightscape::Parser::Grammar;
-    Nightscape::Parser::Grammar.parse($_, :rule<commodity_code>);
+    Nightscape::Parser::Grammar.parse($_, :rule<asset_code>);
 };
 
 enum Silo is export
@@ -44,9 +44,9 @@ method mksilo(Str $str) returns Silo
     return %silo{$str};
 }
 
-method mkdecinc(Bool $commodity_minus) returns DecInc
+method mkdecinc(Bool $minus_sign) returns DecInc
 {
-    if $commodity_minus
+    if $minus_sign
     {
         return DEC;
     }

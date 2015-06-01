@@ -11,16 +11,16 @@ has DecInc $.decinc;
 
 # get posting value in entity's base currency
 #
-# if posting commodity code equivalent to entity's base currency, return
-# commodity_quantity from posting
+# if posting asset code equivalent to entity's base currency, return
+# asset_quantity from posting
 #
-# if posting commodity code differs from entity's base currency, seek
-# exchange rate, first in transaction journal, then in config file
+# if posting asset code differs from entity's base currency, seek
+# exchange_rate, first in transaction journal, then in config file
 #
-# if exchange rate found in config file, has side effect of instantiating
+# if exchange_rate found in config file, has side effect of instantiating
 # XE class based on price data from config file
 #
-# if suitable exchange rate not found anywhere, exit with an error
+# if suitable exchange_rate not found anywhere, exit with an error
 method getvalue(
     Nightscape::Config $conf,
     Date $date,
@@ -37,20 +37,20 @@ method getvalue(
     my VarName $posting_entity = $account.entity;
 
     # entity's base currency
-    my CommodityCode $posting_entity_base_currency =
+    my AssetCode $posting_entity_base_currency =
         $conf.get_base_currency($posting_entity);
 
-    # posting commodity code
-    my CommodityCode $posting_commodity_code = $amount.commodity_code;
+    # posting asset code
+    my AssetCode $posting_asset_code = $amount.asset_code;
 
-    # posting commodity quantity
-    my Quantity $posting_commodity_quantity = $amount.commodity_quantity;
+    # posting asset quantity
+    my Quantity $posting_asset_quantity = $amount.asset_quantity;
 
     # posting value
     my Quantity $posting_value;
 
     # search for exchange rate?
-    if $posting_commodity_code !eq $posting_entity_base_currency
+    if $posting_asset_code !eq $posting_entity_base_currency
     {
         use Nightscape::Entry::Posting::Amount::XE;
 
@@ -59,23 +59,22 @@ method getvalue(
             $amount.exchange_rate
         {
             # try calculating posting value in base currency
-            if $exchange_rate.commodity_code eq $posting_entity_base_currency
+            if $exchange_rate.asset_code eq $posting_entity_base_currency
             {
                 $posting_value =
-                    $posting_commodity_quantity
-                        * $exchange_rate.commodity_quantity;
+                    $posting_asset_quantity * $exchange_rate.asset_quantity;
             }
             else
             {
                 # error: suitable exchange rate not found
-                my CommodityCode $xecc = $exchange_rate.commodity_code;
+                my AssetCode $xeac = $exchange_rate.asset_code;
                 my Str $help_text_faulty_exchange_rate = qq:to/EOF/;
                 Sorry, exchange rate detected in transaction journal
                 doesn't match the parsed entity's base-currency:
 
                     entity: 「$posting_entity」
                     base-currency: 「$posting_entity_base_currency」
-                    exchange rate currency code given in journal: 「$xecc」
+                    exchange rate currency code given in journal: 「$xeac」
 
                 To debug, verify that the entity has been configured with
                 the correct base-currency. Then verify the transaction
@@ -87,7 +86,7 @@ method getvalue(
         }
         # is an exchange rate given in config?
         elsif my Price $price = $conf.getprice(
-            aux => $posting_commodity_code,
+            aux => $posting_asset_code,
             base => $posting_entity_base_currency,
             date => $date
         )
@@ -95,12 +94,12 @@ method getvalue(
             # assign exchange rate because one was not included in the journal
             $amount.exchange_rate =
                 Nightscape::Entry::Posting::Amount::XE.new(
-                    commodity_code => $posting_entity_base_currency,
-                    commodity_quantity => $price
+                    asset_code => $posting_entity_base_currency,
+                    asset_quantity => $price
                 );
 
             # try calculating posting value in base currency
-            $posting_value = $posting_commodity_quantity * $price;
+            $posting_value = $posting_asset_quantity * $price;
         }
         else
         {
@@ -117,11 +116,11 @@ method getvalue(
                     date: 「$date」
                     entity: 「$posting_entity」
                     base-currency: 「$posting_entity_base_currency」
-                    currency code given in journal: 「$posting_commodity_code」
+                    currency code given in journal: 「$posting_asset_code」
 
             To debug, confirm that the data for price pair:
 
-                「$posting_entity_base_currency/$posting_commodity_code」
+                「$posting_entity_base_currency/$posting_asset_code」
 
             on 「$date」 was entered accurately for entry number
             $id. Verify that the entity of entry number
@@ -135,7 +134,7 @@ method getvalue(
     }
     else
     {
-        $posting_commodity_quantity;
+        $posting_asset_quantity;
     }
 }
 

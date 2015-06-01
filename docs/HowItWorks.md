@@ -12,10 +12,10 @@ improperly formatted.
 #### Decipher Entity Config Sections from Price Data Sections
 
 - split config.toml into entities (accounts) and prices
-  (currencies/commodities)
+  (currencies/assets)
   - detect entities section by scanning section keys for `base-currency`
     and `open`. If no section keys are found, assume it is an entity.
-  - detect prices section by scanning section header for `Currencies`,
+  - detect prices section by scanning section header for `Assets`,
     and section keys for `price-file` or ISO dates
 
 #### Entities
@@ -52,9 +52,9 @@ improperly formatted.
 #### Prices
 
 - lookup base-currency for each transaction posting
-- if commodity code given in the transaction journal differs from the
+- if asset code given in the transaction journal differs from the
   controlling entity’s base-currency, ensure price config contains
-  valid price data for the commodity used on the date given
+  valid price data for the asset used on the date given
   - check transaction journal for `@` syntax
   - if no `@` syntax, check config for ISO date (manual) price data entry
   - if no ISO date (manual) price data entry in config, check config

@@ -97,8 +97,8 @@ token silo
 token reserved
 {
     [ :i
-       currencies
-    || 'base-currency'
+       assets
+       || 'base-currency'
     ]
 }
 
@@ -111,37 +111,25 @@ token account
 {
     <silo>
     ':' <entity=.account_sub>
-    {
-        $/ !~~ / [ :i currencies || 'base-currency' ] /
-            or die "Sorry, use of reserved word ($/) as an entity or",
-                " account name is forbidden";
-    }
-    [
-        ':' <account_sub>
-        {
-            $/ !~~ / [ :i currencies || 'base-currency' ] /
-                or die "Sorry, use of reserved word ($/) as an entity or",
-                    " account name is forbidden";
-        }
-    ]*
+    [ ':' <account_sub> ]*
 }
 
-token commodity_minus
+token minus_sign
 {
     '-'
 }
 
-token commodity_symbol
+token asset_symbol
 {
     \D+
 }
 
-token commodity_code
+token asset_code
 {
     <:Letter>+
 }
 
-token commodity_quantity
+token asset_quantity
 {
     \d+ [ '.' \d+ ]?
     || '.' \d+
@@ -151,19 +139,19 @@ token exchange_rate
 {
     '@' \h+
     [
-        <commodity_symbol>? \h* <commodity_quantity> \h+ <commodity_code>    # @ $830.024 USD
-        || <commodity_code> \h+ <commodity_quantity>                         # @ USD 830.024
+        <asset_symbol>? \h* <asset_quantity> \h+ <asset_code>    # @ $830.024 USD
+        || <asset_code> \h+ <asset_quantity>                     # @ USD 830.024
     ]
 }
 
 token amount
 {
-    <commodity_minus>? <commodity_symbol>? \h* <commodity_quantity>
-        \h+ <commodity_code> [\h+ <exchange_rate>]?                       # -$100.00 USD
-    || <commodity_symbol>? \h* <commodity_minus>? <commodity_quantity>
-            \h+ <commodity_code> [\h+ <exchange_rate>]?                   # $-100.00 USD
-    || <commodity_code> \h+ <commodity_minus>? <commodity_quantity>
-        [\h+ <exchange_rate>]?                                            # USD -100.00
+    <minus_sign>? <asset_symbol>? \h* <asset_quantity>
+        \h+ <asset_code> [\h+ <exchange_rate>]?              # -$100.00 USD
+    || <asset_symbol>? \h* <minus_sign>? <asset_quantity>
+            \h+ <asset_code> [\h+ <exchange_rate>]?          # $-100.00 USD
+    || <asset_code> \h+ <minus_sign>? <asset_quantity>
+        [\h+ <exchange_rate>]?                               # USD -100.00
 }
 
 token posting

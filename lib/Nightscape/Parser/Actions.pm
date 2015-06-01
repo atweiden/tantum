@@ -86,39 +86,39 @@ method account($/)
 
 method exchange_rate($/)
 {
-    # commodity symbol
-    my Str $commodity_symbol;
-    $commodity_symbol = $<commodity_symbol>.Str if $<commodity_symbol>;
+    # asset symbol
+    my Str $asset_symbol;
+    $asset_symbol = $<asset_symbol>.Str if $<asset_symbol>;
 
-    # commodity code
-    my CommodityCode $commodity_code = $<commodity_code>.Str;
+    # asset code
+    my AssetCode $asset_code = $<asset_code>.Str;
 
-    # commodity quantity
-    my Quantity $commodity_quantity = $<commodity_quantity>.abs;
+    # asset quantity
+    my Quantity $asset_quantity = $<asset_quantity>.abs;
 
     # make exchange rate
     make Nightscape::Entry::Posting::Amount::XE.new(
-        :$commodity_symbol,
-        :$commodity_code,
-        :$commodity_quantity
+        :$asset_symbol,
+        :$asset_code,
+        :$asset_quantity
     );
 }
 
 method amount($/)
 {
-    # commodity symbol
-    my Str $commodity_symbol;
-    $commodity_symbol = $<commodity_symbol>.Str if $<commodity_symbol>;
+    # asset symbol
+    my Str $asset_symbol;
+    $asset_symbol = $<asset_symbol>.Str if $<asset_symbol>;
 
-    # commodity code
-    my CommodityCode $commodity_code = $<commodity_code>.Str;
+    # asset code
+    my AssetCode $asset_code = $<asset_code>.Str;
 
-    # commodity quantity
-    my Quantity $commodity_quantity = $<commodity_quantity>.abs;
+    # asset quantity
+    my Quantity $asset_quantity = $<asset_quantity>.abs;
 
-    # commodity minus
-    my Str $commodity_minus;
-    $commodity_minus = $<commodity_minus>.Str if $<commodity_minus>;
+    # minus sign
+    my Str $minus_sign;
+    $minus_sign = $<minus_sign>.Str if $<minus_sign>;
 
     # exchange rate
     my Nightscape::Entry::Posting::Amount::XE $exchange_rate =
@@ -126,10 +126,10 @@ method amount($/)
 
     # make amount
     make Nightscape::Entry::Posting::Amount.new(
-        :$commodity_code,
-        :$commodity_quantity,
-        :$commodity_symbol,
-        :$commodity_minus,
+        :$asset_code,
+        :$asset_quantity,
+        :$asset_symbol,
+        :$minus_sign,
         :$exchange_rate
     );
 }
@@ -145,7 +145,7 @@ method posting($/)
         $<amount>».made.pairs[0].value;
 
     # dec / inc
-    my DecInc $decinc = Nightscape::Types.mkdecinc: $amount.commodity_minus.Bool;
+    my DecInc $decinc = Nightscape::Types.mkdecinc: $amount.minus_sign.Bool;
 
     # make posting
     make Nightscape::Entry::Posting.new(

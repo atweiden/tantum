@@ -51,8 +51,8 @@ method do(Nightscape::Entry::Posting :$posting!)
     my VarName @subwallet = $account.subaccount;
 
     # from Nightscape::Entry::Posting::Amount
-    my CommodityCode $commodity_code = $amount.commodity_code;
-    my Quantity $commodity_quantity = $amount.commodity_quantity;
+    my AssetCode $asset_code = $amount.asset_code;
+    my Quantity $asset_quantity = $amount.asset_quantity;
 
     # ensure $silo wallet exists
     self.wallet{$silo} = Nightscape::Entity::Wallet.new
@@ -60,8 +60,8 @@ method do(Nightscape::Entry::Posting :$posting!)
 
     # dec/inc wallet balance
     &deref(self.wallet{$silo}, @subwallet).setbalance(
-        $commodity_code,
-        $commodity_quantity,
+        $asset_code,
+        $asset_quantity,
         $decinc
     );
 }

@@ -13,7 +13,7 @@ The default config file is `$HOME/.config/nightscape/config.toml`.
 Base Currency
 -------------
 
-The base currency / commodity must be specified with the `base-currency`
+The base currency / asset must be specified with the `base-currency`
 key at the top level of the config file. All entities will inherit this
 base currency by default unless a different base currency is specified
 in their config section.
@@ -47,8 +47,8 @@ characters only. No whitespace, and no special characters besides dashes
 (`-`) and underscores (`_`).
 
 Optionally, each entity can include a `base-currency` directive. The
-value of `base-currency` is a user-defined currency code or commodity
-code, contained within double-quotes.
+value of `base-currency` is a user-defined currency code or asset code,
+contained within double-quotes.
 
 ```toml
 [Personal]
@@ -115,21 +115,21 @@ open = "2012-01-01 .. 2013-03-04" # invalid, occurs before entity opened on 2014
 ```
 
 
-Currencies Data
----------------
+Asset Price Data
+----------------
 
-`Currencies` is a special config section for providing price data
-for assets, foreign currencies or cryptocurrencies that appear in the
-transaction journal.
+`Assets` is a special config section for providing price data for assets,
+foreign currencies or cryptocurrencies that appear in the transaction
+journal.
 
-Each `Currencies` config section header must be written in
-the form `Currencies` `.` `commodity_code_1` `.` `Prices` `.`
-`commodity_code_2`. For example, `Currencies.BTC.Prices.USD` reads:
+Each `Assets` config section header must be written in the form `Assets`
+`.` `asset_code_1` `.` `Prices` `.` `asset_code_2`. For example,
+`Assets.BTC.Prices.USD` reads:
 
-> The currency BTC, with prices in USD
+> The asset BTC, with prices in USD
 
 ```toml
-[Currencies.BTC.Prices.USD]
+[Assets.BTC.Prices.USD]
 price-file = "/path/to/csv"
 "2014-01-01" = 770.4357
 "2014-01-02" = 808.0485
@@ -140,16 +140,16 @@ price-file = "/path/to/csv"
 "2014-01-07" = 810.5833
 ```
 
-There are two possible options to set in each `Currencies` group.
+There are two possible options to set in each `Assets` group.
 
 Setting    | Value
 ---        | ---
 price-file | Path to file containing a list of date-price pairs in the format TBD (must be in double quotes)
 ISO date (must be in double quotes) | Price on ISO 8601 date
 
-ISO date (manual) price entries in each `Currencies` config section
-override price data from the listed price file if both are competing to
-provide data for the same date.
+ISO date (manual) price entries in each `Assets` config section override
+price data from the listed price file if both are competing to provide
+data for the same date.
 
 Price data given in the transaction journal (with `@` syntax) will
 override any conflicting price data listed in the config file.

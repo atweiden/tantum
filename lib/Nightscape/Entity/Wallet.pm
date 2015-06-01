@@ -2,16 +2,16 @@ use v6;
 use Nightscape::Types;
 unit class Nightscape::Entity::Wallet;
 
-# balance, indexed by commodity code
-has Rat %.balance{CommodityCode};
+# balance, indexed by asset code
+has Rat %.balance{AssetCode};
 
 # subwallet, indexed by name
 has Nightscape::Entity::Wallet %.subwallet{VarName} is rw;
 
 # get wallet balance, recursively
-method getbalance(CommodityCode $commodity_code) returns Rat
+method getbalance(AssetCode $asset_code) returns Rat
 {
-    my Rat $balance = self.balance{$commodity_code} // 0.0;
+    my Rat $balance = self.balance{$asset_code} // 0.0;
 
     # is there a subwallet?
     if self.subwallet
@@ -19,7 +19,7 @@ method getbalance(CommodityCode $commodity_code) returns Rat
         # add subwallet balance to $balance
         for self.subwallet.kv -> $name, $subwallet
         {
-            $balance += $subwallet.getbalance($commodity_code);
+            $balance += $subwallet.getbalance($asset_code);
         }
     }
 
@@ -28,20 +28,20 @@ method getbalance(CommodityCode $commodity_code) returns Rat
 
 # set wallet balance
 method setbalance(
-    CommodityCode $commodity_code,
-    Quantity $commodity_quantity,
+    AssetCode $asset_code,
+    Quantity $asset_quantity,
     DecInc $decinc
 )
 {
     if $decinc
     {
         # increase balance
-        %!balance{$commodity_code} += $commodity_quantity;
+        %!balance{$asset_code} += $asset_quantity;
     }
     else
     {
         # decrease balance
-        %!balance{$commodity_code} -= $commodity_quantity;
+        %!balance{$asset_code} -= $asset_quantity;
     }
 }
 

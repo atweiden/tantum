@@ -13,7 +13,7 @@ my Nightscape $nightscape = Nightscape.new(
     )
 );
 
-# prepare entities and currencies for transaction journal parsing
+# prepare assets and entities for transaction journal parsing
 {
     # parse TOML config
     my %toml;
@@ -31,20 +31,22 @@ my Nightscape $nightscape = Nightscape.new(
         }
     }
 
+    # set base currency from mandatory toplevel config directive
+    $nightscape.conf.base_currency = %toml<base-currency>
+        or die "Sorry, could not find global base-currency",
+            " in config (mandatory).";
+
+    # populate asset prices
+    for $nightscape.conf.detoml_assets(%toml).kv -> $code, $prices
+    {
+        $nightscape.conf.assets{$code} =
+            $nightscape.conf.gen_pricesheet( prices => $prices<Prices> );
+    }
+
     # populate entities
     for $nightscape.conf.detoml_entities(%toml).kv -> $name, $rest
     {
         $nightscape.conf.entities{$name} = $rest;
-    }
-
-    # populate currencies
-    $nightscape.conf.base_currency = %toml<base-currency>
-        or die "Sorry, could not find global base-currency",
-            " in config (mandatory).";
-    for $nightscape.conf.detoml_currencies(%toml).kv -> $code, $prices
-    {
-        $nightscape.conf.currencies{$code} =
-            $nightscape.conf.gen_pricesheet(prices => $prices<Prices>);
     }
 }
 
@@ -70,13 +72,13 @@ else
     my Nightscape::Entry::Posting @postings =
         $nightscape.ls_postings(:entries(@entries_by_entity_personal));
 
-    # filter postings by commodity BTC, silo ASSETS
-    my Regex $commodity_code = /BTC/;
+    # filter postings by asset BTC, silo ASSETS
+    my Regex $asset_code = /BTC/;
     my Silo $silo = ASSETS;
     my Nightscape::Entry::Posting @postings_btc_assets =
-        $nightscape.ls_postings(:@postings, :$commodity_code, :$silo);
+        $nightscape.ls_postings(:@postings, :$asset_code, :$silo);
 
-    # check that two postings are returned for commodity BTC, silo ASSETS
+    # check that two postings are returned for asset BTC, silo ASSETS
     is(
         @postings_btc_assets.elems,
         2,

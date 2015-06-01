@@ -77,24 +77,24 @@ Config
 if you don't specify:
 
 ```toml
-[EntityNamedFoo.Currencies.BTC.Prices.USD]
+[EntityNamedFoo.Assets.BTC.Prices.USD]
 ```
 
 for `[EntityNamedFoo]`, then Nightscape will default to looking for
 exchange rate pricing in the config_file section titled:
 
 ```
-[Currencies.$aux_currency_code.Prices.$entity_base_currency_code]
+[Assets.$aux_currency_code.Prices.$entity_base_currency_code]
 ```
 
 ```toml
-[Currencies.BTC.Prices.USD]
+[Assets.BTC.Prices.USD]
 ```
 
 if you specify:
 
 ```toml
-[EntityNamedFoo.Currencies.BTC.Prices.USD]
+[EntityNamedFoo.Assets.BTC.Prices.USD]
 "2014-01-01" = 770000.4357
 ```
 
@@ -105,12 +105,12 @@ pricing directives given under EntityNamedFoo.
 alternatively, if you specify:
 
 ```toml
-[EntityNamedFoo.Currencies.BTC.Prices.USD]
+[EntityNamedFoo.Assets.BTC.Prices.USD]
 use-global-pricing = True
 ```
 
-then prices in the global Currencies group will merge with prices given
-for EntityNamedFoo, with EntityNamedFoo pricing taking precedence.
+then prices in the global Assets group will merge with prices given for
+EntityNamedFoo, with EntityNamedFoo pricing taking precedence.
 
 implementation detail: be sure that only the pricing pairs (`"2014-01-01"
 = 770.4357`) merge, with any price-file directives resolving to the
@@ -118,7 +118,7 @@ pricing pairs before merger.
 
   - Tag-specific pricing data
 
-["@coinbase".Currencies.BTC.Prices.USD]
+["@coinbase".Assets.BTC.Prices.USD]
 
 - Configurable documents directory
 
@@ -218,9 +218,9 @@ rate is quoted in terms of the base currency:
 If the exchange rate is not quoted in terms of the base currency,
 Nightscape should raise an exception.
 
-Alternatively, in cases where one non-default commodity is used to pay
-for another non-default commodity, syntax is checked to ensure the "base"
-non-default commodity is expressed in the true default commodity, e.g.:
+Alternatively, in cases where one non-default asset is used to pay
+for another non-default asset, syntax is checked to ensure the "base"
+non-default asset is expressed in the true default asset, e.g.:
 
 ```transactions
 2015-01-01 "I exchanged 1 BTC for 200 LTC"
@@ -247,6 +247,22 @@ Tentative
 ---------
 
 #### implement hard check of one entity per journal entry [CHECK]
+
+#### implement checks
+
+- do postings balance?
+- is hash1 a prefix of hash2
+- "Does account_string1 name a parent of, or same a/c as, account_string2?"
+- "Does transaction_or_posting affect named account?"
+- "Return transactions affecting named account?"
+
+```python
+def chart_of_accounts(accounts_dict, prefix = "", indent=0):
+    """Return list of strings describing structure of accounts.
+
+    accounts_dict represents hierachical structure of accounts."""
+```
+
 
 #### implement lib/Nightscape/Entity.pm
 

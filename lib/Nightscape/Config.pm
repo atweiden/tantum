@@ -6,23 +6,23 @@ unit class Nightscape::Config;
 has Str $.config_file = "%*ENV<HOME>/.config/nightscape/config.toml";
 has Str $.data_dir = "%*ENV<HOME>/.nightscape";
 has Str $.log_dir = "$!data_dir/logs";
-has Str $.currencies_dir = "$!data_dir/currencies";
-has CommodityCode $.base_currency is rw;
-has Nightscape::Config::Pricesheet %.currencies{CommodityCode} is rw;
+has Str $.price_dir = "$!data_dir/prices";
+has AssetCode $.base_currency is rw;
+has Nightscape::Config::Pricesheet %.assets{AssetCode} is rw;
 has %.entities is rw;
 
-#  %.currencies
-#  ============
+#  %.assets
+#  ========
 #
-#  self.currencies = hash of Pricesheets indexed by commodity code
-#
+#  self.assets = Pricesheets indexed by asset code
+#                       |
 # +----------------------------------------------+
-# |     self.currencies<BTC> is a Pricesheet     |
-# |                         |                    |
+# |     self.assets<BTC> is a Pricesheet         |
+# |                     |                        |
 # |        +-----------------------------------+ |
 # |        | Each Pricesheet is a              | |
 # |        | C<hash of Prices indexed by Date> | |
-# |        | indexed by commodity code         | |
+# |        | indexed by asset code             | |
 # |        |                                   | |
 # |        |        +------------------------+ | |
 # |        |        |                        | | |
@@ -30,21 +30,21 @@ has %.entities is rw;
 #    |        |             |            |
 #  (Code)   (Code)        (Date)      (Price)
 #
-# ex: $nightscape.conf.currencies<BTC>.prices<USD><2014-01-01>
+# ex: $nightscape.conf.assets<BTC>.prices<USD><2014-01-01>
 #
 #
 
-# filter currencies from unvalidated %toml config
-method detoml_currencies(%toml)
+# filter asset price data from unvalidated %toml config
+method detoml_assets(%toml)
 {
-    my VarName $currencies_header;
+    my VarName $assets_header;
     %toml.map({
-        $currencies_header = $/.orig.Str if $_.keys ~~ m:i / ^currencies /;
+        $assets_header = $/.orig.Str if $_.keys ~~ m:i / ^assets /;
     });
 
-    if $currencies_header
+    if $assets_header
     {
-        return %toml{$currencies_header};
+        return %toml{$assets_header};
     }
     else
     {
@@ -78,7 +78,7 @@ method detoml_entities(%toml)
 # return base-currency of entity
 # if not configured for entity, return toplevel base-currency
 # if toplevel base-currency not configured, exit with an error
-method get_base_currency(VarName $entity) returns CommodityCode
+method get_base_currency(VarName $entity) returns AssetCode
 {
     if my $entity_base_currency = self.entities{$entity}<base-currency>
     {
@@ -110,7 +110,7 @@ method !read_price_file(:$price_file!) returns Hash[Price,Date]
     say "Reading price file: $price_file…";
 }
 
-# return Pricesheet from unvalidated <Currencies>{$code}<Prices> config
+# return Pricesheet from unvalidated <Assets>{$code}<Prices> config
 method gen_pricesheet(:%prices!) returns Nightscape::Config::Pricesheet
 {
     # incoming: {
@@ -148,7 +148,7 @@ method gen_pricesheet(:%prices!) returns Nightscape::Config::Pricesheet
     #           }<>
 
     my Nightscape::Config::Pricesheet $pricesheet;
-    for %prices.kv -> $currency, $rest
+    for %prices.kv -> $asset, $rest
     {
         my Price %dates_and_prices{Date};
         my Price %dates_and_prices_from_file{Date};
@@ -188,17 +188,17 @@ method gen_pricesheet(:%prices!) returns Nightscape::Config::Pricesheet
         # values from equivalent %dates_and_prices_from_file keys
         my Price %xe{Date} = (%dates_and_prices_from_file, %dates_and_prices);
         $pricesheet = Nightscape::Config::Pricesheet.new(
-            prices => %($currency => %xe)
+            prices => %($asset => %xe)
         );
     }
     $pricesheet;
 }
 
-# given posting commodity code (aux), base commodity code (base), and
-# a date, return price of aux in terms of base on date.
+# given posting asset code (aux), base asset code (base), and a date,
+# return price of aux in terms of base on date
 method getprice(
-    CommodityCode :$aux!,
-    CommodityCode :$base!,
+    AssetCode :$aux!,
+    AssetCode :$base!,
     Date :$date!
 ) returns Price
 {
@@ -207,7 +207,7 @@ method getprice(
     # elsif entity-specific
     # elsif toplevel
     # else error
-    self.currencies{$aux}.prices{$base}{$date};
+    self.assets{$aux}.prices{$base}{$date};
 }
 
 # vim: ft=perl6

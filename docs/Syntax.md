@@ -110,26 +110,26 @@ Postings
 - Postings must appear one after the other
 
 
-Main Accounts
--------------
+Silos
+-----
 
-- Accepted main account names
+- Accepted silo names
   - Asset / Assets
   - Expense / Expenses
   - Income / Revenue / Revenues
   - Liability / Liabilities
   - Equity / Equities
-- Main account names are case-insensitive
+- Silos are case-insensitive
   - asset / assets
   - expense / expEnSeS
   - income / revENuE / Revenues
   - liability / liabilitiEs
   - Equity / equitieS
 
-#### Unacceptable (use of unsupported main account name)
+#### Unacceptable (use of unsupported silo name)
 
 ```
-MyCustomMainAcct:FooEntity:BarSubaccount
+MyCustomSilo:FooEntity:BarSubaccount
 ```
 
 #### Acceptable
@@ -150,6 +150,9 @@ Entities
   and underscores (`_`)
 - Entities cannot contain whitespace or any special characters besides
   `-` and `_`
+- Entities cannot be named reserve words
+  - silo names: assets, expenses, income, liabilities, equity
+  - top-level config vars: base-currency
 
 #### Unacceptable (no entity given)
 
@@ -161,6 +164,13 @@ Assets
 
 ```
 Assets:Chase Investment Bank
+```
+
+#### Unacceptable (entities cannot be named a reserved word)
+
+```
+Assets:Assets
+Assets:base-currency
 ```
 
 #### Acceptable
@@ -211,7 +221,7 @@ Numbers
 - Negative numbers must avoid giving whitespace between the negating
   `-` character and one of either the asset symbol or asset quantity.
 
-#### Unacceptable (lack of currency code / commodity code)
+#### Unacceptable (lack of currency code / asset code)
 
 ```
 1000

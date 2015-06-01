@@ -8,11 +8,11 @@ unit class Nightscape;
 # config options, extracted from on disk conf and cmdline flags
 has Nightscape::Config $.conf is rw;
 
-# entries, extracted from on disk transaction journal
-has Nightscape::Entry @.entries is rw;
-
 # entities, indexed by name
 has Nightscape::Entity %.entities{VarName} is rw;
+
+# entries, extracted from on disk transaction journal
+has Nightscape::Entry @.entries is rw;
 
 # list entries from on disk transaction journal
 multi method ls_entries(
@@ -97,24 +97,24 @@ multi method ls_postings(
 # filter postings
 multi method ls_postings(
     Nightscape::Entry::Posting :@postings!,
-    Regex :$commodity_code,
+    Regex :$asset_code,
     Silo :$silo
 ) returns Array[Nightscape::Entry::Posting]
 {
     my Nightscape::Entry::Posting @p = @postings;
-    @p = self._ls_postings(:postings(@p), :$commodity_code) if defined $commodity_code;
+    @p = self._ls_postings(:postings(@p), :$asset_code) if defined $asset_code;
     @p = self._ls_postings(:postings(@p), :$silo) if defined $silo;
     @p;
 }
 
-# list postings by commodity code
+# list postings by asset code
 multi method _ls_postings(
     Nightscape::Entry::Posting :@postings!,
-    Regex :$commodity_code!
+    Regex :$asset_code!
 ) returns Array[Nightscape::Entry::Posting]
 {
     my Nightscape::Entry::Posting @p =
-        @postings.grep({ .amount.commodity_code ~~ $commodity_code });
+        @postings.grep({ .amount.asset_code ~~ $asset_code });
 }
 
 # list postings by silo

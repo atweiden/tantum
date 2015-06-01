@@ -12,7 +12,7 @@ use v6;
 # main
 # -----------------------------------------------------------------------------
 
-sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$currencies-dir)
+sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$price-dir)
 {
     use Nightscape;
     my Nightscape $nightscape = Nightscape.new;
@@ -121,30 +121,30 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$currencies-dir)
             }
         }
 
-        if $currencies-dir
+        if $price-dir
         {
-            # check currencies dir passed as cmdline arg exists
-            if $currencies-dir.IO.d
+            # check price dir passed as cmdline arg exists
+            if $price-dir.IO.d
             {
-                %config<currencies_dir> = "$currencies-dir";
+                %config<price_dir> = "$price-dir";
             }
             else
             {
-                die "Sorry, couldn't locate the given currencies directory: ",
-                    $currencies-dir;
+                die "Sorry, couldn't locate the given price directory: ",
+                    $price-dir;
             }
         }
         else
         {
-            # make default currencies directory if it doesn't exist
-            if !$nightscape.conf.currencies_dir.IO.d
+            # make default price directory if it doesn't exist
+            if !$nightscape.conf.price_dir.IO.d
             {
-                say "Currencies directory doesn't exist.";
-                print "Creating currencies directory in ",
-                    $nightscape.conf.currencies_dir, "… ";
-                mkdir $nightscape.conf.currencies_dir
-                    or die "Sorry, couldn't create currencies directory: ",
-                        $nightscape.conf.currencies_dir;
+                say "Price directory doesn't exist.";
+                print "Creating price directory in ",
+                    $nightscape.conf.price_dir, "… ";
+                mkdir $nightscape.conf.price_dir
+                    or die "Sorry, couldn't create price directory: ",
+                        $nightscape.conf.price_dir;
                 say "done.";
             }
         }
@@ -153,7 +153,7 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$currencies-dir)
         $nightscape.conf = Nightscape::Config.new(|%config);
     }
 
-    # prepare currencies and entities for transaction journal parsing
+    # prepare assets and entities for transaction journal parsing
     {
         # parse TOML config
         my %toml;
@@ -176,10 +176,10 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$currencies-dir)
             or die "Sorry, could not find global base-currency",
                 " in config (mandatory).";
 
-        # populate currencies
-        for $nightscape.conf.detoml_currencies(%toml).kv -> $code, $prices
+        # populate asset prices
+        for $nightscape.conf.detoml_assets(%toml).kv -> $code, $prices
         {
-            $nightscape.conf.currencies{$code} =
+            $nightscape.conf.assets{$code} =
                 $nightscape.conf.gen_pricesheet( prices => $prices<Prices> );
         }
 
@@ -237,8 +237,8 @@ sub USAGE()
         the location of the general data directory
       --log-dir=LOG_DIR
         the location of the log directory
-      --currencies-dir=CURRENCIES_DIR
-        the location of the currencies data directory
+      --price-dir=PRICE_DIR
+        the location of the asset price directory
     EOF
     say $help_text.trim;
 }
