@@ -3,13 +3,20 @@ use Nightscape::Config::Pricesheet;
 use Nightscape::Types;
 unit class Nightscape::Config;
 
+# setup
 has Str $.config_file = "%*ENV<HOME>/.config/nightscape/config.toml";
 has Str $.data_dir = "%*ENV<HOME>/.nightscape";
 has Str $.log_dir = "$!data_dir/logs";
 has Str $.price_dir = "$!data_dir/prices";
+
+# base currency setting default/fallback for all entities
 has AssetCode $.base_currency is rw;
+
+# asset exchange rate settings parsed from config, indexed by asset code
 has Nightscape::Config::Pricesheet %.assets{AssetCode} is rw;
-has %.entities is rw;
+
+# entity settings parsed from config, indexed by entity name
+has %.entities{VarName} is rw;
 
 #  %.assets
 #  ========
