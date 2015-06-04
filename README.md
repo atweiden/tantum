@@ -36,6 +36,12 @@ Usage
 $ PERL6LIB=lib ./bin/nightscape.pl examples/sample.transactions
 ```
 
+Run all tests:
+
+```bash
+$ prove [-v] -e perl6 t/
+```
+
 
 Licensing
 ---------
