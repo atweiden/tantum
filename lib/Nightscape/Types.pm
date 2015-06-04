@@ -32,18 +32,6 @@ enum DecInc is export
     INC
 >;
 
-method mksilo(Str $str) returns Silo
-{
-    my Silo %silo =
-        "ASSETS" => ASSETS,
-        "EXPENSES" => EXPENSES,
-        "INCOME" => INCOME,
-        "LIABILITIES" => LIABILITIES,
-        "EQUITY" => EQUITY;
-
-    return %silo{$str};
-}
-
 method mkdecinc(Bool $minus_sign) returns DecInc
 {
     if $minus_sign

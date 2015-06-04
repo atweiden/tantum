@@ -14,11 +14,11 @@ method is_balanced(Nightscape::Config $conf) returns Bool
 
     # Assets + Expenses = Income + Liabilities + Equity
     my Int %multiplier{Silo} =
-        Nightscape::Types.mksilo("ASSETS") => 1,
-        Nightscape::Types.mksilo("EXPENSES") => 1,
-        Nightscape::Types.mksilo("INCOME") => -1,
-        Nightscape::Types.mksilo("LIABILITIES") => -1,
-        Nightscape::Types.mksilo("EQUITY") => -1;
+        ::(ASSETS) => 1,
+        ::(EXPENSES) => 1,
+        ::(INCOME) => -1,
+        ::(LIABILITIES) => -1,
+        ::(EQUITY) => -1;
 
     # running total
     my Rat $total;

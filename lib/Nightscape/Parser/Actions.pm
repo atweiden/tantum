@@ -68,7 +68,7 @@ method header($/)
 method account($/)
 {
     # silo (assets, expenses, income, liabilities, equity)
-    my Silo $silo = Nightscape::Types.mksilo: $<silo>.uc;
+    my Silo $silo = ::($<silo>.uc);
 
     # entity
     my VarName $entity = $<entity>.Str;
