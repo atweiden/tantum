@@ -94,7 +94,7 @@ method exchange_rate($/)
     my AssetCode $asset_code = $<asset_code>.Str;
 
     # asset quantity
-    my Quantity $asset_quantity = $<asset_quantity>.abs;
+    my Quantity $asset_quantity = Rat($<asset_quantity>.abs);
 
     # make exchange rate
     make Nightscape::Entry::Posting::Amount::XE.new(
@@ -114,7 +114,7 @@ method amount($/)
     my AssetCode $asset_code = $<asset_code>.Str;
 
     # asset quantity
-    my Quantity $asset_quantity = $<asset_quantity>.abs;
+    my Quantity $asset_quantity = Rat($<asset_quantity>.abs);
 
     # minus sign
     my Str $minus_sign;
