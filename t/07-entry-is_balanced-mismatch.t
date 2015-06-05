@@ -4,7 +4,7 @@ use Test;
 use Nightscape;
 use Nightscape::Config;
 
-plan 1;
+plan 2;
 
 my Str $file = "t/data/invalid.transactions";
 
@@ -70,13 +70,25 @@ else
         :entity(/Personal/)
     );
 
-    # check that entry id 2 of data/invalid.transactions causes exchange
+    # check that entry id 3 of data/invalid.transactions causes exchange
     # rate mismatch error
-    dies-ok { @entries_by_entity_personal[2].is_balanced($nightscape.conf) },
+    dies-ok { @entries_by_entity_personal[3].is_balanced($nightscape.conf) },
             q:to/EOF/;
-            ♪ [is_balanced-mismatch] - 1 of 1
+            ♪ [is_balanced-mismatch] - 1 of 2
             ┏━━━━━━━━━━━━━┓
-            ┃             ┃  ∙ Passed argument of @entries_by_entity_personal[2]
+            ┃             ┃  ∙ Passed argument of @entries_by_entity_personal[3]
+            ┃   Success   ┃    causes exchange rate mismatch error, as expected.
+            ┃             ┃
+            ┗━━━━━━━━━━━━━┛
+            EOF
+
+    # check that entry id 4 of data/invalid.transactions causes exchange
+    # rate mismatch error
+    dies-ok { @entries_by_entity_personal[4].is_balanced($nightscape.conf) },
+            q:to/EOF/;
+            ♪ [is_balanced-mismatch] - 2 of 2
+            ┏━━━━━━━━━━━━━┓
+            ┃             ┃  ∙ Passed argument of @entries_by_entity_personal[4]
             ┃   Success   ┃    causes exchange rate mismatch error, as expected.
             ┃             ┃
             ┗━━━━━━━━━━━━━┛

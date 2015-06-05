@@ -1,6 +1,10 @@
 2014-01-01 "I started the year with ฿7.00000000 BTC in cold storage"
-  Assets:Personal:ColdStorage:BTC    ฿7.00000000 BTC @ 100 USD
-  Equity:Personal:BTC                $700.00 USD
+  Assets:Personal:ColdStorage:BTC    ฿7.00000000 BTC @ $100 USD
+  Equity:Personal:BTC                ฿7.00000000 BTC @ $100 USD
+
+2014-01-01 "I started the year with Ł7.00000000 LTC in cold storage"
+  Assets:Personal:ColdStorage:LTC    Ł7.00000000 LTC @ $1 USD
+  Equity:Personal:LTC                Ł7.00000000 LTC @ $1 USD
 
 # valid
 2014-01-02 "I sold 1.0 BTC for $100.00 USD"
@@ -13,5 +17,13 @@
   Assets:Personal:Bankwest:Cheque     100 USD
   Assets:Personal:ColdStorage:BTC     0.5 BTC @ 200 USD
   Assets:Personal:ColdStorage:BTC    -2.0 BTC @ 100 USD
+
+# invalid
+2014-01-02 "I sold 1.0 BTC and 1.0 LTC for $101.00 USD"
+  Assets:Personal:Bankwest:Cheque     101 USD
+  Assets:Personal:ColdStorage:BTC     1.0 BTC @ 100 USD
+  Assets:Personal:ColdStorage:LTC     0.5 LTC @ 2.0 USD
+  Assets:Personal:ColdStorage:BTC    -2.0 BTC @ 100 USD
+  Assets:Personal:ColdStorage:LTC    -2.0 LTC @ 1.0 USD
 
 # vim: ft=transactions
