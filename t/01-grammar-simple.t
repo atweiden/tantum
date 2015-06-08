@@ -3,7 +3,7 @@ use lib 'lib';
 use Test;
 use Nightscape::Parser::Grammar;
 
-plan 1;
+plan 2;
 
 my $content = q:to/EOTX/;
 # this is a preceding comment
@@ -41,10 +41,34 @@ EOTX
         $match.WHAT.perl,
         'Match',
         q:to/EOF/
-        ♪ [Nightscape::Parser::Grammar.parse($content)] - 1 of 1
+        ♪ [Nightscape::Parser::Grammar.parse] - 1 of 2
         ┏━━━━━━━━━━━━━┓
         ┃             ┃  ∙ Parses simple journal successfully
         ┃   Success   ┃
+        ┃             ┃
+        ┗━━━━━━━━━━━━━┛
+        EOF
+    );
+}
+
+my $content_with_includes = q:to/EOTX/;
+include 'includes/foocorp'
+
+2014-01-01 "I started the year with $1000 in Bankwest cheque account" @TAG1 @TAG2 # EODESC COMMENT
+  Assets:Personal:Bankwest:Cheque    $1000.00 USD
+  Equity:Personal                    $1000.00 USD # EOL COMMENT
+EOTX
+
+{
+    my $match = Nightscape::Parser::Grammar.parse($content_with_includes);
+    is(
+        $match.WHAT.perl,
+        'Match',
+        q:to/EOF/
+        ♪ [Nightscape::Parser::Grammar.parse] - 2 of 2
+        ┏━━━━━━━━━━━━━┓
+        ┃             ┃  ∙ Parses simple journal with include directive
+        ┃   Success   ┃    successfully
         ┃             ┃
         ┗━━━━━━━━━━━━━┛
         EOF
