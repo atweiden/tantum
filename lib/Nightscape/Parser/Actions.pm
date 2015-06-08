@@ -182,6 +182,33 @@ method entry($/)
     $entry_number++;
 }
 
+method include($/)
+{
+    # transaction journal to include
+    my Str $filename;
+    $filename = try {substr($<filename>, 1, *-1).trim} if $<filename>;
+
+    # append .transactions extension to filename
+    $filename ~= ".transactions" if $filename;
+
+    # does include directive's transaction journal exist?
+    if $filename && $filename.IO.e
+    {
+        # schedule included transaction journal for parsing
+        use Nightscape::Parser::Include;
+        make Nightscape::Parser::Include.new(:$filename);
+    }
+    else
+    {
+        # exit with an error
+        die qq:to/EOF/;
+        Sorry, could not locate transaction journal to include at
+
+            「$filename」
+        EOF
+    }
+}
+
 method journal($/)
 {
     # blank line
@@ -206,6 +233,11 @@ method journal($/)
             :@postings,
             :@posting_comments
         );
+    }
+    elsif $<include>
+    {
+        # included transaction journal
+        make $<include>».made.list[0];
     }
 }
 

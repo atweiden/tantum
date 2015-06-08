@@ -23,8 +23,15 @@ multi method ls_entries(
     use Nightscape::Parser;
     if my $parsed = Nightscape::Parser.parse(slurp($file))
     {
-        # entries, unsorted
-        my Nightscape::Entry @entries = $parsed.made.grep({ .defined });
+        my Nightscape::Entry @entries;
+        my Nightscape::Entry @entries_included;
+
+        # parse entries from included transaction journals
+        push @entries_included, self.ls_entries( :file($_.filename) )
+            for $parsed.made.grep(Nightscape::Parser::Include);
+
+        # entries, unsorted, with included transaction journals
+        @entries = ( $parsed.made.grep(Nightscape::Entry), @entries_included );
 
         # entries, sorted by date ascending then by importance descending
         @entries = @entries.sort({

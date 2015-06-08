@@ -69,10 +69,19 @@ token important
 
 token description
 {
+    # double quoted string
     '"'
     <-["\\]>*
     [ \\ . <-["\\]>* ]*
     '"'
+
+    ||
+
+    # single quoted string
+    '\''
+    <-[\'\\]>*
+    [ \\ . <-[\'\\]>* ]*
+    '\''
 }
 
 token header
@@ -171,11 +180,17 @@ token entry
     ]+
 }
 
+token include
+{
+    ^^ include \h+ <filename=.description> \h* $$ \n
+}
+
 token journal
 {
     <blank_line>                               # blank lines
     || ^^ \h* <comment_line=.comment> $$ \n    # comment lines
     || <entry>                                 # journal entries
+    || <include>                               # includes
 }
 
 token TOP
