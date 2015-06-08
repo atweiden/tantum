@@ -77,7 +77,7 @@ Descriptions
 
 - Transaction descriptions are optional
 - Transaction descriptions, when given, must appear all on one line,
-  within a pair of double quotes ("this")
+  within a pair of double quotes ("this") or single quotes ('this')
 
 #### Unacceptable (transaction description is not contained on one line)
 
@@ -87,7 +87,7 @@ Descriptions
            cheque account
 ```
 
-#### Unacceptable (transaction description not surrounded in double quotes)
+#### Unacceptable (transaction description not surrounded in double or single quotes)
 
 ```
 2014-01-01 I started the year with $1000 in Bankwest cheque account
@@ -97,6 +97,7 @@ Descriptions
 
 ```
 2014-01-01 "I started the year with $1000 in Bankwest cheque account"
+2014-01-01 'Single quotes work too'
 2014-01-01 # descriptions are optional
 ```
 
@@ -360,4 +361,51 @@ Exclamation Marks
 
 ```transactions
 ! !! ! !!!
+```
+
+
+Includes
+--------
+
+- include separate transaction journal files by writing `include
+  'path/to/file/without/extension'` with no leading whitespace
+- included files must have `.transactions` extension, but include
+  directives in transaction journals must leave off the extension,
+  as the extension is added automatically
+- filename to include must be surrounded with double quotes or single
+  quotes
+- use maximum of a single include directive per line
+- whitespace and utf-8 in filenames is ok
+- glob syntax not supported
+
+#### Unacceptable (missing double or single quotes around transaction journal name)
+
+```transactions
+include includes/2011
+```
+
+#### Unacceptable (leading whitespace present)
+
+```transactions
+  include 'includes/2011'
+```
+
+#### Unacceptable (more than one include directive given)
+
+```transactions
+include 'includes/2011' 'includes/2012'
+```
+
+#### Unacceptable (warning: glob syntax interpreted literally)
+
+```transactions
+include 'includes/*'
+```
+
+#### Acceptable
+
+```transactions
+include 'includes/2011'
+include "includes/2012"
+include 'includes/whitespace in transaction journal name is ok'
 ```
