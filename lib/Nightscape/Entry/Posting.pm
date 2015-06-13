@@ -1,5 +1,4 @@
 use v6;
-use Nightscape::Config;
 use Nightscape::Entry::Posting::Account;
 use Nightscape::Entry::Posting::Amount;
 use Nightscape::Types;
@@ -21,8 +20,7 @@ has DecInc $.decinc;
 # XE class based on price data from config file
 #
 # if suitable exchange_rate not found anywhere, exit with an error
-method getvalue(
-    Nightscape::Config $conf,
+method get_value(
     Date $date,
     Int $id
 ) returns Quantity
@@ -38,7 +36,7 @@ method getvalue(
 
     # entity's base currency
     my AssetCode $posting_entity_base_currency =
-        $conf.get_base_currency($posting_entity);
+        $GLOBAL::conf.resolve_base_currency($posting_entity);
 
     # posting asset code
     my AssetCode $posting_asset_code = $amount.asset_code;
@@ -85,18 +83,18 @@ method getvalue(
             }
         }
         # is an exchange rate given in config?
-        elsif my Price $price = $conf.getprice(
+        elsif my Price $price = $GLOBAL::conf.resolve_price(
             aux => $posting_asset_code,
             base => $posting_entity_base_currency,
-            date => $date
+            date => $date,
+            entity_name => $posting_entity
         )
         {
             # assign exchange rate because one was not included in the journal
-            $amount.exchange_rate =
-                Nightscape::Entry::Posting::Amount::XE.new(
-                    asset_code => $posting_entity_base_currency,
-                    asset_quantity => $price
-                );
+            $amount.exchange_rate = Nightscape::Entry::Posting::Amount::XE.new(
+                asset_code => $posting_entity_base_currency,
+                asset_quantity => $price
+            );
 
             # try calculating posting value in base currency
             $posting_value = $posting_asset_quantity * $price;

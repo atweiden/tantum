@@ -1,6 +1,7 @@
 use v6;
 use Nightscape::Entry::Header;
 use Nightscape::Entry::Posting;
+use Nightscape::Types;
 unit class Nightscape::Entry;
 
 has Nightscape::Entry::Header $.header;
@@ -8,10 +9,8 @@ has Nightscape::Entry::Posting @.postings;
 has Str @.posting_comments;
 
 # check if entry is balanced
-method is_balanced(Nightscape::Config $conf) returns Bool
+method is_balanced() returns Bool
 {
-    use Nightscape::Types;
-
     # Assets + Expenses = Income + Liabilities + Equity
     my Int %multiplier{Silo} =
         ::(ASSETS) => 1,
@@ -36,8 +35,7 @@ method is_balanced(Nightscape::Config $conf) returns Bool
     for self.postings -> $posting
     {
         # get value of posting in entity base currency
-        my Quantity $posting_value = $posting.getvalue(
-            $conf,
+        my Quantity $posting_value = $posting.get_value(
             $date,
             $id
         );
@@ -45,7 +43,7 @@ method is_balanced(Nightscape::Config $conf) returns Bool
         # is posting denominated in asset other than entity's base
         # currency?
         my AssetCode $posting_entity_base_currency =
-            $conf.get_base_currency($posting.account.entity);
+            $GLOBAL::conf.resolve_base_currency($posting.account.entity);
         if $posting.amount.asset_code !eq $posting_entity_base_currency
         {
             # store posting exchange rate for comparison with other
@@ -118,6 +116,65 @@ method is_balanced(Nightscape::Config $conf) returns Bool
     {
         True;
     }
+}
+
+# list unique asset codes in postings
+method ls_asset_codes(
+    Nightscape::Entry::Posting :@postings = @!postings
+) returns Array[AssetCode]
+{
+    my AssetCode @asset_codes;
+    for @postings -> $posting
+    {
+        push @asset_codes, $_ for $posting.amount.asset_code;
+    }
+    my AssetCode @asset_codes_unique = @asset_codes.unique;
+}
+
+# list postings from entries
+multi method ls_postings(
+    Nightscape::Entry :@entries!
+) returns Array[Nightscape::Entry::Posting]
+{
+    my Nightscape::Entry::Posting @postings;
+    for @entries -> $entry
+    {
+        push @postings, $_ for $entry.postings;
+    }
+    @postings;
+}
+
+# filter postings
+multi method ls_postings(
+    Nightscape::Entry::Posting :@postings!,
+    Regex :$asset_code,
+    Silo :$silo
+) returns Array[Nightscape::Entry::Posting]
+{
+    my Nightscape::Entry::Posting @p = @postings;
+    @p = self._ls_postings(:postings(@p), :$asset_code) if defined $asset_code;
+    @p = self._ls_postings(:postings(@p), :$silo) if defined $silo;
+    @p;
+}
+
+# list postings by asset code
+multi method _ls_postings(
+    Nightscape::Entry::Posting :@postings!,
+    Regex :$asset_code!
+) returns Array[Nightscape::Entry::Posting]
+{
+    my Nightscape::Entry::Posting @p =
+        @postings.grep({ .amount.asset_code ~~ $asset_code });
+}
+
+# list postings by silo
+multi method _ls_postings(
+    Nightscape::Entry::Posting :@postings!,
+    Silo :$silo!
+) returns Array[Nightscape::Entry::Posting]
+{
+    my Nightscape::Entry::Posting @p =
+        @postings.grep({ .account.silo ~~ $silo });
 }
 
 # vim: ft=perl6

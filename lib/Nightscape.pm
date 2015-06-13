@@ -1,18 +1,24 @@
 use v6;
-use Nightscape::Config;
 use Nightscape::Entity;
 use Nightscape::Entry;
 use Nightscape::Types;
 unit class Nightscape;
 
-# config options, extracted from on disk conf and cmdline flags
-has Nightscape::Config $.conf is rw;
-
 # entities, indexed by name
-has Nightscape::Entity %.entities{VarName} is rw;
+# may include imported historical wallets and inventory with cost basis
+has Nightscape::Entity %.entities{VarName};
 
 # entries, extracted from on disk transaction journal
 has Nightscape::Entry @.entries is rw;
+
+# list unique entity names defined in entries
+method ls_entity_names(
+    Nightscape::Entry :@entries!
+) returns Array[VarName]
+{
+    my VarName @entities = .postings[0].account.entity for @entries;
+    @entities = @entities.unique;
+}
 
 # list entries from on disk transaction journal
 multi method ls_entries(
@@ -88,50 +94,37 @@ multi method _ls_entries(
         @entries.grep({ .postings[0].account.entity ~~ $entity });
 }
 
-# list postings from entries
-multi method ls_postings(
-    Nightscape::Entry :@entries!
-) returns Array[Nightscape::Entry::Posting]
+# instantiate entity
+method mkentity(VarName :$entity_name!, Bool :$force)
 {
-    my Nightscape::Entry::Posting @postings;
-    for @entries -> $entry
+    sub init()
     {
-        push @postings, $_ for $entry.postings;
+        # instantiate new entity
+        %!entities{$entity_name} = Nightscape::Entity.new(:$entity_name);
     }
-    @postings;
-}
 
-# filter postings
-multi method ls_postings(
-    Nightscape::Entry::Posting :@postings!,
-    Regex :$asset_code,
-    Silo :$silo
-) returns Array[Nightscape::Entry::Posting]
-{
-    my Nightscape::Entry::Posting @p = @postings;
-    @p = self._ls_postings(:postings(@p), :$asset_code) if defined $asset_code;
-    @p = self._ls_postings(:postings(@p), :$silo) if defined $silo;
-    @p;
-}
-
-# list postings by asset code
-multi method _ls_postings(
-    Nightscape::Entry::Posting :@postings!,
-    Regex :$asset_code!
-) returns Array[Nightscape::Entry::Posting]
-{
-    my Nightscape::Entry::Posting @p =
-        @postings.grep({ .amount.asset_code ~~ $asset_code });
-}
-
-# list postings by silo
-multi method _ls_postings(
-    Nightscape::Entry::Posting :@postings!,
-    Silo :$silo!
-) returns Array[Nightscape::Entry::Posting]
-{
-    my Nightscape::Entry::Posting @p =
-        @postings.grep({ .account.silo ~~ $silo });
+    # does entity exist?
+    if %!entities{$entity_name}
+    {
+        # force?
+        if $force
+        {
+            # overwrite existing entity with new entity
+            &init;
+        }
+        else
+        {
+            # exit with an error
+            die qq:to/EOF/;
+            Sorry, can't mkentity 「$entity_name」: entity exists.
+            EOF
+        }
+    }
+    else
+    {
+        # instantiate new entity
+        &init;
+    }
 }
 
 # vim: ft=perl6
