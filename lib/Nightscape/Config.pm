@@ -190,12 +190,17 @@ multi method gen_settings(
         }
     }
 
-    # populate entity open dates
+    # populate entity-specific base currency if found
+    my AssetCode $base_currency;
+    $base_currency = $entity_data<base-currency> if $entity_data<base-currency>;
+
+    # populate entity open dates if found
     my Range $open{Date};
 
     # build entity settings
     Nightscape::Config::Entity.new(
         :%assets,
+        :$base_currency,
         :$entity_name,
         :$open
     );
@@ -213,16 +218,10 @@ method resolve_base_currency(VarName $entity) returns AssetCode
     my AssetCode $base_currency;
 
     # do entity's settings specify base currency?
-    if %!entities{$entity}<base-currency>
+    if %!entities{$entity}.base_currency
     {
         # use entity's configured base currency
-        $base_currency = %!entities{$entity}<base-currency>
-            or die qq:to/EOF/;
-               Sorry, entity's base currency must be a valid AssetCode.
-
-               Found: 「%!entities{$entity}<base-currency>」
-               Suggested: "USD", "AUD", "JPY" (with surrounding double-quotes)
-               EOF
+        $base_currency = %!entities{$entity}.base_currency;
     }
     # is there a default base currency?
     elsif $!base_currency
@@ -326,26 +325,20 @@ method resolve_price(
     VarName :$entity_name
 ) returns Price
 {
-    my Price $price;
+    my Price $price_asset;
+    my Price $price_entity;
 
-    # lookup entity-specific pricing?
+    # pricing for aux asset in terms of base on date
+    $price_asset = try {%!assets{$aux}.prices{$base}{$date}};
+
+    # entity-specific pricing for aux asset in terms of base on date
     if $entity_name
     {
-        # entity-specific pricing for aux asset in terms of base on date?
-        if %!entities{$entity_name}.assets{$aux}.prices{$base}{$date}
-        {
-            # use entity-specific pricing
-            $price = %!entities{$entity_name}.assets{$aux}.prices{$base}{$date};
-        }
-    }
-    # pricing for aux asset in terms of base on date?
-    elsif %!assets{$aux}.prices{$base}{$date}
-    {
-        # use asset pricing
-        $price = %!assets{$aux}.prices{$base}{$date};
+        $price_entity =
+            try {%!entities{$entity_name}.assets{$aux}.prices{$base}{$date}};
     }
 
-    $price;
+    $price_entity ?? $price_entity !! $price_asset;
 }
 
 # vim: ft=perl6
