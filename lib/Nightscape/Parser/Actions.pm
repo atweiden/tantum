@@ -216,8 +216,8 @@ method journal($/)
 
     # comment line
     my Str $comment_line;
-    $comment_line = try {substr($<comment_line>, 1, *-0).trim}
-        if $<comment_line>;
+    $comment_line =
+        try {substr($<comment_line>, 1, *-0).trim} if $<comment_line>;
 
     if $<entry>
     {
