@@ -153,7 +153,7 @@ Entities
   `-` and `_`
 - Entities cannot be named reserve words
   - silo names: assets, expenses, income, liabilities, equity
-  - top-level config vars: base-currency
+  - top-level config vars: base-costing, base-currency
 
 #### Unacceptable (no entity given)
 
