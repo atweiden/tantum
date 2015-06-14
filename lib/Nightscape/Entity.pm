@@ -89,13 +89,13 @@ method gen_transaction(
 
         # from Nightscape::Entry::Posting::Amount
         my AssetCode $asset_code = $amount.asset_code;
-        my Quantity $asset_quantity = $amount.asset_quantity;
+        my Quantity $quantity = $amount.asset_quantity;
 
         # build mod_wallet
         push @mod_wallet, Nightscape::Transaction::ModWallet.new(
             :$asset_code,
-            :$asset_quantity,
             :$decinc,
+            :$quantity,
             :$silo,
             :@subwallet
         );
@@ -159,10 +159,10 @@ method gen_transaction(
         my AssetFlow $asset_flow = Nightscape::Types.mkasset_flow($d);
 
         # asset quantity
-        my Quantity $asset_quantity = $d.abs;
+        my Quantity $quantity = $d.abs;
 
         # asset costing method
-        my Costing $costing = $GLOBAL::conf.get_costing(
+        my Costing $costing = $GLOBAL::conf.resolve_costing(
             :asset_code($aux_asset_code),
             :$!entity_name
         );
@@ -175,10 +175,10 @@ method gen_transaction(
         %mod_holdings{$aux_asset_code} = Nightscape::Transaction::ModHolding.new(
             :asset_code($aux_asset_code),
             :$asset_flow,
-            :$asset_quantity,
             :$costing,
             :$date,
-            :$price
+            :$price,
+            :$quantity
         );
     }
 
