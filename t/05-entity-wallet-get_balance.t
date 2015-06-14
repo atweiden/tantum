@@ -67,7 +67,6 @@ our $conf = Nightscape::Config.new;
     }
 }
 
-
 my Str $file = "examples/sample.transactions";
 my Nightscape::Entry @entries;
 
