@@ -36,8 +36,8 @@ method is_balanced() returns Bool
     {
         # get value of posting in entity base currency
         my Quantity $posting_value = $posting.get_value(
-            $date,
-            $id
+            :$date,
+            :$id
         );
 
         # is posting denominated in asset other than entity's base
@@ -162,8 +162,9 @@ multi method _ls_postings(
     Regex :$asset_code!
 ) returns Array[Nightscape::Entry::Posting]
 {
-    my Nightscape::Entry::Posting @p =
-        @postings.grep({ .amount.asset_code ~~ $asset_code });
+    my Nightscape::Entry::Posting @p = @postings.grep({
+        .amount.asset_code ~~ $asset_code
+    });
 }
 
 # list postings by silo
@@ -172,8 +173,9 @@ multi method _ls_postings(
     Silo :$silo!
 ) returns Array[Nightscape::Entry::Posting]
 {
-    my Nightscape::Entry::Posting @p =
-        @postings.grep({ .account.silo ~~ $silo });
+    my Nightscape::Entry::Posting @p = @postings.grep({
+        .account.silo ~~ $silo
+    });
 }
 
 # vim: ft=perl6

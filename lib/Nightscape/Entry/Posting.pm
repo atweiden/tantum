@@ -21,8 +21,8 @@ has DecInc $.decinc;
 #
 # if suitable exchange_rate not found anywhere, exit with an error
 method get_value(
-    Date $date,
-    Int $id
+    Date :$date!,
+    Int :$id!
 ) returns Quantity
 {
     # account

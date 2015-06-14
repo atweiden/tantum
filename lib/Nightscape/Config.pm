@@ -31,7 +31,7 @@ method detoml_assets(%toml) returns Hash[Any,AssetCode]
 
     # store assets found
     my %assets_found{AssetCode};
-    %assets_found = %( %toml{$assets_header} ) if $assets_header;
+    %assets_found = %(%toml{$assets_header}) if $assets_header;
 
     # assets found
     %assets_found;
@@ -159,7 +159,7 @@ multi method gen_settings(
 
     # asset prices
     my Hash[Price,Date] %prices{AssetCode};
-    %prices = self.gen_pricesheet( :prices($asset_data<Prices>) )
+    %prices = self.gen_pricesheet(:prices($asset_data<Prices>))
         if $asset_data<Prices>;
 
     # build asset settings

@@ -33,11 +33,11 @@ multi method ls_entries(
         my Nightscape::Entry @entries_included;
 
         # parse entries from included transaction journals
-        push @entries_included, self.ls_entries( :file($_.filename) )
+        push @entries_included, self.ls_entries(:file($_.filename))
             for $parsed.made.grep(Nightscape::Parser::Include);
 
         # entries, unsorted, with included transaction journals
-        @entries = ( $parsed.made.grep(Nightscape::Entry), @entries_included );
+        @entries = ($parsed.made.grep(Nightscape::Entry), @entries_included);
 
         # entries, sorted by date ascending then by importance descending
         @entries = @entries.sort({
@@ -90,8 +90,9 @@ multi method _ls_entries(
     Regex :$entity!
 ) returns Array[Nightscape::Entry]
 {
-    my Nightscape::Entry @e =
-        @entries.grep({ .postings[0].account.entity ~~ $entity });
+    my Nightscape::Entry @e = @entries.grep({
+        .postings[0].account.entity ~~ $entity
+    });
 }
 
 # instantiate entity

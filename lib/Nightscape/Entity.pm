@@ -37,8 +37,10 @@ sub deref(Nightscape::Entity::Wallet $wallet, *@subwallet) is rw
         my VarName $s = @s.shift;
 
         # create $s if it doesn't exist
-        $subwallet.subwallet{$s} = Nightscape::Entity::Wallet.new
-            if !$subwallet.subwallet{$s};
+        unless $subwallet.subwallet{$s}
+        {
+            $subwallet.subwallet{$s} = Nightscape::Entity::Wallet.new;
+        }
 
         # make $subwallet point to same scalar container as its subwallet, $s
         $subwallet := $subwallet.subwallet{$s};
