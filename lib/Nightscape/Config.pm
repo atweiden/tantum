@@ -190,6 +190,10 @@ multi method gen_settings(
         }
     }
 
+    # populate entity-specific base costing if found
+    my Costing $base_costing;
+    $base_costing = $entity_data<base-costing> if $entity_data<base-costing>;
+
     # populate entity-specific base currency if found
     my AssetCode $base_currency;
     $base_currency = $entity_data<base-currency> if $entity_data<base-currency>;
@@ -200,6 +204,7 @@ multi method gen_settings(
     # build entity settings
     Nightscape::Config::Entity.new(
         :%assets,
+        :$base_costing,
         :$base_currency,
         :$entity_name,
         :$open
@@ -278,25 +283,33 @@ method resolve_costing(
     VarName :$entity_name!
 ) returns Costing
 {
-    my Costing $costing;
+    my Costing $costing_asset;
+    my Costing $costing_entity;
 
-    # do entity's settings specify asset costing method?
-    if %!entities{$entity_name}.assets{$asset_code}.costing
+    # check for asset costing method settings
+    $costing_asset = try {%!assets{$asset_code}.costing};
+
+    # check for entity-specific asset costing method settings
+    $costing_entity =
+        try {%!entities{$entity_name}.assets{$asset_code}.costing};
+
+    # entity-specific asset costing method settings?
+    if defined $costing_entity
     {
-        # use entity's declared costing method for this asset
-        $costing = %!entities{$entity_name}.assets{$asset_code}.costing;
+        # use entity-specific asset costing method settings
+        $costing_entity;
     }
-    # do asset settings specify costing method?
-    elsif %!assets{$asset_code}.costing
+    # asset costing method settings?
+    elsif defined $costing_asset
     {
-        # use asset's specified costing method
-        $costing = %!assets{$asset_code}.costing;
+        # use asset costing method settings
+        $costing_asset;
     }
-    # is there a default costing method?
-    elsif $!base_costing
+    # default costing method?
+    elsif defined $!base_costing
     {
-        # use default costing method
-        $costing = $!base_costing;
+        # use default costing method settings
+        $!base_costing;
     }
     else
     {
@@ -305,15 +318,14 @@ method resolve_costing(
         Sorry, could not find costing method for asset 「$asset_code」.
 
         Please check that the asset is configured with a costing method,
-        or that the config file contains a toplevel costing directive.
+        or that the config file contains a toplevel base-costing
+        directive.
 
         config file: 「$!config_file」
         asset: 「$asset_code」
         entity: 「$entity_name」
         EOF
     }
-
-    $costing;
 }
 
 # given posting asset code (aux), base asset code (base), and a date,
