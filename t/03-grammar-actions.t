@@ -2,53 +2,9 @@ use v6;
 use lib 'lib';
 use Test;
 use Nightscape;
-use Nightscape::Config;
 use Nightscape::Parser;
 
 plan 1;
-
-my Nightscape $nightscape = Nightscape.new(
-    conf => Nightscape::Config.new(
-        base_currency => "USD"
-    )
-);
-
-# prepare assets and entities for transaction journal parsing
-{
-    # parse TOML config
-    my %toml;
-    try
-    {
-        use TOML;
-        my $toml_text = slurp $nightscape.conf.config_file
-            or die "Sorry, couldn't read config file: ",
-                $nightscape.conf.config_file;
-        %toml = %(from-toml $toml_text);
-        CATCH
-        {
-            say "Sorry, couldn't parse TOML syntax in config file: ",
-                $nightscape.conf.config_file;
-        }
-    }
-
-    # set base currency from mandatory toplevel config directive
-    $nightscape.conf.base_currency = %toml<base-currency>
-        or die "Sorry, could not find global base-currency",
-            " in config (mandatory).";
-
-    # populate asset prices
-    for $nightscape.conf.detoml_assets(%toml).kv -> $code, $prices
-    {
-        $nightscape.conf.assets{$code} =
-            $nightscape.conf.gen_pricesheet( prices => $prices<Prices> );
-    }
-
-    # populate entities
-    for $nightscape.conf.detoml_entities(%toml).kv -> $name, $rest
-    {
-        $nightscape.conf.entities{$name} = $rest;
-    }
-}
 
 my $content = q:to/EOTX/;
 # this is a preceding comment

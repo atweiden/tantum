@@ -2,58 +2,15 @@ use v6;
 use lib 'lib';
 use Test;
 use Nightscape;
-use Nightscape::Config;
 
 plan 2;
 
 my Str $file = "t/data/invalid.transactions";
-
-my Nightscape $nightscape = Nightscape.new(
-    conf => Nightscape::Config.new(
-        base_currency => "USD"
-    )
-);
-
-# prepare assets and entities for transaction journal parsing
-{
-    # parse TOML config
-    my %toml;
-    try
-    {
-        use TOML;
-        my $toml_text = slurp $nightscape.conf.config_file
-            or die "Sorry, couldn't read config file: ",
-                $nightscape.conf.config_file;
-        %toml = %(from-toml $toml_text);
-        CATCH
-        {
-            say "Sorry, couldn't parse TOML syntax in config file: ",
-                $nightscape.conf.config_file;
-        }
-    }
-
-    # set base currency from mandatory toplevel config directive
-    $nightscape.conf.base_currency = %toml<base-currency>
-        or die "Sorry, could not find global base-currency",
-            " in config (mandatory).";
-
-    # populate asset prices
-    for $nightscape.conf.detoml_assets(%toml).kv -> $code, $prices
-    {
-        $nightscape.conf.assets{$code} =
-            $nightscape.conf.gen_pricesheet( prices => $prices<Prices> );
-    }
-
-    # populate entities
-    for $nightscape.conf.detoml_entities(%toml).kv -> $name, $rest
-    {
-        $nightscape.conf.entities{$name} = $rest;
-    }
-}
+my Nightscape::Entry @entries;
 
 if $file.IO.e
 {
-    $nightscape.entries = $nightscape.ls_entries(:$file, :sort);
+    @entries = Nightscape.ls_entries(:$file, :sort);
 }
 else
 {
@@ -62,17 +19,19 @@ else
 
 {
     # make entity Personal
-    my Nightscape::Entity $entity_personal = Nightscape::Entity.new;
+    my Nightscape::Entity $entity_personal = Nightscape::Entity.new(
+        :entity_name("Personal")
+    );
 
     # get entries by entity Personal
-    my @entries_by_entity_personal = $nightscape.ls_entries(
-        :entries($nightscape.entries),
+    my Nightscape::Entry @entries_by_entity_personal = Nightscape.ls_entries(
+        :@entries,
         :entity(/Personal/)
     );
 
     # check that entry id 3 of data/invalid.transactions causes exchange
     # rate mismatch error
-    dies-ok { @entries_by_entity_personal[3].is_balanced($nightscape.conf) },
+    dies-ok { @entries_by_entity_personal[3].is_balanced },
             q:to/EOF/;
             ♪ [is_balanced-mismatch] - 1 of 2
             ┏━━━━━━━━━━━━━┓
@@ -84,7 +43,7 @@ else
 
     # check that entry id 4 of data/invalid.transactions causes exchange
     # rate mismatch error
-    dies-ok { @entries_by_entity_personal[4].is_balanced($nightscape.conf) },
+    dies-ok { @entries_by_entity_personal[4].is_balanced },
             q:to/EOF/;
             ♪ [is_balanced-mismatch] - 2 of 2
             ┏━━━━━━━━━━━━━┓

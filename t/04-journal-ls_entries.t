@@ -6,53 +6,11 @@ use Nightscape;
 plan 12;
 
 my Str $file = "examples/sample.transactions";
-
-my Nightscape $nightscape = Nightscape.new(
-    conf => Nightscape::Config.new(
-        base_currency => "USD"
-    )
-);
-
-# prepare assets and entities for transaction journal parsing
-{
-    # parse TOML config
-    my %toml;
-    try
-    {
-        use TOML;
-        my $toml_text = slurp $nightscape.conf.config_file
-            or die "Sorry, couldn't read config file: ",
-                $nightscape.conf.config_file;
-        %toml = %(from-toml $toml_text);
-        CATCH
-        {
-            say "Sorry, couldn't parse TOML syntax in config file: ",
-                $nightscape.conf.config_file;
-        }
-    }
-
-    # set base currency from mandatory toplevel config directive
-    $nightscape.conf.base_currency = %toml<base-currency>
-        or die "Sorry, could not find global base-currency",
-            " in config (mandatory).";
-
-    # populate asset prices
-    for $nightscape.conf.detoml_assets(%toml).kv -> $code, $prices
-    {
-        $nightscape.conf.assets{$code} =
-            $nightscape.conf.gen_pricesheet( prices => $prices<Prices> );
-    }
-
-    # populate entities
-    for $nightscape.conf.detoml_entities(%toml).kv -> $name, $rest
-    {
-        $nightscape.conf.entities{$name} = $rest;
-    }
-}
+my Nightscape::Entry @entries;
 
 if $file.IO.e
 {
-    $nightscape.entries = $nightscape.ls_entries(:$file);
+    @entries = Nightscape.ls_entries(:$file);
 }
 else
 {
@@ -62,8 +20,8 @@ else
 {
     # check that the list of returned entries has only one entry on
     # date 2014-01-03, and that the returned entry's date is 2014-01-03
-    my @entries_by_date = $nightscape.ls_entries(
-        :entries($nightscape.entries),
+    my Nightscape::Entry @entries_by_date = Nightscape.ls_entries(
+        :@entries,
         :date(Date.new("2014-01-03"))
     );
     is(
@@ -95,8 +53,8 @@ else
 {
     # check that the list of returned entries has 0 entries by entity
     # Lorem
-    my @entries_by_entity_lorem = $nightscape.ls_entries(
-        :entries($nightscape.entries),
+    my Nightscape::Entry @entries_by_entity_lorem = Nightscape.ls_entries(
+        :@entries,
         :entity(/Lorem/)
     );
     is(
@@ -116,8 +74,8 @@ else
 {
     # check that the list of returned entries has 7 entries by entity
     # Personal
-    my @entries_by_entity_personal = $nightscape.ls_entries(
-        :entries($nightscape.entries),
+    my Nightscape::Entry @entries_by_entity_personal = Nightscape.ls_entries(
+        :@entries,
         :entity(/Personal/)
     );
     is(
@@ -134,28 +92,23 @@ else
     );
 }
 
-my Str $file_includes = "t/data/with-includes.transactions";
+my Str $file_inc = "t/data/with-includes.transactions";
+my Nightscape::Entry @entries_inc;
 
-my Nightscape $nightscape_inc = Nightscape.new(
-    conf => Nightscape::Config.new(
-        base_currency => "USD"
-    )
-);
-
-if $file_includes.IO.e
+if $file_inc.IO.e
 {
-    $nightscape_inc.entries = $nightscape_inc.ls_entries(:file($file_includes));
+    @entries_inc = Nightscape.ls_entries(:file($file_inc));
 }
 else
 {
-    die "Sorry, couldn't locate transaction journal at 「$file_includes」";
+    die "Sorry, couldn't locate transaction journal at 「$file_inc」";
 }
 
 {
     # check that the list of returned entries has only one entry on
     # date 2011-01-01, and that the returned entry's date is 2011-01-01
-    my @entries_by_date = $nightscape_inc.ls_entries(
-        :entries($nightscape_inc.entries),
+    my Nightscape::Entry @entries_by_date = Nightscape.ls_entries(
+        :entries(@entries_inc),
         :date(Date.new("2011-01-01"))
     );
     is(
@@ -187,8 +140,8 @@ else
 {
     # check that the list of returned entries has only one entry on
     # date 2012-01-01, and that the returned entry's date is 2012-01-01
-    my @entries_by_date = $nightscape_inc.ls_entries(
-        :entries($nightscape_inc.entries),
+    my Nightscape::Entry @entries_by_date = Nightscape.ls_entries(
+        :entries(@entries_inc),
         :date(Date.new("2012-01-01"))
     );
     is(
@@ -220,8 +173,8 @@ else
 {
     # check that the list of returned entries has only one entry on
     # date 2013-01-01, and that the returned entry's date is 2013-01-01
-    my @entries_by_date = $nightscape_inc.ls_entries(
-        :entries($nightscape_inc.entries),
+    my Nightscape::Entry @entries_by_date = Nightscape.ls_entries(
+        :entries(@entries_inc),
         :date(Date.new("2013-01-01"))
     );
     is(
@@ -253,8 +206,8 @@ else
 {
     # check that the list of returned entries has only one entry on
     # date 2014-01-01, and that the returned entry's date is 2014-01-01
-    my @entries_by_date = $nightscape_inc.ls_entries(
-        :entries($nightscape_inc.entries),
+    my Nightscape::Entry @entries_by_date = Nightscape.ls_entries(
+        :entries(@entries_inc),
         :date(Date.new("2014-01-01"))
     );
     is(
