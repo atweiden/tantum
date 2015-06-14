@@ -6,6 +6,9 @@ unit class Nightscape::Config::Entity;
 # entity name
 has VarName $.entity_name;
 
+# entity base asset costing method
+has Costing $.base_costing;
+
 # entity base currency
 has AssetCode $.base_currency;
 
