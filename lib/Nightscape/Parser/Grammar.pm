@@ -107,6 +107,7 @@ token reserved
 {
     [ :i
        assets
+       || 'base-costing'
        || 'base-currency'
     ]
 }
