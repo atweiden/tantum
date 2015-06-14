@@ -21,7 +21,7 @@ method get_balance(
         # add subwallet balance to $balance
         for %!subwallet.kv -> $name, $subwallet
         {
-            $balance += $subwallet.getbalance(:$asset_code);
+            $balance += $subwallet.get_balance(:$asset_code);
         }
     }
 
