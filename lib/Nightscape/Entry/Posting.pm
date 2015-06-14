@@ -26,10 +26,10 @@ method get_value(
 ) returns Quantity
 {
     # account
-    my Nightscape::Entry::Posting::Account $account = self.account;
+    my Nightscape::Entry::Posting::Account $account = $!account;
 
     # amount
-    my Nightscape::Entry::Posting::Amount $amount = self.amount;
+    my Nightscape::Entry::Posting::Amount $amount = $!amount;
 
     # entity
     my VarName $posting_entity = $account.entity;

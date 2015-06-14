@@ -26,13 +26,13 @@ method is_balanced() returns Bool
     my Array[Quantity] %xe_verify{AssetCode};
 
     # entry date
-    my Date $date = self.header.date;
+    my Date $date = $!header.date;
 
     # entry id
-    my Int $id = self.header.id;
+    my Int $id = $!header.id;
 
     # adjust running total for each posting in entry
-    for self.postings -> $posting
+    for @!postings -> $posting
     {
         # get value of posting in entity base currency
         my Quantity $posting_value = $posting.get_value(
@@ -85,7 +85,6 @@ method is_balanced() returns Bool
             unless @exchange_rates.unique.elems == 1
             {
                 # error: exchange rate mismatch detected
-                my Int $id = self.header.id;
                 die qq:to/EOF/;
                 Sorry, exchange rate for asset 「$asset_code」 does
                 not remain consistent in entry id 「$id」.
