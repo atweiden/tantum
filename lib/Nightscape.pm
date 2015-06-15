@@ -27,7 +27,7 @@ multi method ls_entries(
 ) returns Array[Nightscape::Entry]
 {
     use Nightscape::Parser;
-    if my $parsed = Nightscape::Parser.parse(slurp($file))
+    if my Match $parsed = Nightscape::Parser.parse(slurp($file))
     {
         my Nightscape::Entry @entries;
         my Nightscape::Entry @entries_included;

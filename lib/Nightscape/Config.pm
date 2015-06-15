@@ -45,7 +45,7 @@ method detoml_entities(%toml) returns Hash[Any,VarName]
     # detect entities
     my VarName @entities_found;
     %toml.map({
-        if my $parsed_section = Nightscape::Parser::Grammar.parse(
+        if my Match $parsed_section = Nightscape::Parser::Grammar.parse(
             $_.keys,
             :rule<account_sub>
         )

@@ -47,7 +47,7 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$price-dir)
         else
         {
             # make default config directory if it doesn't exist
-            my $config_dir = IO::Path.new($conf.config_file).dirname;
+            my Str $config_dir = IO::Path.new($conf.config_file).dirname;
             unless $config_dir.IO.d
             {
                 say "Config directory doesn't exist.";
@@ -60,7 +60,7 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$price-dir)
             # write default config file if it doesn't exist
             unless $conf.config_file.IO.e
             {
-                my $config_text = q:to/EOCONF/;
+                my Str $config_text = q:to/EOCONF/;
                 base-currency = "USD"
                 EOCONF
                 print "Placing default config file at ", $conf.config_file, "… ";
