@@ -4,6 +4,7 @@ use Nightscape::Entity::Wallet;
 use Nightscape::Entry;
 use Nightscape::Transaction;
 use Nightscape::Types;
+use UUID;
 unit class Nightscape::Entity;
 
 # entity name
@@ -72,6 +73,9 @@ method gen_transaction(
         「$entry」
         EOF
     }
+
+    # source entry uuid
+    my UUID $uuid = $entry.header.uuid;
 
     # transaction data storage
     my Nightscape::Transaction::ModHolding %mod_holdings{AssetCode};
@@ -186,12 +190,14 @@ method gen_transaction(
 
     # build transaction
     Nightscape::Transaction.new(
+        :$uuid,
         :%mod_holdings,
         :@mod_wallet
     );
 }
 
 method mod_holdings(
+    UUID :$uuid!,
     AssetCode :$asset_code!,
     AssetFlow :$asset_flow!,
     Costing :$costing!,
@@ -222,8 +228,8 @@ method mod_holdings(
     elsif $asset_flow ~~ EXPEND
     {
         # check for sufficient unit quantity of asset in holdings
-        unless my Quantity $quantity_held =
-            %!holdings{$asset_code}.get_total_quantity >= $quantity
+        my Quantity $quantity_held = %!holdings{$asset_code}.get_total_quantity;
+        unless $quantity_held >= $quantity
         {
             die qq:to/EOF/;
             Sorry, cannot mod_holdings.expend: found insufficient quantity
@@ -236,6 +242,7 @@ method mod_holdings(
 
         # expend asset
         %!holdings{$asset_code}.expend(
+            :$uuid,
             :$costing,
             :$price,
             :$quantity

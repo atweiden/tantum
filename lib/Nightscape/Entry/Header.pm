@@ -1,8 +1,10 @@
 use v6;
 use Nightscape::Types;
+use UUID;
 unit class Nightscape::Entry::Header;
 
 has Int $.id;
+has UUID $.uuid;
 has Date $.date;
 has Str $.description;
 has Int $.important;

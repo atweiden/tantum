@@ -46,12 +46,6 @@ enum Silo is export
     EQUITY
 >;
 
-enum Taxable is export
-<
-    GAIN
-    LOSS
->;
-
 method mkasset_flow(Rat $d) returns AssetFlow
 {
     if $d > 0

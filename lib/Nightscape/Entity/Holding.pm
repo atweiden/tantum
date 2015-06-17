@@ -1,6 +1,8 @@
 use v6;
 use Nightscape::Entity::Holding::Basis;
+use Nightscape::Entity::Holding::Taxes;
 use Nightscape::Types;
+use UUID;
 unit class Nightscape::Entity::Holding;
 
 # asset code
@@ -12,8 +14,8 @@ has Price $.avco;
 # cost basis of units held (date, price, quantity)
 has Nightscape::Entity::Holding::Basis @.basis;
 
-# for storing capital gains / capital losses incurred via expenditures
-has Hash[Price,Taxable] %.tax{Int};
+# tax consequences indexed by causal entry's uuid
+has Array[Nightscape::Entity::Holding::Taxes] %.taxes{UUID};
 
 # increase entity's holdings
 method acquire(
@@ -35,6 +37,7 @@ method acquire(
 
 # decrease entity's holdings via AVCO/FIFO/LIFO inventory costing method
 method expend(
+    UUID :$uuid!,
     Costing :$costing!,
     Price :$price!,
     Quantity :$quantity! where * > 0
@@ -56,8 +59,8 @@ method expend(
     my Quantity %targets{Int} = self.find_targets(:$costing, :$quantity);
 
     # deplete units in targeted basis lots
-    # has side effect of recording capital gains/losses to %!tax
-    sub rmtargets(Quantity :%targets!)
+    # has side effect of recording capital gains/losses to %!taxes
+    sub rmtargets(:%targets!) # Constraint type check failed for parameter '%targets'
     {
         # for each @!basis lot target index $i and associated quantity $q
         for %targets.kv -> $i, $q
@@ -65,39 +68,45 @@ method expend(
             # get scalar container of basis lot
             my Nightscape::Entity::Holding::Basis $basis := @!basis[$i];
 
+            # try decreasing units by quantity
+            $basis.deplete($q);
+
             # for calculating capital gains/losses
             my Rat $d;
 
             # AVCO inventory valuation method?
             if $costing ~~ AVCO
             {
-                # expend price - average cost
-                $d = $price - $!avco;
+                # (expend price - average cost) * quantity expended
+                $d = ($price - $!avco) * $q;
             }
             # FIFO or LIFO inventory valuation method?
             elsif $costing ~~ FIFO or $costing ~~ LIFO
             {
-                # expend price - acquisition price
-                $d = $price - $basis.price;
+                # (expend price - acquisition price) * quantity expended
+                $d = ($price - $basis.price) * $q;
             }
 
             if $d > 0
             {
                 # record capital gains
-                %!tax{$i} = ::(GAIN) => $d.abs
+                my Quantity $capital_gains = $d.abs;
+                push %!taxes{$uuid}, Nightscape::Entity::Holding::Taxes.new(
+                    :$capital_gains
+                );
             }
             elsif $d < 0
             {
                 # record capital losses
-                %!tax{$i} = ::(LOSS) => $d.abs
+                my Quantity $capital_losses = $d.abs;
+                push %!taxes{$uuid}, Nightscape::Entity::Holding::Taxes.new(
+                    :$capital_losses
+                );
             }
             else
             {
                 # no gains or losses to report
             }
-
-            # decrease units by quantity
-            $basis.deplete($q);
         }
     }
 
@@ -111,6 +120,10 @@ method find_targets(
     Quantity :$quantity! where * > 0
 ) returns Hash[Quantity,Int]
 {
+    # basis lots, to be reversed when LIFO costing method is used
+    my Nightscape::Entity::Holding::Basis @basis;
+    $costing ~~ LIFO ?? (@basis = @!basis.reverse) !! (@basis = @!basis);
+
     # units to expend, indexed by @!basis array index
     my Quantity %targets{Int};
 
@@ -121,14 +134,14 @@ method find_targets(
     my Quantity $remaining = $quantity;
 
     # fill in targets as needed
-    sub mktarget(Nightscape::Entity::Holding::Basis $basis)
+    for @basis -> $basis
     {
         # are more units still needed?
         if $remaining > 0
         {
             # is the quantity of units in this basis lot less than
             # the amount of units still needed?
-            if $basis.quantity <= $remaining
+            if $remaining >= $basis.quantity
             {
                 # target all units in this basis lot
                 %targets{$count} = $basis.quantity;
@@ -147,19 +160,11 @@ method find_targets(
                 $remaining -= $remaining;
             }
         }
-    }
-
-    # is inventory valuation method AVCO or FIFO?
-    if $costing ~~ AVCO or $costing ~~ FIFO
-    {
-        # find units starting from beginning of @!basis
-        &mktarget($_) for @!basis;
-    }
-    # is inventory valuation method LIFO?
-    elsif $costing ~~ LIFO
-    {
-        # find units starting from end of @!basis
-        &mktarget($_) for @!basis.reverse;
+        else
+        {
+            # no more units needed
+            last;
+        }
     }
 
     %targets;
@@ -183,7 +188,14 @@ method get_total_quantity(
     Nightscape::Entity::Holding::Basis :@basis = @!basis
 ) returns Quantity
 {
-    my Quantity @quantity = [+] .quantity for @basis;
+    my Quantity @quantity;
+    for @basis -> $b
+    {
+        my Quantity $q = $b.quantity;
+        push @quantity, $q;
+    }
+    my Quantity $quantity = [+] @quantity;
+    $quantity;
 }
 
 # calculate total value of units held
@@ -203,6 +215,7 @@ method get_total_value(
         push @value, $v;
     }
     my Price $value = [+] @value;
+    $value;
 }
 
 # check for sufficient unit quantity of asset in holdings

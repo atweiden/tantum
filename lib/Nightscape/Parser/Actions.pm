@@ -37,6 +37,10 @@ method header($/)
     # entry id
     my Int $id = $entry_number;
 
+    # entry uuid
+    use UUID;
+    my UUID $uuid = UUID.new;
+
     # entry date
     my Date $date = $<iso_date>».made.pairs[0].value;
 
@@ -57,6 +61,7 @@ method header($/)
     # make entry header
     make Nightscape::Entry::Header.new(
         :$id,
+        :$uuid,
         :$date,
         :$description,
         :$important,
