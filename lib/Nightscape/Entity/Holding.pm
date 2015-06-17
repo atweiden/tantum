@@ -188,13 +188,7 @@ method get_total_quantity(
     Nightscape::Entity::Holding::Basis :@basis = @!basis
 ) returns Quantity
 {
-    my Quantity @quantity;
-    for @basis -> $b
-    {
-        my Quantity $q = $b.quantity;
-        push @quantity, $q;
-    }
-    my Quantity $quantity = [+] @quantity;
+    my Quantity $quantity = [+] (.quantity for @basis);
     $quantity;
 }
 

@@ -152,11 +152,11 @@ method gen_transaction(
 
         # sum INCs
         my Nightscape::Entry::Posting @p_inc = @p.grep({ .decinc ~~ INC });
-        my Rat $incs = [+] .amount.asset_quantity for @p_inc;
+        my Rat $incs = Rat([+] (.amount.asset_quantity for @p_inc));
 
         # sum DECs
         my Nightscape::Entry::Posting @p_dec = @p.grep({ .decinc ~~ DEC });
-        my Rat $decs = [+] .amount.asset_quantity for @p_dec;
+        my Rat $decs = Rat([+] (.amount.asset_quantity for @p_dec));
 
         # INCs - DECs
         my Rat $d = ($incs // 0.0) - ($decs // 0.0);
