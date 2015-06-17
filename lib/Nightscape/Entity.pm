@@ -59,7 +59,7 @@ sub deref(Nightscape::Entity::Wallet $wallet, *@subwallet) is rw
 # - dec/inc the applicable wallet balance
 # - acquire/expend the applicable holdings
 
-# given entry, instantiate transaction
+# given entry, return instantiated transaction
 method gen_transaction(
     Nightscape::Entry :$entry!
 ) returns Nightscape::Transaction
@@ -283,6 +283,59 @@ method mod_wallet(
         :$decinc,
         :$quantity
     );
+}
+
+# execute transaction
+method transact(
+    Nightscape::Transaction :$transaction!
+)
+{
+    # uuid
+    my UUID $uuid = $transaction.uuid;
+
+    # mod wallet balances
+    my Nightscape::Transaction::ModWallet @mod_wallet = $transaction.mod_wallet;
+    for @mod_wallet -> $mod_wallet
+    {
+        my AssetCode $asset_code = $mod_wallet.asset_code;
+        my DecInc $decinc = $mod_wallet.decinc;
+        my Quantity $quantity = $mod_wallet.quantity;
+        my Silo $silo = $mod_wallet.silo;
+        my VarName @subwallet = $mod_wallet.subwallet;
+
+        self.mod_wallet(
+            :$asset_code,
+            :$decinc,
+            :$quantity,
+            :$silo,
+            :@subwallet
+        );
+    }
+
+    # mod holdings (only needed for entries dealing in aux assets)
+    my Nightscape::Transaction::ModHolding %mod_holdings{AssetCode} =
+        $transaction.mod_holdings;
+    if %mod_holdings
+    {
+        for %mod_holdings.kv -> $asset_code, $mod_holdings
+        {
+            my AssetFlow $asset_flow = $mod_holdings.asset_flow;
+            my Costing $costing = $mod_holdings.costing;
+            my Date $date = $mod_holdings.date;
+            my Price $price = $mod_holdings.price;
+            my Quantity $quantity = $mod_holdings.quantity;
+
+            self.mod_holdings(
+                :$uuid,
+                :$asset_code,
+                :$asset_flow,
+                :$costing,
+                :$date,
+                :$price,
+                :$quantity
+            )
+        }
+    }
 }
 
 # vim: ft=perl6
