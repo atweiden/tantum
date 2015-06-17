@@ -27,6 +27,7 @@ Installation
 
 - Rakudo Perl 6
 - [TOML](https://github.com/Mouq/toml-pm6)
+- [UUID](https://github.com/retupmoca/P6-UUID)
 
 
 Usage
