@@ -227,6 +227,14 @@ method mod_holdings(
     # expenditure?
     elsif $asset_flow ~~ EXPEND
     {
+        # if holding does not exist, exit with an error
+        unless %!holdings{$asset_code}
+        {
+            die qq:to/EOF/;
+            Sorry, no holding exists of asset code 「$asset_code」.
+            EOF
+        }
+
         # check for sufficient unit quantity of asset in holdings
         my Quantity $quantity_held = %!holdings{$asset_code}.get_total_quantity;
         unless $quantity_held >= $quantity
