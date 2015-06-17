@@ -317,13 +317,13 @@ method transact(
         $transaction.mod_holdings;
     if %mod_holdings
     {
-        for %mod_holdings.kv -> $asset_code, $mod_holdings
+        for %mod_holdings.kv -> $asset_code, $mod_holding
         {
-            my AssetFlow $asset_flow = $mod_holdings.asset_flow;
-            my Costing $costing = $mod_holdings.costing;
-            my Date $date = $mod_holdings.date;
-            my Price $price = $mod_holdings.price;
-            my Quantity $quantity = $mod_holdings.quantity;
+            my AssetFlow $asset_flow = $mod_holding.asset_flow;
+            my Costing $costing = $mod_holding.costing;
+            my Date $date = $mod_holding.date;
+            my Price $price = $mod_holding.price;
+            my Quantity $quantity = $mod_holding.quantity;
 
             self.mod_holdings(
                 :$uuid,
