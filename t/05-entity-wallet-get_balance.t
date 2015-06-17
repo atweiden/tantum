@@ -91,45 +91,15 @@ else
         :entity(/Personal/)
     );
 
-    # do postings for entity Personal
-    for @entries_by_entity_personal -> $entry
-    {
-        unless $entry.is_balanced
-        {
-            my Str $entry_debug = $entry.perl;
-            die qq:to/EOF/;
-            Sorry, given entry does not balance:
+    # generate transactions from entries by entity Personal
+    my Nightscape::Transaction @transactions_by_entity_personal;
+    push @transactions_by_entity_personal,
+        $entity_personal.gen_transaction(:entry($_))
+            for @entries_by_entity_personal;
 
-            「$entry_debug」
-            EOF
-        }
-
-        for $entry.postings -> $posting
-        {
-            # from Nightscape::Entry::Posting
-            my Nightscape::Entry::Posting::Account $account = $posting.account;
-            my Nightscape::Entry::Posting::Amount $amount = $posting.amount;
-            my DecInc $decinc = $posting.decinc;
-
-            # from Nightscape::Entry::Posting::Account
-            my Silo $silo = $account.silo;
-            my VarName @subwallet = $account.subaccount;
-
-            # from Nightscape::Entry::Posting::Amount
-            my AssetCode $asset_code = $amount.asset_code;
-            my Quantity $quantity = $amount.asset_quantity;
-
-            # dec/inc applicable wallet balance for each posting in entry
-            $entity_personal.mod_wallet(
-                :$asset_code,
-                :$decinc,
-                :$quantity,
-                :$silo,
-                :@subwallet
-            );
-        }
-
-    }
+    # execute transactions of entity Personal
+    $entity_personal.transact(:transaction($_))
+        for @transactions_by_entity_personal;
 
     # check that the balance of entity Personal's ASSETS is -837.84 USD
     is(
