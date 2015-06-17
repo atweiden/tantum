@@ -280,9 +280,7 @@ method !mod_wallet(
 }
 
 # execute transaction
-method transact(
-    Nightscape::Transaction :$transaction!
-)
+method transact(Nightscape::Transaction :$transaction!)
 {
     # uuid
     my UUID $uuid = $transaction.uuid;
