@@ -51,14 +51,6 @@ sub deref(Nightscape::Entity::Wallet $wallet, *@subwallet) is rw
     $subwallet;
 }
 
-# given an entry:
-# - verify entry is balanced or exit with an error
-#   - side effect of instantiating XE class for exchange rates from config
-# - get scalar container of target wallet for dec/inc balance
-#   - side effect of instantiating Wallet classes
-# - dec/inc the applicable wallet balance
-# - acquire/expend the applicable holdings
-
 # given entry, return instantiated transaction
 method gen_transaction(
     Nightscape::Entry :$entry!
@@ -196,7 +188,8 @@ method gen_transaction(
     );
 }
 
-method mod_holdings(
+# acquire/expend the applicable holdings
+method !mod_holdings(
     UUID :$uuid!,
     AssetCode :$asset_code!,
     AssetFlow :$asset_flow!,
@@ -263,7 +256,8 @@ method mod_holdings(
     }
 }
 
-method mod_wallet(
+# dec/inc the applicable wallet balance
+method !mod_wallet(
     AssetCode :$asset_code!,
     DecInc :$decinc!,
     Quantity :$quantity!,
@@ -303,7 +297,7 @@ method transact(
         my Silo $silo = $mod_wallet.silo;
         my VarName @subwallet = $mod_wallet.subwallet;
 
-        self.mod_wallet(
+        self!mod_wallet(
             :$asset_code,
             :$decinc,
             :$quantity,
@@ -325,7 +319,7 @@ method transact(
             my Price $price = $mod_holding.price;
             my Quantity $quantity = $mod_holding.quantity;
 
-            self.mod_holdings(
+            self!mod_holdings(
                 :$uuid,
                 :$asset_code,
                 :$asset_flow,
