@@ -153,11 +153,7 @@ method posting($/)
     my DecInc $decinc = Nightscape::Types.mkdecinc: $amount.minus_sign.Bool;
 
     # make posting
-    make Nightscape::Entry::Posting.new(
-        :$account,
-        :$amount,
-        :$decinc
-    );
+    make Nightscape::Entry::Posting.new(:$account, :$amount, :$decinc);
 }
 
 method entry($/)
@@ -179,11 +175,9 @@ method entry($/)
         if @entities.grep({ $_ ~~ @entities[0] }).elems != @entities.elems;
 
     # make hash intended to become Entry class
-    make %(
-        :$header,
-        :@postings,
-        :@posting_comments
-    );
+    make %(:$header, :@postings, :@posting_comments);
+
+    # increment entry id number
     $entry_number++;
 }
 
@@ -233,11 +227,7 @@ method journal($/)
         my Str @posting_comments = %entry<posting_comments>.list;
 
         # make entry
-        make Nightscape::Entry.new(
-            :$header,
-            :@postings,
-            :@posting_comments
-        );
+        make Nightscape::Entry.new(:$header, :@postings, :@posting_comments);
     }
     elsif $<include>
     {

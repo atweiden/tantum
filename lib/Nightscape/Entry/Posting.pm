@@ -20,10 +20,7 @@ has DecInc $.decinc;
 # XE class based on price data from config file
 #
 # if suitable exchange_rate not found anywhere, exit with an error
-method get_value(
-    Date :$date!,
-    Int :$id!
-) returns Quantity
+method get_value(Date :$date!, Int :$id!) returns Quantity
 {
     # account
     my Nightscape::Entry::Posting::Account $account = $!account;
@@ -84,16 +81,16 @@ method get_value(
         }
         # is an exchange rate given in config?
         elsif my Price $price = $GLOBAL::conf.resolve_price(
-            aux => $posting_asset_code,
-            base => $posting_entity_base_currency,
-            date => $date,
-            entity_name => $posting_entity
+            :aux($posting_asset_code),
+            :base($posting_entity_base_currency),
+            :$date,
+            :entity_name($posting_entity)
         )
         {
             # assign exchange rate because one was not included in the journal
             $amount.exchange_rate = Nightscape::Entry::Posting::Amount::XE.new(
-                asset_code => $posting_entity_base_currency,
-                asset_quantity => $price
+                :asset_code($posting_entity_base_currency),
+                :asset_quantity($price)
             );
 
             # try calculating posting value in base currency

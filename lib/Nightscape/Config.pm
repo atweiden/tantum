@@ -163,11 +163,7 @@ multi method gen_settings(
         if $asset_data<Prices>;
 
     # build asset settings
-    Nightscape::Config::Asset.new(
-        :$asset_code,
-        :$costing,
-        :%prices
-    );
+    Nightscape::Config::Asset.new(:$asset_code, :$costing, :%prices);
 }
 
 # return instantiated entity settings

@@ -105,10 +105,7 @@ method gen_transaction(
     my Silo $silo = ASSETS;
     my Nightscape::Entry::Posting @postings = $entry.postings;
     my Nightscape::Entry::Posting @postings_assets_silo =
-        Nightscape::Entry.ls_postings(
-            :@postings,
-            :$silo
-        );
+        Nightscape::Entry.ls_postings(:@postings, :$silo);
 
     # find entry postings affecting silo ASSETS, entity base currency only
     my AssetCode $entity_base_currency = $GLOBAL::conf.resolve_base_currency(
@@ -116,11 +113,7 @@ method gen_transaction(
     );
     my Regex $asset_code = /$entity_base_currency/;
     my Nightscape::Entry::Posting @postings_assets_silo_base_currency =
-        Nightscape::Entry.ls_postings(
-            :@postings,
-            :$asset_code,
-            :$silo
-        );
+        Nightscape::Entry.ls_postings(:@postings, :$asset_code, :$silo);
 
     # filter out base currency postings
     my Set $postings_remainder{Nightscape::Entry::Posting} =
@@ -181,11 +174,7 @@ method gen_transaction(
     }
 
     # build transaction
-    Nightscape::Transaction.new(
-        :$uuid,
-        :%mod_holdings,
-        :@mod_wallet
-    );
+    Nightscape::Transaction.new(:$uuid, :%mod_holdings, :@mod_wallet);
 }
 
 # acquire/expend the applicable holdings
@@ -211,11 +200,7 @@ method !mod_holdings(
         }
 
         # acquire asset
-        %!holdings{$asset_code}.acquire(
-            :$date,
-            :$price,
-            :$quantity
-        );
+        %!holdings{$asset_code}.acquire(:$date, :$price, :$quantity);
     }
     # expenditure?
     elsif $asset_flow ~~ EXPEND
@@ -242,12 +227,7 @@ method !mod_holdings(
         }
 
         # expend asset
-        %!holdings{$asset_code}.expend(
-            :$uuid,
-            :$costing,
-            :$price,
-            :$quantity
-        );
+        %!holdings{$asset_code}.expend(:$uuid, :$costing, :$price, :$quantity);
     }
     # stable?
     elsif $asset_flow ~~ STABLE

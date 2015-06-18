@@ -12,9 +12,7 @@ has Nightscape::Entity %.entities{VarName};
 has Nightscape::Entry @.entries is rw;
 
 # list unique entity names defined in entries
-method ls_entity_names(
-    Nightscape::Entry :@entries!
-) returns Array[VarName]
+method ls_entity_names(Nightscape::Entry :@entries!) returns Array[VarName]
 {
     my VarName @entities = .postings[0].account.entity for @entries;
     @entities = @entities.unique;

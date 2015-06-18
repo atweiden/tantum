@@ -9,9 +9,7 @@ has Rat %.balance{AssetCode};
 has Nightscape::Entity::Wallet %.subwallet{VarName} is rw;
 
 # get wallet balance, recursively
-method get_balance(
-    AssetCode :$asset_code!
-) returns Rat
+method get_balance(AssetCode :$asset_code!) returns Rat
 {
     my Rat $balance = %!balance{$asset_code} // 0.0;
 
