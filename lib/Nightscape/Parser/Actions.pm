@@ -6,9 +6,11 @@ use Nightscape::Entry::Posting::Account;
 use Nightscape::Entry::Posting::Amount;
 use Nightscape::Entry::Posting::Amount::XE;
 use Nightscape::Types;
+use UUID;
 unit class Nightscape::Parser::Actions;
 
 my Int $entry_number = 0;
+my UUID $entry_uuid;
 
 method iso_date($/)
 {
@@ -38,8 +40,8 @@ method header($/)
     my Int $id = $entry_number;
 
     # entry uuid
-    use UUID;
     my UUID $uuid = UUID.new;
+    $entry_uuid = $uuid;
 
     # entry date
     my Date $date = $<iso_date>».made.pairs[0].value;
@@ -141,6 +143,9 @@ method amount($/)
 
 method posting($/)
 {
+    # posting uuid
+    my UUID $posting_uuid = UUID.new;
+
     # account
     my Nightscape::Entry::Posting::Account $account =
         $<account>».made.pairs[0].value;
@@ -153,7 +158,13 @@ method posting($/)
     my DecInc $decinc = Nightscape::Types.mkdecinc: $amount.minus_sign.Bool;
 
     # make posting
-    make Nightscape::Entry::Posting.new(:$account, :$amount, :$decinc);
+    make Nightscape::Entry::Posting.new(
+        :$entry_uuid,
+        :$posting_uuid,
+        :$account,
+        :$amount,
+        :$decinc
+    );
 }
 
 method entry($/)

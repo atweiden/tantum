@@ -15,7 +15,7 @@ use v6;
 use Nightscape::Config;
 
 # global config options, extracted from on disk conf and cmdline flags
-our $conf = Nightscape::Config.new;
+our $CONF = Nightscape::Config.new;
 
 
 
@@ -47,7 +47,7 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$price-dir)
         else
         {
             # make default config directory if it doesn't exist
-            my Str $config_dir = IO::Path.new($conf.config_file).dirname;
+            my Str $config_dir = IO::Path.new($CONF.config_file).dirname;
             unless $config_dir.IO.d
             {
                 say "Config directory doesn't exist.";
@@ -58,13 +58,13 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$price-dir)
                 say "done.";
             }
             # write default config file if it doesn't exist
-            unless $conf.config_file.IO.e
+            unless $CONF.config_file.IO.e
             {
                 my Str $config_text = q:to/EOCONF/;
                 base-currency = "USD"
                 EOCONF
-                print "Placing default config file at ", $conf.config_file, "… ";
-                spurt $conf.config_file, $config_text, :createonly;
+                print "Placing default config file at ", $CONF.config_file, "… ";
+                spurt $CONF.config_file, $config_text, :createonly;
                 say "done.";
             }
         }
@@ -85,13 +85,13 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$price-dir)
         else
         {
             # make default data directory if it doesn't exist
-            unless $conf.data_dir.IO.d
+            unless $CONF.data_dir.IO.d
             {
                 say "Data directory doesn't exist.";
-                print "Creating data directory in ", $conf.data_dir, "… ";
-                mkdir $conf.data_dir
+                print "Creating data directory in ", $CONF.data_dir, "… ";
+                mkdir $CONF.data_dir
                     or die "Sorry, couldn't create data directory: ",
-                        $conf.data_dir;
+                        $CONF.data_dir;
                 say "done.";
             }
         }
@@ -112,13 +112,13 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$price-dir)
         else
         {
             # make default log directory if it doesn't exist
-            unless $conf.log_dir.IO.d
+            unless $CONF.log_dir.IO.d
             {
                 say "Log directory doesn't exist.";
-                print "Creating log directory in ", $conf.log_dir, "… ";
-                mkdir $conf.log_dir
+                print "Creating log directory in ", $CONF.log_dir, "… ";
+                mkdir $CONF.log_dir
                     or die "Sorry, couldn't create log directory: ",
-                        $conf.log_dir;
+                        $CONF.log_dir;
                 say "done.";
             }
         }
@@ -139,19 +139,19 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$price-dir)
         else
         {
             # make default price directory if it doesn't exist
-            unless $conf.price_dir.IO.d
+            unless $CONF.price_dir.IO.d
             {
                 say "Price directory doesn't exist.";
-                print "Creating price directory in ", $conf.price_dir, "… ";
-                mkdir $conf.price_dir
+                print "Creating price directory in ", $CONF.price_dir, "… ";
+                mkdir $CONF.price_dir
                     or die "Sorry, couldn't create price directory: ",
-                        $conf.price_dir;
+                        $CONF.price_dir;
                 say "done.";
             }
         }
 
         # apply config
-        $conf = Nightscape::Config.new(|%config);
+        $CONF = Nightscape::Config.new(|%config);
     }
 
     # prepare assets and entities for transaction journal parsing
@@ -161,13 +161,13 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$price-dir)
         try
         {
             use TOML;
-            my $toml_text = slurp $conf.config_file
-                or die "Sorry, couldn't read config file: ", $conf.config_file;
+            my $toml_text = slurp $CONF.config_file
+                or die "Sorry, couldn't read config file: ", $CONF.config_file;
             %toml = %(from-toml $toml_text);
             CATCH
             {
                 say "Sorry, couldn't parse TOML syntax in config file: ",
-                    $conf.config_file;
+                    $CONF.config_file;
             }
         }
 
@@ -175,14 +175,14 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$price-dir)
         my $base_currency_found = %toml<base-currency>;
         if $base_currency_found
         {
-            $conf.base_currency = %toml<base-currency>;
+            $CONF.base_currency = %toml<base-currency>;
         }
 
         # set base costing method
         my $base_costing_found = %toml<base-costing>;
         if $base_costing_found
         {
-            $conf.base_costing = %toml<base-costing>;
+            $CONF.base_costing = %toml<base-costing>;
         }
 
         # populate asset settings
@@ -191,7 +191,7 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$price-dir)
         {
             for %assets_found.kv -> $asset_code, $asset_data
             {
-                $conf.assets{$asset_code} = Nightscape::Config.gen_settings(
+                $CONF.assets{$asset_code} = Nightscape::Config.gen_settings(
                     :$asset_code,
                     :$asset_data
                 );
@@ -204,7 +204,7 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$price-dir)
         {
             for %entities_found.kv -> $entity_name, $entity_data
             {
-                $conf.entities{$entity_name} = Nightscape::Config.gen_settings(
+                $CONF.entities{$entity_name} = Nightscape::Config.gen_settings(
                     :$entity_name,
                     :$entity_data
                 );
@@ -235,7 +235,7 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$price-dir)
     Config
     ------
     EOF
-    say $conf.perl;
+    say $CONF.perl;
 }
 
 

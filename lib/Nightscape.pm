@@ -54,7 +54,7 @@ multi method ls_entries(
 
 # filter entries
 multi method ls_entries(
-    Nightscape::Entry :@entries!,
+    Nightscape::Entry :@entries = @!entries,
     Date :$date,
     Regex :$description,
     Regex :$entity,

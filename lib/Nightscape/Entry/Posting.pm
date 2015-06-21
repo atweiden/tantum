@@ -2,8 +2,11 @@ use v6;
 use Nightscape::Entry::Posting::Account;
 use Nightscape::Entry::Posting::Amount;
 use Nightscape::Types;
+use UUID;
 unit class Nightscape::Entry::Posting;
 
+has UUID $.entry_uuid;
+has UUID $.posting_uuid;
 has Nightscape::Entry::Posting::Account $.account;
 has Nightscape::Entry::Posting::Amount $.amount;
 has DecInc $.decinc;
@@ -33,7 +36,7 @@ method get_value(Date :$date!, Int :$id!) returns Quantity
 
     # entity's base currency
     my AssetCode $posting_entity_base_currency =
-        $GLOBAL::conf.resolve_base_currency($posting_entity);
+        $GLOBAL::CONF.resolve_base_currency($posting_entity);
 
     # posting asset code
     my AssetCode $posting_asset_code = $amount.asset_code;
@@ -80,7 +83,7 @@ method get_value(Date :$date!, Int :$id!) returns Quantity
             }
         }
         # is an exchange rate given in config?
-        elsif my Price $price = $GLOBAL::conf.resolve_price(
+        elsif my Price $price = $GLOBAL::CONF.resolve_price(
             :aux($posting_asset_code),
             :base($posting_entity_base_currency),
             :$date,

@@ -2,6 +2,7 @@ use v6;
 use Nightscape::Entry::Header;
 use Nightscape::Entry::Posting;
 use Nightscape::Types;
+use UUID;
 unit class Nightscape::Entry;
 
 has Nightscape::Entry::Header $.header;
@@ -40,7 +41,7 @@ method is_balanced() returns Bool
         # is posting denominated in asset other than entity's base
         # currency?
         my AssetCode $posting_entity_base_currency =
-            $GLOBAL::conf.resolve_base_currency($posting.account.entity);
+            $GLOBAL::CONF.resolve_base_currency($posting.account.entity);
         if $posting.amount.asset_code !eq $posting_entity_base_currency
         {
             # store posting exchange rate for comparison with other
@@ -142,14 +143,16 @@ multi method ls_postings(
 
 # filter postings
 multi method ls_postings(
-    Nightscape::Entry::Posting :@postings!,
+    Nightscape::Entry::Posting :@postings = @!postings,
     Regex :$asset_code,
-    Silo :$silo
+    Silo :$silo,
+    UUID :$posting_uuid
 ) returns Array[Nightscape::Entry::Posting]
 {
     my Nightscape::Entry::Posting @p = @postings;
     @p = self._ls_postings(:postings(@p), :$asset_code) if defined $asset_code;
     @p = self._ls_postings(:postings(@p), :$silo) if defined $silo;
+    @p = self._ls_postings(:postings(@p), :$posting_uuid) if $posting_uuid;
     @p;
 }
 
@@ -172,6 +175,17 @@ multi method _ls_postings(
 {
     my Nightscape::Entry::Posting @p = @postings.grep({
         .account.silo ~~ $silo
+    });
+}
+
+# list postings by uuid
+multi method _ls_postings(
+    Nightscape::Entry::Posting :@postings!,
+    UUID :$posting_uuid!
+) returns Array[Nightscape::Entry::Posting]
+{
+    my Nightscape::Entry::Posting @p = @postings.grep({
+        .posting_uuid ~~ $posting_uuid
     });
 }
 

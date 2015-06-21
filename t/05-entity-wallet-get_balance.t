@@ -5,9 +5,9 @@ use Nightscape;
 use Nightscape::Config;
 use Nightscape::Types;
 
-plan 2;
+plan 3;
 
-our $conf = Nightscape::Config.new;
+our $CONF = Nightscape::Config.new;
 
 # prepare assets and entities for transaction journal parsing
 {
@@ -16,13 +16,13 @@ our $conf = Nightscape::Config.new;
     try
     {
         use TOML;
-        my $toml_text = slurp $conf.config_file
-            or die "Sorry, couldn't read config file: ", $conf.config_file;
+        my $toml_text = slurp $CONF.config_file
+            or die "Sorry, couldn't read config file: ", $CONF.config_file;
         %toml = %(from-toml $toml_text);
         CATCH
         {
             say "Sorry, couldn't parse TOML syntax in config file: ",
-                $conf.config_file;
+                $CONF.config_file;
         }
     }
 
@@ -30,14 +30,14 @@ our $conf = Nightscape::Config.new;
     my $base_currency_found = %toml<base-currency>;
     if $base_currency_found
     {
-        $conf.base_currency = %toml<base-currency>;
+        $CONF.base_currency = %toml<base-currency>;
     }
 
     # set base costing method
     my $base_costing_found = %toml<base-costing>;
     if $base_costing_found
     {
-        $conf.base_costing = %toml<base-costing>;
+        $CONF.base_costing = %toml<base-costing>;
     }
 
     # populate asset settings
@@ -46,7 +46,7 @@ our $conf = Nightscape::Config.new;
     {
         for %assets_found.kv -> $asset_code, $asset_data
         {
-            $conf.assets{$asset_code} = Nightscape::Config.gen_settings(
+            $CONF.assets{$asset_code} = Nightscape::Config.gen_settings(
                 :$asset_code,
                 :$asset_data
             );
@@ -59,7 +59,7 @@ our $conf = Nightscape::Config.new;
     {
         for %entities_found.kv -> $entity_name, $entity_data
         {
-            $conf.entities{$entity_name} = Nightscape::Config.gen_settings(
+            $CONF.entities{$entity_name} = Nightscape::Config.gen_settings(
                 :$entity_name,
                 :$entity_data
             );
@@ -103,29 +103,60 @@ else
 
     # check that the balance of entity Personal's ASSETS is -837.84 USD
     is(
-        $entity_personal.wallet{ASSETS}.get_balance(:asset_code("USD")),
+        $entity_personal.wallet{ASSETS}.get_balance(
+            :asset_code("USD"),
+            :recursive
+        ),
         -837.84,
         q:to/EOF/
-        ♪ [get_balance] - 1 of 2
+        ♪ [get_balance] - 1 of 3
         ┏━━━━━━━━━━━━━┓
-        ┃             ┃  ∙ Passed argument of "USD" returns -837.84,
-        ┃   Success   ┃    as expected.
-        ┃             ┃
-        ┗━━━━━━━━━━━━━┛
+        ┃             ┃  ∙ Passed argument of:
+        ┃   Success   ┃
+        ┃             ┃         :asset_code("USD"),
+        ┗━━━━━━━━━━━━━┛         :recursive
+
+                           returns -837.84, as expected.
         EOF
     );
 
     # check that the balance of entity Personal's ASSETS is 1.91111111 BTC
     is(
-        $entity_personal.wallet{ASSETS}.get_balance(:asset_code("BTC")),
+        $entity_personal.wallet{ASSETS}.get_balance(
+            :asset_code("BTC"),
+            :recursive
+        ),
         1.91111111,
         q:to/EOF/
-        ♪ [get_balance] - 2 of 2
+        ♪ [get_balance] - 2 of 3
         ┏━━━━━━━━━━━━━┓
-        ┃             ┃  ∙ Passed argument of "BTC" returns 1.91111111,
-        ┃   Success   ┃    as expected.
-        ┃             ┃
-        ┗━━━━━━━━━━━━━┛
+        ┃             ┃  ∙ Passed argument of:
+        ┃   Success   ┃
+        ┃             ┃         :asset_code("BTC"),
+        ┗━━━━━━━━━━━━━┛         :recursive
+
+                           returns 1.91111111, as expected.
+        EOF
+    );
+
+    # check that the balance of entity Personal's BTC ASSETS is $1775.13 USD
+    is(
+        $entity_personal.wallet{ASSETS}.get_balance(
+            :asset_code("BTC"),
+            :base_currency("USD"),
+            :recursive
+        ),
+        1775.12919888889,
+        q:to/EOF/
+        ♪ [get_balance] - 3 of 3
+        ┏━━━━━━━━━━━━━┓
+        ┃             ┃  ∙ Passed argument of:
+        ┃   Success   ┃
+        ┃             ┃         :asset_code("BTC"),
+        ┗━━━━━━━━━━━━━┛         :base_currency("USD"),
+                                :recursive
+
+                           returns 1775.12919888889, as expected.
         EOF
     );
 }

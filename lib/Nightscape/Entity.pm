@@ -77,6 +77,7 @@ method gen_transaction(
     for $entry.postings -> $posting
     {
         # from Nightscape::Entry::Posting
+        my UUID $posting_uuid = $posting.posting_uuid;
         my Nightscape::Entry::Posting::Account $account = $posting.account;
         my Nightscape::Entry::Posting::Amount $amount = $posting.amount;
         my DecInc $decinc = $posting.decinc;
@@ -89,13 +90,22 @@ method gen_transaction(
         my AssetCode $asset_code = $amount.asset_code;
         my Quantity $quantity = $amount.asset_quantity;
 
+        # from Nightscape::Entry::Posting::Amount::XE
+        my AssetCode $xe_asset_code;
+        $xe_asset_code = try {$amount.exchange_rate.asset_code};
+        my Quantity $xe_asset_quantity;
+        $xe_asset_quantity = try {$amount.exchange_rate.asset_quantity};
+
         # build mod_wallet
         push @mod_wallet, Nightscape::Transaction::ModWallet.new(
+            :$posting_uuid,
             :$asset_code,
             :$decinc,
             :$quantity,
             :$silo,
-            :@subwallet
+            :@subwallet,
+            :$xe_asset_code,
+            :$xe_asset_quantity
         );
     }
 
@@ -108,7 +118,7 @@ method gen_transaction(
         Nightscape::Entry.ls_postings(:@postings, :$silo);
 
     # find entry postings affecting silo ASSETS, entity base currency only
-    my AssetCode $entity_base_currency = $GLOBAL::conf.resolve_base_currency(
+    my AssetCode $entity_base_currency = $GLOBAL::CONF.resolve_base_currency(
         $!entity_name
     );
     my Regex $asset_code = /$entity_base_currency/;
@@ -144,7 +154,7 @@ method gen_transaction(
         my Rat $decs = Rat([+] (.amount.asset_quantity for @p_dec));
 
         # INCs - DECs
-        my Rat $d = ($incs // 0.0) - ($decs // 0.0);
+        my Rat $d = $incs - $decs;
 
         # asset flow: acquire / expend
         my AssetFlow $asset_flow = Nightscape::Types.mkasset_flow($d);
@@ -153,7 +163,7 @@ method gen_transaction(
         my Quantity $quantity = $d.abs;
 
         # asset costing method
-        my Costing $costing = $GLOBAL::conf.resolve_costing(
+        my Costing $costing = $GLOBAL::CONF.resolve_costing(
             :asset_code($aux_asset_code),
             :$!entity_name
         );
@@ -163,14 +173,15 @@ method gen_transaction(
         my Price $price = @p[0].amount.exchange_rate.asset_quantity;
 
         # build mod_holdings
-        %mod_holdings{$aux_asset_code} = Nightscape::Transaction::ModHolding.new(
-            :asset_code($aux_asset_code),
-            :$asset_flow,
-            :$costing,
-            :$date,
-            :$price,
-            :$quantity
-        );
+        %mod_holdings{$aux_asset_code} =
+            Nightscape::Transaction::ModHolding.new(
+                :asset_code($aux_asset_code),
+                :$asset_flow,
+                :$costing,
+                :$date,
+                :$price,
+                :$quantity
+            );
     }
 
     # build transaction
@@ -238,10 +249,13 @@ method !mod_holdings(
 
 # dec/inc the applicable wallet balance
 method !mod_wallet(
+    UUID :$posting_uuid!,
     AssetCode :$asset_code!,
     DecInc :$decinc!,
     Quantity :$quantity!,
     Silo :$silo!,
+    AssetCode :$xe_asset_code,
+    Quantity :$xe_asset_quantity,
     :@subwallet! # Constraint type check failed for parameter '@subwallet'
 )
 {
@@ -251,38 +265,22 @@ method !mod_wallet(
         %!wallet{$silo} = Nightscape::Entity::Wallet.new;
     }
 
-    # dec/inc wallet balance (potential side effect)
-    &deref(%!wallet{$silo}, @subwallet).set_balance(
+    # dec/inc wallet balance (potential side effect from &deref)
+    &deref(%!wallet{$silo}, @subwallet).mkchangeset(
+        :$posting_uuid,
         :$asset_code,
         :$decinc,
-        :$quantity
+        :$quantity,
+        :$xe_asset_code,
+        :$xe_asset_quantity
     );
 }
 
 # execute transaction
 method transact(Nightscape::Transaction :$transaction!)
 {
-    # uuid
+    # uuid from causal transaction journal entry
     my UUID $uuid = $transaction.uuid;
-
-    # mod wallet balances
-    my Nightscape::Transaction::ModWallet @mod_wallet = $transaction.mod_wallet;
-    for @mod_wallet -> $mod_wallet
-    {
-        my AssetCode $asset_code = $mod_wallet.asset_code;
-        my DecInc $decinc = $mod_wallet.decinc;
-        my Quantity $quantity = $mod_wallet.quantity;
-        my Silo $silo = $mod_wallet.silo;
-        my VarName @subwallet = $mod_wallet.subwallet;
-
-        self!mod_wallet(
-            :$asset_code,
-            :$decinc,
-            :$quantity,
-            :$silo,
-            :@subwallet
-        );
-    }
 
     # mod holdings (only needed for entries dealing in aux assets)
     my Nightscape::Transaction::ModHolding %mod_holdings{AssetCode} =
@@ -307,6 +305,33 @@ method transact(Nightscape::Transaction :$transaction!)
                 :$quantity
             )
         }
+    }
+
+    # mod wallet balances
+    my Nightscape::Transaction::ModWallet @mod_wallet = $transaction.mod_wallet;
+    for @mod_wallet -> $mod_wallet
+    {
+        my UUID $posting_uuid = $mod_wallet.posting_uuid;
+        my AssetCode $asset_code = $mod_wallet.asset_code;
+        my DecInc $decinc = $mod_wallet.decinc;
+        my Quantity $quantity = $mod_wallet.quantity;
+        my Silo $silo = $mod_wallet.silo;
+        my VarName @subwallet = $mod_wallet.subwallet;
+        my AssetCode $xe_asset_code;
+        $xe_asset_code = try {$mod_wallet.xe_asset_code};
+        my Quantity $xe_asset_quantity;
+        $xe_asset_quantity = try {$mod_wallet.xe_asset_quantity};
+
+        self!mod_wallet(
+            :$posting_uuid,
+            :$asset_code,
+            :$decinc,
+            :$quantity,
+            :$silo,
+            :@subwallet,
+            :$xe_asset_code,
+            :$xe_asset_quantity
+        );
     }
 }
 
