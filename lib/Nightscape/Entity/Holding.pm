@@ -149,8 +149,8 @@ method find_targets(
                 # subtract all units in this basis lot from remaining
                 $remaining -= $basis.quantity;
 
-                # increment @!basis array index
-                $count++;
+                # increment @!basis array index if remaining targets, else break
+                $remaining > 0 ?? $count++ !! last;
             }
             else
             {   # target only the units necessary from this basis lot
@@ -158,6 +158,7 @@ method find_targets(
 
                 # no more units are remaining
                 $remaining -= $remaining;
+                last;
             }
         }
         else
