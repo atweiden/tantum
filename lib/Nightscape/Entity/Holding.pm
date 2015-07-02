@@ -19,6 +19,7 @@ has Array[Nightscape::Entity::Holding::Taxes] %.taxes{UUID};
 
 # increase entity's holdings
 method acquire(
+    UUID :$uuid!,
     Date :$date!,
     Price :$price!,
     Quantity :$quantity! where * > 0
@@ -26,6 +27,7 @@ method acquire(
 {
     # add to holdings
     push @!basis, Nightscape::Entity::Holding::Basis.new(
+        :$uuid,
         :$date,
         :$price,
         :$quantity
@@ -69,7 +71,12 @@ method expend(
             my Nightscape::Entity::Holding::Basis $basis := @!basis[$i];
 
             # try decreasing units by quantity
-            $basis.deplete($q);
+            $basis.deplete(
+                :$uuid,
+                :quantity($q),
+                :acquisition_price($basis.price),
+                :avco_at_expenditure($!avco)
+            );
 
             # for calculating capital gains/losses
             my Rat $d;
@@ -92,6 +99,9 @@ method expend(
                 # record capital gains
                 my Quantity $capital_gains = $d.abs;
                 push %!taxes{$uuid}, Nightscape::Entity::Holding::Taxes.new(
+                    :$uuid,
+                    :acquisition_price($basis.price),
+                    :avco_at_expenditure($!avco),
                     :$capital_gains
                 );
             }
@@ -100,6 +110,9 @@ method expend(
                 # record capital losses
                 my Quantity $capital_losses = $d.abs;
                 push %!taxes{$uuid}, Nightscape::Entity::Holding::Taxes.new(
+                    :$uuid,
+                    :acquisition_price($basis.price),
+                    :avco_at_expenditure($!avco),
                     :$capital_losses
                 );
             }
@@ -217,6 +230,59 @@ method get_total_value(
 method in_stock(Quantity $quantity) returns Bool
 {
     $quantity <= self.get_total_quantity ?? True !! False;
+}
+
+# fetch acquisition price or avco, costing method depending
+# - FIFO/LIFO: the acquisition price
+# - AVCO: the avco
+method resolve_holding_basis_price(
+    Costing :$costing!,
+    UUID :$uuid!
+) returns Price
+{
+    my Nightscape::Entity::Holding::Basis @basis = @!basis.grep({
+        .depletions{$uuid}.uuid ~~ $uuid
+    });
+
+    # were there unexpected results from grepping @!basis for UUID?
+    unless @basis.elems ~~ 1
+    {
+        # was more than one matching basis lot found?
+        if @basis.elems > 1
+        {
+            # error: more than one matching basis lot
+            die q:to/EOF/;
+            Sorry, got back more than one basis lot with identical causal
+            entry UUID.
+            EOF
+            # TODO: this likely is not cause for exit, seeing as an
+            #       expenditure can target multiple basis lots for
+            #       depletion
+        }
+        # was less than one matching basis lot found?
+        elsif @basis.elems < 1
+        {
+            # error: suitable basis lot not found
+            die q:to/EOF/;
+            Sorry, could not find any basis lots with identical causal
+            entry UUID.
+            EOF
+        }
+    }
+
+    my Price $basis_price;
+
+    if $costing ~~ AVCO
+    {
+        # problematic as we need AVCO at time of expenditure
+        $basis_price = $!avco;
+    }
+    elsif $costing ~~ FIFO or $costing ~~ LIFO
+    {
+        $basis_price = @basis[0].price;
+    }
+
+    $basis_price;
 }
 
 # vim: ft=perl6

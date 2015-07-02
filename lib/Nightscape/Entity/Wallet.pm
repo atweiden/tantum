@@ -109,8 +109,82 @@ method get_balance(
     $balance;
 }
 
+# list all assets handled
+method ls_assets() returns Array[AssetCode]
+{
+    my AssetCode @assets_handled = %!balance.keys;
+}
+
+# list UUIDs handled, indexed by asset code (default: entry UUID)
+method ls_assets_with_uuids(Bool :$posting) returns Hash[Array[UUID],AssetCode]
+{
+    # store UUIDs handled, indexed by asset code
+    my Array[UUID] %uuids_handled_by_asset_code{AssetCode};
+
+    # list all assets handled
+    my AssetCode @assets_handled = self.ls_assets;
+
+    # for each asset code handled
+    for @assets_handled -> $asset_code
+    {
+        if $posting
+        {
+            %uuids_handled_by_asset_code{$asset_code} = self.ls_uuids(
+                :$asset_code,
+                :posting
+            );
+        }
+        else
+        {
+            %uuids_handled_by_asset_code{$asset_code} = self.ls_uuids(
+                :$asset_code
+            );
+        }
+    }
+
+    %uuids_handled_by_asset_code;
+}
+
+# list UUIDs handled (default: entry UUID)
+method ls_uuids(Str :$asset_code, Bool :$posting) returns Array[UUID]
+{
+    # populate assets handled
+    my AssetCode @assets_handled;
+    $asset_code
+        ?? (@assets_handled = $asset_code)
+        !! (@assets_handled = self.ls_assets);
+
+    # store UUIDs handled
+    my UUID @uuids_handled;
+
+    # fetch UUIDs handled
+    for @assets_handled -> $asset_code
+    {
+        for %!balance{$asset_code} -> @changesets
+        {
+            for @changesets -> $changeset
+            {
+                # requested posting UUIDs?
+                if $posting
+                {
+                    # gather causal posting UUIDs
+                    push @uuids_handled, $changeset.posting_uuid;
+                }
+                else
+                {
+                    # gather causal entry UUIDs
+                    push @uuids_handled, $changeset.entry_uuid;
+                }
+            }
+        }
+    }
+
+    @uuids_handled;
+}
+
 # record balance update instruction
 method mkchangeset(
+    UUID :$entry_uuid!,
     UUID :$posting_uuid!,
     AssetCode :$asset_code!,
     DecInc :$decinc!,
@@ -126,6 +200,7 @@ method mkchangeset(
         push %!balance{$asset_code}, Nightscape::Entity::Wallet::Changeset.new(
             :balance_delta($quantity),
             :balance_delta_asset_code($asset_code),
+            :$entry_uuid,
             :$posting_uuid,
             :$xe_asset_code,
             :$xe_asset_quantity
@@ -138,11 +213,108 @@ method mkchangeset(
         push %!balance{$asset_code}, Nightscape::Entity::Wallet::Changeset.new(
             :balance_delta(-$quantity),
             :balance_delta_asset_code($asset_code),
+            :$entry_uuid,
             :$posting_uuid,
             :$xe_asset_code,
             :$xe_asset_quantity
         );
     }
+}
+
+# update xe_asset_quantity in one Entry's changesets (by entry UUID)
+method mod_xeaq(
+    AssetCode :$asset_code!,
+    UUID :$entry_uuid!,
+    Quantity :$xe_asset_quantity!
+)
+{
+    for %!balance{$asset_code}.grep({ .entry_uuid ~~ $entry_uuid })
+    {
+        my Nightscape::Entity::Wallet::Changeset $changeset := $^a;
+        $changeset.update_xe_asset_quantity(:$xe_asset_quantity);
+    }
+}
+
+# list nested wallets/subwallets as hash of wallet names
+multi method tree(Bool :$hash!) returns Hash
+{
+    my %tree;
+    sub deref(%tree, *@k) is rw
+    {
+        my $h := %tree;
+        $h := $h{$_} for @k;
+        $h;
+    }
+    deref(%tree, $_) = %!subwallet{$_}.tree(:hash) for %!subwallet.keys;
+    %tree;
+}
+
+# list nested wallets/subwallets as list of wallet names for easy access
+multi method tree(%tree) returns Array[Array[VarName]]
+{
+    #
+    # incoming:
+    #     {
+    #         :Bankwest({
+    #             :Cheque({
+    #                 :ABC({}),
+    #                 :DEF({
+    #                     :XYZ({})
+    #                 })
+    #             })
+    #         }),
+    #         :BitBroker({})
+    #     }<>
+    #
+    # outgoing:
+    #
+    #     ["Bankwest", "Cheque"],
+    #     ["Bankwest", "Cheque", "ABC"],
+    #     ["Bankwest", "Cheque", "DEF"],
+    #     ["Bankwest", "Cheque", "DEF", "XYZ"],
+    #     ["BitBroker"]
+    #
+
+    sub grind(%tree, Str :$carry = "") returns Array[AcctName]
+    {
+        my AcctName @acct_names;
+        for %tree.keys -> $toplevel
+        {
+            my AcctName $acct_name = $carry ~ $toplevel ~ ':';
+            if %tree{$toplevel} ~~ Hash
+            {
+                push @acct_names,
+                    $acct_name,
+                    grind(
+                        %tree{$toplevel},
+                        :carry($acct_name)
+                    );
+            }
+            else
+            {
+                push @acct_names, %tree{$toplevel};
+            }
+        }
+        @acct_names;
+    }
+
+    # grind hash into strings
+    my AcctName @acct_names = grind(%tree);
+
+    # trim trailing ':'
+    @acct_names .= map({ substr($_, 0, *-1) });
+
+    # convert each nested wallet path string to type: Array
+    my Array[VarName] @tree;
+    loop (my Int $i = 0; $i < @acct_names.elems; $i++)
+    {
+        # coerce to type: Array
+        my VarName @acct_path = Array(@acct_names[$i].split(':'));
+        @tree[$i] = @acct_path;
+    }
+
+    # return sorted tree
+    @tree .= sort;
 }
 
 # vim: ft=perl6

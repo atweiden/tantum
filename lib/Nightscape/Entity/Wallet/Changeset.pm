@@ -9,6 +9,9 @@ has Rat $.balance_delta;
 # self-referential asset code of this balance delta
 has AssetCode $.balance_delta_asset_code;
 
+# causal entry's uuid
+has UUID $.entry_uuid;
+
 # causal posting's uuid
 has UUID $.posting_uuid;
 
@@ -16,6 +19,12 @@ has UUID $.posting_uuid;
 has AssetCode $.xe_asset_code;
 
 # causal posting's exchange rate asset quantity, if given
-has Rat $.xe_asset_quantity;
+has Quantity $.xe_asset_quantity;
+
+# update xe_asset_quantity in-place
+method update_xe_asset_quantity(Quantity :$xe_asset_quantity!)
+{
+    $!xe_asset_quantity = $xe_asset_quantity;
+}
 
 # vim: ft=perl6

@@ -47,6 +47,11 @@ token var_char
     || <[_-]>
 }
 
+token acct_name
+{
+    [<var_char> || ':']+
+}
+
 token var_name
 {
     <var_char>+

@@ -1,9 +1,14 @@
 use v6;
+use Nightscape::Parser::Grammar;
 unit class Nightscape::Types;
+
+subset AcctName of Str is export where
+{
+    Nightscape::Parser::Grammar.parse($_, :rule<acct_name>);
+};
 
 subset AssetCode of Str is export where
 {
-    use Nightscape::Parser::Grammar;
     Nightscape::Parser::Grammar.parse($_, :rule<asset_code>);
 };
 
@@ -13,7 +18,6 @@ subset Quantity of Rat is export where * >= 0;
 
 subset VarName of Str is export where
 {
-    use Nightscape::Parser::Grammar;
     Nightscape::Parser::Grammar.parse($_, :rule<var_name>);
 };
 

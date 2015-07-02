@@ -92,10 +92,9 @@ else
     );
 
     # generate transactions from entries by entity Personal
-    my Nightscape::Transaction @transactions_by_entity_personal;
-    push @transactions_by_entity_personal,
-        $entity_personal.gen_transaction(:entry($_))
-            for @entries_by_entity_personal;
+    my Nightscape::Entity::TXN @transactions_by_entity_personal;
+    push @transactions_by_entity_personal, $entity_personal.gen_txn(:entry($_))
+        for @entries_by_entity_personal;
 
     # execute transactions of entity Personal
     $entity_personal.transact(:transaction($_))

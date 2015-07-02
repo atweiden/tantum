@@ -194,7 +194,7 @@ multi method gen_settings(
     my AssetCode $base_currency;
     $base_currency = $entity_data<base-currency> if $entity_data<base-currency>;
 
-    # populate entity open dates if found
+    # TODO: populate entity open dates if found
     my Range $open{Date};
 
     # build entity settings
@@ -249,7 +249,7 @@ method resolve_base_currency(VarName $entity) returns AssetCode
     $base_currency;
 }
 
-# conf precedence: $PWD/nightscape.conf, $HOME/.nightscape.conf
+# conf precedence: $PWD/nightscape.conf, $HOME/.nightscape.conf, $HOME/.nightscape/config.toml
 sub resolve_config_file() returns Str
 {
     my Str $config_file;
@@ -346,6 +346,7 @@ method resolve_price(
             try {%!entities{$entity_name}.assets{$aux}.prices{$base}{$date}};
     }
 
+    # return entity-specific asset pricing if available, else asset pricing
     $price_entity ?? $price_entity !! $price_asset;
 }
 

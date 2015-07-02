@@ -1,6 +1,6 @@
 use v6;
 use Nightscape::Types;
-unit class Nightscape::Transaction::ModHolding;
+unit class Nightscape::Entity::TXN::ModHolding;
 
 # holding asset code
 has AssetCode $.asset_code;

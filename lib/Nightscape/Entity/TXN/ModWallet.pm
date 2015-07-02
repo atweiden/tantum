@@ -1,9 +1,12 @@
 use v6;
 use Nightscape::Types;
 use UUID;
-unit class Nightscape::Transaction::ModWallet;
+unit class Nightscape::Entity::TXN::ModWallet;
 
-# source posting uuid
+# causal entry's uuid
+has UUID $.entry_uuid;
+
+# causal posting's uuid
 has UUID $.posting_uuid;
 
 # account
