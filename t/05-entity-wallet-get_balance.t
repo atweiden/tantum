@@ -81,9 +81,7 @@ else
 
 {
     # make entity Personal
-    my Nightscape::Entity $entity_personal = Nightscape::Entity.new(
-        :entity_name("Personal")
-    );
+    my Nightscape::Entity $entity_personal .= new(:entity_name("Personal"));
 
     # get entries by entity Personal
     my Nightscape::Entry @entries_by_entity_personal = Nightscape.ls_entries(

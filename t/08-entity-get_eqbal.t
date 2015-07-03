@@ -87,7 +87,7 @@ else
     for @entity_names -> $entity_name
     {
         # instantiate Entity
-        my Nightscape::Entity $entity = Nightscape::Entity.new(:$entity_name);
+        my Nightscape::Entity $entity .= new(:$entity_name);
 
         # get entries by Entity
         my Nightscape::Entry @entries_entity = Nightscape.ls_entries(
