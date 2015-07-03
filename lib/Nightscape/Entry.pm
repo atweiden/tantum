@@ -125,7 +125,7 @@ method ls_asset_codes(
     {
         push @asset_codes, $_ for $posting.amount.asset_code;
     }
-    my AssetCode @asset_codes_unique = @asset_codes.unique;
+    @asset_codes .= unique;
 }
 
 # list postings from entries

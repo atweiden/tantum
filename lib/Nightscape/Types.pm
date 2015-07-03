@@ -5,12 +5,12 @@ unit class Nightscape::Types;
 subset AcctName of Str is export where
 {
     Nightscape::Parser::Grammar.parse($_, :rule<acct_name>);
-};
+}
 
 subset AssetCode of Str is export where
 {
     Nightscape::Parser::Grammar.parse($_, :rule<asset_code>);
-};
+}
 
 subset Price of Rat is export where * >= 0;
 
@@ -19,50 +19,29 @@ subset Quantity of Rat is export where * >= 0;
 subset VarName of Str is export where
 {
     Nightscape::Parser::Grammar.parse($_, :rule<var_name>);
-};
+}
 
-enum AssetFlow is export
-<
-    ACQUIRE
-    EXPEND
-    STABLE
->;
+enum AssetFlow is export <ACQUIRE EXPEND STABLE>;
 
-enum Costing is export
-<
-    AVCO
-    FIFO
-    LIFO
->;
+enum Costing is export <AVCO FIFO LIFO>;
 
-enum DecInc is export
-<
-    DEC
-    INC
->;
+enum DecInc is export <DEC INC>;
 
-enum Silo is export
-<
-    ASSETS
-    EXPENSES
-    INCOME
-    LIABILITIES
-    EQUITY
->;
+enum Silo is export <ASSETS EXPENSES INCOME LIABILITIES EQUITY>;
 
 method mkasset_flow(Rat $d) returns AssetFlow
 {
     if $d > 0
     {
-        ACQUIRE
+        ACQUIRE;
     }
     elsif $d < 0
     {
-        EXPEND
+        EXPEND;
     }
     else
     {
-        STABLE
+        STABLE;
     }
 }
 

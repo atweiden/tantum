@@ -268,6 +268,7 @@ multi method tree(%tree) returns Array[Array[VarName]]
     #
     # outgoing:
     #
+    #     ["Bankwest"],
     #     ["Bankwest", "Cheque"],
     #     ["Bankwest", "Cheque", "ABC"],
     #     ["Bankwest", "Cheque", "DEF"],

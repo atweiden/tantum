@@ -5,7 +5,7 @@ unit class Nightscape::Parser;
 
 method parse($content) returns Match
 {
-    my Nightscape::Parser::Actions $actions = Nightscape::Parser::Actions.new;
+    my Nightscape::Parser::Actions $actions .= new;
     Nightscape::Parser::Grammar.parse($content, :$actions);
 }
 
