@@ -108,55 +108,107 @@ else
         # store entity
         push @entities, $entity;
 
-        say '[Assets]';
-        say 'Assets.USD: USD ', $entity.coa.wllt{ASSETS}.get_balance(
-            :asset_code("USD"),
-            :recursive
-        );
-        say 'Assets.LTC: USD ', $entity.coa.wllt{ASSETS}.get_balance(
-            :asset_code("LTC"),
-            :base_currency("USD"),
-            :recursive
-        ), ' 「LTC ', $entity.coa.wllt{ASSETS}.get_balance(
-            :asset_code("LTC"),
-            :recursive
-        ), '」';
+        # say 'Entity.wallet';
+        # say '[Assets]';
+        # say 'Assets.USD: USD ', $entity.wallet{ASSETS}.get_balance(
+        #     :asset_code("USD"),
+        #     :recursive
+        # );
+        # say 'Assets.LTC: USD ', $entity.wallet{ASSETS}.get_balance(
+        #     :asset_code("LTC"),
+        #     :base_currency("USD"),
+        #     :recursive
+        # ), ' 「LTC ', $entity.wallet{ASSETS}.get_balance(
+        #     :asset_code("LTC"),
+        #     :recursive
+        # ), '」';
 
-        say '';
-        say '[Income]';
-        say 'Income.USD: USD ', $entity.coa.wllt{INCOME}.get_balance(
-            :asset_code("USD"),
-            :recursive
-        );
-        say 'Income.LTC: USD ', $entity.coa.wllt{INCOME}.get_balance(
-            :asset_code("LTC"),
-            :base_currency("USD"),
-            :recursive
-        ), ' 「LTC ', $entity.coa.wllt{INCOME}.get_balance(
-            :asset_code("LTC"),
-            :recursive
-        ), '」';
+        # say '';
+        # say '[Income]';
+        # say 'Income.USD: USD ', $entity.wallet{INCOME}.get_balance(
+        #     :asset_code("USD"),
+        #     :recursive
+        # );
+        # say 'Income.LTC: USD ', $entity.wallet{INCOME}.get_balance(
+        #     :asset_code("LTC"),
+        #     :base_currency("USD"),
+        #     :recursive
+        # ), ' 「LTC ', $entity.wallet{INCOME}.get_balance(
+        #     :asset_code("LTC"),
+        #     :recursive
+        # ), '」';
 
-        say '';
-        say '[Equity]';
-        say 'Equity.USD: USD ', $entity.coa.wllt{EQUITY}.get_balance(
-            :asset_code("USD"),
-            :recursive
-        );
-        say 'Equity.LTC: USD ', $entity.coa.wllt{EQUITY}.get_balance(
-            :asset_code("LTC"),
-            :base_currency("USD"),
-            :recursive
-        ), ' 「LTC ', $entity.coa.wllt{EQUITY}.get_balance(
-            :asset_code("LTC"),
-            :recursive
-        ), '」';
+        # say '';
+        # say '[Equity]';
+        # say 'Equity.USD: USD ', $entity.wallet{EQUITY}.get_balance(
+        #     :asset_code("USD"),
+        #     :recursive
+        # );
+        # say 'Equity.LTC: USD ', $entity.wallet{EQUITY}.get_balance(
+        #     :asset_code("LTC"),
+        #     :base_currency("USD"),
+        #     :recursive
+        # ), ' 「LTC ', $entity.wallet{EQUITY}.get_balance(
+        #     :asset_code("LTC"),
+        #     :recursive
+        # ), '」';
+
+        # say "\n" x 3;
+        # say '[Assets]';
+        # say 'Assets.USD: USD ', $entity.coa.wllt{ASSETS}.get_balance(
+        #     :asset_code("USD"),
+        #     :recursive
+        # );
+        # say 'Assets.LTC: USD ', $entity.coa.wllt{ASSETS}.get_balance(
+        #     :asset_code("LTC"),
+        #     :base_currency("USD"),
+        #     :recursive
+        # ), ' 「LTC ', $entity.coa.wllt{ASSETS}.get_balance(
+        #     :asset_code("LTC"),
+        #     :recursive
+        # ), '」';
+
+        # say '';
+        # say '[Income]';
+        # say 'Income.USD: USD ', $entity.coa.wllt{INCOME}.get_balance(
+        #     :asset_code("USD"),
+        #     :recursive
+        # );
+        # say 'Income.LTC: USD ', $entity.coa.wllt{INCOME}.get_balance(
+        #     :asset_code("LTC"),
+        #     :base_currency("USD"),
+        #     :recursive
+        # ), ' 「LTC ', $entity.coa.wllt{INCOME}.get_balance(
+        #     :asset_code("LTC"),
+        #     :recursive
+        # ), '」';
+
+        # say '';
+        # say '[Equity]';
+        # say 'Equity.USD: USD ', $entity.coa.wllt{EQUITY}.get_balance(
+        #     :asset_code("USD"),
+        #     :recursive
+        # );
+        # say 'Equity.LTC: USD ', $entity.coa.wllt{EQUITY}.get_balance(
+        #     :asset_code("LTC"),
+        #     :base_currency("USD"),
+        #     :recursive
+        # ), ' 「LTC ', $entity.coa.wllt{EQUITY}.get_balance(
+        #     :asset_code("LTC"),
+        #     :recursive
+        # ), '」';
     }
 }
 
 say $_.perl for @entities[0].tree(:wallet(@entities[0].coa.wllt));
 
 my Rat %balance{Silo} = @entities[0].get_eqbal;
+# say "Entity.coa.wllt eqbal: ", %balance.perl;
+
+# my Rat %balance_orig{Silo} = @entities[0].get_eqbal(
+#     :wallet(@entities[0].wallet)
+# );
+# say "Entity.wallet eqbal: ", %balance_orig.perl;
 
 is(
     %balance{ASSETS} + %balance{EXPENSES},
@@ -172,7 +224,6 @@ is(
 );
 
 # Entity.wallet should remain true to the original
-# this is still buggy
 # say @entities[0].wallet.perl;
 # say "\n" x 3;
 # say @entities[0].coa.wllt.perl;

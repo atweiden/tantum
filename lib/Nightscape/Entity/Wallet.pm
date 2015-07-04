@@ -8,7 +8,41 @@ unit class Nightscape::Entity::Wallet;
 has Array[Nightscape::Entity::Wallet::Changeset] %.balance{AssetCode};
 
 # subwallet, indexed by name
-has Nightscape::Entity::Wallet %.subwallet{VarName} is rw;
+has Nightscape::Entity::Wallet %.subwallet{VarName};
+
+# clone balance and subwallets with explicit instantiation and deepmap
+method clone() returns Nightscape::Entity::Wallet
+{
+    my Array[Nightscape::Entity::Wallet::Changeset] %balance{AssetCode}
+        = self.clone_balance;
+    my Nightscape::Entity::Wallet %subwallet{VarName} =
+        %.subwallet.deepmap(*.clone);
+    my Nightscape::Entity::Wallet $wallet .= new(:%balance, :%subwallet);
+    $wallet;
+}
+
+# clone changesets indexed by asset code with explicit instantiation
+method clone_balance(
+) returns Hash[Array[Nightscape::Entity::Wallet::Changeset],AssetCode]
+{
+    my Array[Nightscape::Entity::Wallet::Changeset] %balance{AssetCode};
+    for %.balance.keys -> $asset_code
+    {
+        for %.balance{$asset_code}.list -> $changeset
+        {
+            push %balance{$asset_code},
+                Nightscape::Entity::Wallet::Changeset.new(
+                    :balance_delta($changeset.balance_delta),
+                    :balance_delta_asset_code($changeset.balance_delta_asset_code),
+                    :entry_uuid($changeset.entry_uuid),
+                    :posting_uuid($changeset.posting_uuid),
+                    :xe_asset_code($changeset.xe_asset_code),
+                    :xe_asset_quantity($changeset.xe_asset_quantity)
+                )
+        }
+    }
+    %balance;
+}
 
 # get wallet balance
 method get_balance(

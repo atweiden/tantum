@@ -34,10 +34,7 @@ method acct2wllt(
     my Nightscape::Entity::Wallet %wllt{Silo};
     for %wallet.kv -> $silo, $wallet
     {
-        %wllt{::($silo)} = Nightscape::Entity::Wallet.new(
-            :balance($wallet.balance.clone),
-            :subwallet($wallet.subwallet.clone)
-        );
+        %wllt{::($silo)} = $wallet.clone;
     }
 
     # for each asset code in holdings
