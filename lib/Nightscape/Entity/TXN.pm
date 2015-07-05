@@ -5,7 +5,7 @@ use Nightscape::Types;
 use UUID;
 unit class Nightscape::Entity::TXN;
 
-# source entry uuid
+# causal entry uuid
 has UUID $.uuid;
 
 # holdings acquisitions and expenditures indexed by asset, in entry

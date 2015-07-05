@@ -26,10 +26,10 @@ has DecInc $.decinc;
 method get_value(Date :$date!, Int :$id!) returns Quantity
 {
     # account
-    my Nightscape::Entry::Posting::Account $account = $!account;
+    my Nightscape::Entry::Posting::Account $account = $.account;
 
     # amount
-    my Nightscape::Entry::Posting::Amount $amount = $!amount;
+    my Nightscape::Entry::Posting::Amount $amount = $.amount;
 
     # entity
     my VarName $posting_entity = $account.entity;

@@ -54,7 +54,7 @@ multi method ls_entries(
 
 # filter entries
 multi method ls_entries(
-    Nightscape::Entry :@entries = @!entries,
+    Nightscape::Entry :@entries = @.entries,
     Date :$date,
     Regex :$description,
     Regex :$entity,
@@ -103,7 +103,7 @@ method mkentity(VarName :$entity_name!, Bool :$force)
     }
 
     # does entity exist?
-    if %!entities{$entity_name}
+    if %.entities{$entity_name}
     {
         # force?
         if $force

@@ -26,8 +26,8 @@ has Nightscape::Entity::Wallet %.wallet{Silo};
 # given holdings + wallet, return wllt including capital gains / losses
 method acct2wllt(
     Nightscape::Entity::COA::Acct :%acct!,
-    Nightscape::Entity::Holding :%holdings = %!holdings,
-    Nightscape::Entity::Wallet :%wallet = %!wallet
+    Nightscape::Entity::Holding :%holdings = %.holdings,
+    Nightscape::Entity::Wallet :%wallet = %.wallet
 ) returns Hash[Nightscape::Entity::Wallet,Silo]
 {
     # make copy of %wallet for incising realized capital gains / losses
@@ -46,7 +46,7 @@ method acct2wllt(
         # fetch costing method for asset code
         my Costing $costing = $GLOBAL::CONF.resolve_costing(
             :$asset_code,
-            :entity_name($!entity_name)
+            :entity_name($.entity_name)
         );
 
         # for each entry UUID resulting in realized capital gains / losses
@@ -115,7 +115,7 @@ method acct2wllt(
                 # - all basis prices are in terms of entity's base currency
                 # - all capital gains are be in terms of entity's base currency
                 my AssetCode $entity_base_currency =
-                    $GLOBAL::CONF.resolve_base_currency($!entity_name);
+                    $GLOBAL::CONF.resolve_base_currency($.entity_name);
 
                 # purposefully empty vars
                 my UUID $posting_uuid;
@@ -210,7 +210,7 @@ method gen_txn(
 
     # find entry postings affecting silo ASSETS, entity base currency only
     my AssetCode $entity_base_currency = $GLOBAL::CONF.resolve_base_currency(
-        $!entity_name
+        $.entity_name
     );
     my Regex $asset_code = /$entity_base_currency/;
     my Nightscape::Entry::Posting @postings_assets_silo_base_currency =
@@ -256,7 +256,7 @@ method gen_txn(
         # asset costing method
         my Costing $costing = $GLOBAL::CONF.resolve_costing(
             :asset_code($aux_asset_code),
-            :$!entity_name
+            :$.entity_name
         );
 
         # prepare cost basis data
@@ -312,11 +312,11 @@ sub in_wallet(Nightscape::Entity::Wallet $wallet, *@subwallet) is rw
 }
 
 method get_eqbal(
-    Nightscape::Entity::Wallet :%wallet = $!coa.wllt
+    Nightscape::Entity::Wallet :%wallet = $.coa.wllt
 ) returns Hash[Rat,Silo]
 {
     my AssetCode $entity_base_currency =
-        $GLOBAL::CONF.resolve_base_currency($!entity_name);
+        $GLOBAL::CONF.resolve_base_currency($.entity_name);
 
     my Rat %balance{Silo};
 
@@ -338,8 +338,8 @@ method get_eqbal(
 # list all unique asset codes handled by entity
 method ls_assets_handled() returns Array[AssetCode]
 {
-    # is $!coa missing?
-    unless $!coa
+    # is $.coa missing?
+    unless $.coa
     {
         # error: COA missing
         die "Sorry, COA missing; needed for Entity.ls_assets_handled";
@@ -347,7 +347,7 @@ method ls_assets_handled() returns Array[AssetCode]
 
     my AssetCode @assets_handled;
 
-    for $!coa.acct.kv -> $acct_name, $acct
+    for $.coa.acct.kv -> $acct_name, $acct
     {
         push @assets_handled, $acct.assets_handled;
     }
@@ -362,7 +362,7 @@ method mkcoa(Bool :$force)
     my Nightscape::Entity::COA::Acct %acct{AcctName} = self.tree2acct;
 
     # find entries with realized capital gains / realized capital losses
-    # use %!acct to find target list with wallet path
+    # use %.acct to find target list with wallet path
     my Nightscape::Entity::Wallet %wllt{Silo} = self.acct2wllt(:%acct);
 
     # force instantiate new coa?
@@ -372,7 +372,7 @@ method mkcoa(Bool :$force)
         $!coa = Nightscape::Entity::COA.new(:%acct, :%wllt);
     }
     # does coa exist?
-    elsif $!coa
+    elsif $.coa
     {
         # error: coa exists, pass arg :force to overwrite
         die "Sorry, cannot create COA self.coa: self.coa exists";
@@ -399,7 +399,7 @@ method !mod_holdings(
     if $asset_flow ~~ ACQUIRE
     {
         # instantiate holding if needed
-        unless %!holdings{$asset_code}
+        unless %.holdings{$asset_code}
         {
             %!holdings{$asset_code} = Nightscape::Entity::Holding.new(
                 :$asset_code
@@ -413,7 +413,7 @@ method !mod_holdings(
     elsif $asset_flow ~~ EXPEND
     {
         # if holding does not exist, exit with an error
-        unless %!holdings{$asset_code}
+        unless %.holdings{$asset_code}
         {
             die qq:to/EOF/;
             Sorry, no holding exists of asset code 「$asset_code」.
@@ -421,7 +421,7 @@ method !mod_holdings(
         }
 
         # check for sufficient unit quantity of asset in holdings
-        my Quantity $quantity_held = %!holdings{$asset_code}.get_total_quantity;
+        my Quantity $quantity_held = %.holdings{$asset_code}.get_total_quantity;
         unless $quantity_held >= $quantity
         {
             die qq:to/EOF/;
@@ -457,7 +457,7 @@ method !mod_wallet(
 )
 {
     # ensure $silo wallet exists (potential side effect)
-    unless %!wallet{$silo}
+    unless %.wallet{$silo}
     {
         %!wallet{$silo} = Nightscape::Entity::Wallet.new;
     }
@@ -536,7 +536,7 @@ method transact(Nightscape::Entity::TXN :$transaction!)
 
 # list wallet tree recursively
 method tree(
-    Nightscape::Entity::Wallet :%wallet = %!wallet,
+    Nightscape::Entity::Wallet :%wallet = %.wallet,
     Silo :$silo,
     *@subwallet
 ) returns Array[Array[VarName]]
@@ -597,7 +597,7 @@ method tree2acct(
         my AcctName $name = @path.join(':');
 
         # root Silo wallet
-        my Nightscape::Entity::Wallet $wallet = %!wallet{::(@path[0])};
+        my Nightscape::Entity::Wallet $wallet = %.wallet{::(@path[0])};
 
         # store all assets handled
         my AssetCode @assets_handled =

@@ -56,10 +56,10 @@ method get_balance(
     my Rat @deltas;
 
     # does this wallet have a balance for asset code?
-    if %!balance{$asset_code}
+    if %.balance{$asset_code}
     {
         # calculate balance (sum changeset balance deltas)
-        for %!balance{$asset_code}.list -> $changeset
+        for %.balance{$asset_code}.list -> $changeset
         {
             # convert balance into $base_currency?
             if $base_currency
@@ -67,6 +67,7 @@ method get_balance(
                 # does posting's asset code match the requested base currency?
                 if $changeset.balance_delta_asset_code ~~ $base_currency
                 {
+                    # use posting's main asset code instead of looking up xe
                     push @deltas, $changeset.balance_delta;
                 }
                 else
@@ -126,10 +127,10 @@ method get_balance(
     if $recursive
     {
         # is there a subwallet?
-        if %!subwallet
+        if %.subwallet
         {
             # add subwallet balance to $balance
-            for %!subwallet.kv -> $name, $subwallet
+            for %.subwallet.kv -> $name, $subwallet
             {
                 $balance += $subwallet.get_balance(
                     :$asset_code,
@@ -146,7 +147,7 @@ method get_balance(
 # list all assets handled
 method ls_assets() returns Array[AssetCode]
 {
-    my AssetCode @assets_handled = %!balance.keys;
+    my AssetCode @assets_handled = %.balance.keys;
 }
 
 # list UUIDs handled, indexed by asset code (default: entry UUID)
@@ -194,7 +195,7 @@ method ls_uuids(Str :$asset_code, Bool :$posting) returns Array[UUID]
     # fetch UUIDs handled
     for @assets_handled -> $asset_code
     {
-        for %!balance{$asset_code} -> @changesets
+        for %.balance{$asset_code} -> @changesets
         {
             for @changesets -> $changeset
             {
@@ -262,7 +263,7 @@ method mod_xeaq(
     Quantity :$xe_asset_quantity!
 )
 {
-    for %!balance{$asset_code}.grep({ .entry_uuid ~~ $entry_uuid })
+    for %.balance{$asset_code}.grep({ .entry_uuid ~~ $entry_uuid })
     {
         my Nightscape::Entity::Wallet::Changeset $changeset := $^a;
         $changeset.update_xe_asset_quantity(:$xe_asset_quantity);
@@ -279,7 +280,7 @@ multi method tree(Bool :$hash!) returns Hash
         $h := $h{$_} for @k;
         $h;
     }
-    deref(%tree, $_) = %!subwallet{$_}.tree(:hash) for %!subwallet.keys;
+    deref(%tree, $_) = %.subwallet{$_}.tree(:hash) for %.subwallet.keys;
     %tree;
 }
 

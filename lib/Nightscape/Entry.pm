@@ -27,13 +27,13 @@ method is_balanced() returns Bool
     my Array[Quantity] %xe_verify{AssetCode};
 
     # entry date
-    my Date $date = $!header.date;
+    my Date $date = $.header.date;
 
     # entry id
-    my Int $id = $!header.id;
+    my Int $id = $.header.id;
 
     # adjust running total for each posting in entry
-    for @!postings -> $posting
+    for @.postings -> $posting
     {
         # get value of posting in entity base currency
         my Quantity $posting_value = $posting.get_value(:$date, :$id);
@@ -117,7 +117,7 @@ method is_balanced() returns Bool
 
 # list unique asset codes in postings
 method ls_asset_codes(
-    Nightscape::Entry::Posting :@postings = @!postings
+    Nightscape::Entry::Posting :@postings = @.postings
 ) returns Array[AssetCode]
 {
     my AssetCode @asset_codes;
@@ -143,7 +143,7 @@ multi method ls_postings(
 
 # filter postings
 multi method ls_postings(
-    Nightscape::Entry::Posting :@postings = @!postings,
+    Nightscape::Entry::Posting :@postings = @.postings,
     Regex :$asset_code,
     Silo :$silo,
     UUID :$posting_uuid

@@ -219,16 +219,16 @@ method resolve_base_currency(VarName $entity) returns AssetCode
     my AssetCode $base_currency;
 
     # do entity's settings specify base currency?
-    if %!entities{$entity}.base_currency
+    if %.entities{$entity}.base_currency
     {
         # use entity's configured base currency
-        $base_currency = %!entities{$entity}.base_currency;
+        $base_currency = %.entities{$entity}.base_currency;
     }
     # is there a default base currency?
-    elsif $!base_currency
+    elsif $.base_currency
     {
         # use configured default base currency
-        $base_currency = $!base_currency;
+        $base_currency = $.base_currency;
     }
     else
     {
@@ -241,7 +241,7 @@ method resolve_base_currency(VarName $entity) returns AssetCode
         directive.
 
         entity: 「$entity」
-        config file: 「$!config_file」
+        config file: 「$.config_file」
         EOF
     }
 
@@ -283,11 +283,11 @@ method resolve_costing(
     my Costing $costing_entity;
 
     # check for asset costing method settings
-    $costing_asset = try {%!assets{$asset_code}.costing};
+    $costing_asset = try {%.assets{$asset_code}.costing};
 
     # check for entity-specific asset costing method settings
     $costing_entity =
-        try {%!entities{$entity_name}.assets{$asset_code}.costing};
+        try {%.entities{$entity_name}.assets{$asset_code}.costing};
 
     # entity-specific asset costing method settings?
     if defined $costing_entity
@@ -302,10 +302,10 @@ method resolve_costing(
         $costing_asset;
     }
     # default costing method?
-    elsif defined $!base_costing
+    elsif defined $.base_costing
     {
         # use default costing method settings
-        $!base_costing;
+        $.base_costing;
     }
     else
     {
@@ -317,7 +317,7 @@ method resolve_costing(
         or that the config file contains a toplevel base-costing
         directive.
 
-        config file: 「$!config_file」
+        config file: 「$.config_file」
         asset: 「$asset_code」
         entity: 「$entity_name」
         EOF
@@ -337,13 +337,13 @@ method resolve_price(
     my Price $price_entity;
 
     # pricing for aux asset in terms of base on date
-    $price_asset = try {%!assets{$aux}.prices{$base}{$date}};
+    $price_asset = try {%.assets{$aux}.prices{$base}{$date}};
 
     # entity-specific pricing for aux asset in terms of base on date
     if $entity_name
     {
         $price_entity =
-            try {%!entities{$entity_name}.assets{$aux}.prices{$base}{$date}};
+            try {%.entities{$entity_name}.assets{$aux}.prices{$base}{$date}};
     }
 
     # return entity-specific asset pricing if available, else asset pricing

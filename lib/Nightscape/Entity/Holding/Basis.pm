@@ -24,14 +24,14 @@ method deplete(
 )
 {
     # check for sufficient unit quantity of asset in holdings
-    unless $quantity <= $!quantity
+    unless $quantity <= $.quantity
     {
         die "Sorry, cannot deplete from basis: insufficient quantity.";
     }
 
     # check to make sure this UUID hasn't previously expended this basis
     # lot, deplete should only be possible once per entry
-    if %!depletions{$uuid}
+    if %.depletions{$uuid}
     {
         die "Sorry, same entry UUID previously depleted this basis lot.";
     }
