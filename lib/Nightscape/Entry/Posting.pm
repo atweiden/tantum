@@ -25,29 +25,18 @@ has DecInc $.decinc;
 # if suitable exchange_rate not found anywhere, exit with an error
 method get_value(Date :$date!, Int :$id!) returns Quantity
 {
-    # account
-    my Nightscape::Entry::Posting::Account $account = $.account;
-
-    # amount
-    #
-    # $! rw privs required because XE update in-place is possible if:
-    # - an exchange rate is needed
-    # - no exchange rate is given in the transaction journal
-    # - an exchange rate is then found in config
-    my Nightscape::Entry::Posting::Amount $amount = $!amount;
-
     # entity
-    my VarName $posting_entity = $account.entity;
+    my VarName $posting_entity = $.account.entity;
 
     # entity's base currency
     my AssetCode $posting_entity_base_currency =
         $GLOBAL::CONF.resolve_base_currency($posting_entity);
 
     # posting asset code
-    my AssetCode $posting_asset_code = $amount.asset_code;
+    my AssetCode $posting_asset_code = $.amount.asset_code;
 
     # posting asset quantity
-    my Quantity $posting_asset_quantity = $amount.asset_quantity;
+    my Quantity $posting_asset_quantity = $.amount.asset_quantity;
 
     # posting value
     my Quantity $posting_value;
@@ -57,11 +46,9 @@ method get_value(Date :$date!, Int :$id!) returns Quantity
     # is it necessary to search for exchange rate?
     if $posting_asset_code !eq $posting_entity_base_currency
     {
-        use Nightscape::Entry::Posting::Amount::XE;
-
         # is an exchange rate given in the transaction journal?
         if my Nightscape::Entry::Posting::Amount::XE $exchange_rate =
-            $amount.exchange_rate
+            $.amount.exchange_rate
         {
             # try calculating posting value in base currency
             if $exchange_rate.asset_code eq $posting_entity_base_currency
@@ -98,7 +85,7 @@ method get_value(Date :$date!, Int :$id!) returns Quantity
         )
         {
             # assign exchange rate because one was not included in the journal
-            $amount.mkxe(:$posting_entity_base_currency, :$price);
+            $!amount.mkxe(:$posting_entity_base_currency, :$price);
 
             # try calculating posting value in base currency
             $posting_value = $posting_asset_quantity * $price;

@@ -15,7 +15,7 @@ has Nightscape::Entry @.entries is rw;
 method ls_entity_names(Nightscape::Entry :@entries!) returns Array[VarName]
 {
     my VarName @entities = .postings[0].account.entity for @entries;
-    @entities = @entities.unique;
+    @entities .= unique;
 }
 
 # list entries from on disk transaction journal
