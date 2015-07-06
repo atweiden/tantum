@@ -102,26 +102,21 @@ method mkentity(VarName :$entity_name!, Bool :$force)
         %!entities{$entity_name} = Nightscape::Entity.new(:$entity_name);
     }
 
-    # does entity exist?
-    if %.entities{$entity_name}
+    # was :force arg passed?
+    if $force
     {
-        # force?
-        if $force
-        {
-            # overwrite existing entity with new entity
-            init();
-        }
-        else
-        {
-            # exit with an error
-            die qq:to/EOF/;
-            Sorry, can't mkentity 「$entity_name」: entity exists.
-            EOF
-        }
+        # overwrite existing entity with new entity
+        init();
+    }
+    # does entity exist?
+    elsif %.entities{$entity_name}
+    {
+        # error: entity exists, can't overwrite
+        die "Sorry, can't mkentity 「$entity_name」: entity exists.";
     }
     else
     {
-        # instantiate new entity
+        # entity does not exist, instantiate new entity
         init();
     }
 }
