@@ -200,7 +200,7 @@ else
     }
 }
 
-say $_.perl for @entities[0].tree(:wallet(@entities[0].coa.wllt));
+# say $_.perl for @entities[0].tree(:wallet(@entities[0].coa.wllt));
 
 my Rat %balance{Silo} = @entities[0].get_eqbal;
 # say "Entity.coa.wllt eqbal: ", %balance.perl;

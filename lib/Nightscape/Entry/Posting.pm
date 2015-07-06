@@ -29,7 +29,12 @@ method get_value(Date :$date!, Int :$id!) returns Quantity
     my Nightscape::Entry::Posting::Account $account = $.account;
 
     # amount
-    my Nightscape::Entry::Posting::Amount $amount = $.amount;
+    #
+    # $! rw privs required because XE update in-place is possible if:
+    # - an exchange rate is needed
+    # - no exchange rate is given in the transaction journal
+    # - an exchange rate is then found in config
+    my Nightscape::Entry::Posting::Amount $amount = $!amount;
 
     # entity
     my VarName $posting_entity = $account.entity;
@@ -47,7 +52,9 @@ method get_value(Date :$date!, Int :$id!) returns Quantity
     # posting value
     my Quantity $posting_value;
 
-    # search for exchange rate?
+    # posting value must be able to resolve in terms of entity's base currency
+    #
+    # is it necessary to search for exchange rate?
     if $posting_asset_code !eq $posting_entity_base_currency
     {
         use Nightscape::Entry::Posting::Amount::XE;
@@ -91,10 +98,7 @@ method get_value(Date :$date!, Int :$id!) returns Quantity
         )
         {
             # assign exchange rate because one was not included in the journal
-            $amount.exchange_rate = Nightscape::Entry::Posting::Amount::XE.new(
-                :asset_code($posting_entity_base_currency),
-                :asset_quantity($price)
-            );
+            $amount.mkxe(:$posting_entity_base_currency, :$price);
 
             # try calculating posting value in base currency
             $posting_value = $posting_asset_quantity * $price;
@@ -132,6 +136,9 @@ method get_value(Date :$date!, Int :$id!) returns Quantity
     }
     else
     {
+        # posting entity's base currency matches posting's main asset code
+        #
+        # use posting's main asset code
         $posting_asset_quantity;
     }
 }

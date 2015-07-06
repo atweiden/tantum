@@ -266,7 +266,7 @@ method mod_xeaq(
     for %.balance{$asset_code}.grep({ .entry_uuid ~~ $entry_uuid })
     {
         my Nightscape::Entity::Wallet::Changeset $changeset := $^a;
-        $changeset.update_xe_asset_quantity(:$xe_asset_quantity);
+        $changeset.mkxeaq(:$xe_asset_quantity, :force);
     }
 }
 
@@ -340,13 +340,13 @@ multi method tree(%tree) returns Array[Array[VarName]]
     # trim trailing ':'
     @acct_names .= map({ substr($_, 0, *-1) });
 
-    # convert each nested wallet path string to type: Array
+    # convert each nested wallet path string to type: Array[VarName]
     my Array[VarName] @tree;
-    loop (my Int $i = 0; $i < @acct_names.elems; $i++)
+    for @acct_names -> $acct_name
     {
         # coerce to type: Array
-        my VarName @acct_path = Array(@acct_names[$i].split(':'));
-        @tree[$i] = @acct_path;
+        my VarName @acct_path = Array($acct_name.split(':'));
+        push @tree, $@acct_path;
     }
 
     # return sorted tree

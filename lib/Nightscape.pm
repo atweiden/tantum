@@ -109,7 +109,7 @@ method mkentity(VarName :$entity_name!, Bool :$force)
         if $force
         {
             # overwrite existing entity with new entity
-            &init;
+            init();
         }
         else
         {
@@ -122,7 +122,7 @@ method mkentity(VarName :$entity_name!, Bool :$force)
     else
     {
         # instantiate new entity
-        &init;
+        init();
     }
 }
 

@@ -22,9 +22,31 @@ has AssetCode $.xe_asset_code;
 has Quantity $.xe_asset_quantity;
 
 # update xe_asset_quantity in-place
-method update_xe_asset_quantity(Quantity :$xe_asset_quantity!)
+method mkxeaq(Quantity :$xe_asset_quantity!, Bool :$force)
 {
-    $!xe_asset_quantity = $xe_asset_quantity;
+    # update $.xe_asset_quantity in-place
+    sub init()
+    {
+        $!xe_asset_quantity = $xe_asset_quantity;
+    }
+
+    # was :force arg passed to the method?
+    if $force
+    {
+        # update $.xe_asset_quantity in-place
+        init();
+    }
+    # does $.xe_asset_quantity exist?
+    elsif $.xe_asset_quantity
+    {
+        # error: xe_asset_quantity exists, pass :force arg to overwrite
+        die "Sorry, can't overwrite existing xe_asset_quantity";
+    }
+    else
+    {
+        # update $.xe_asset_quantity in-place
+        init();
+    }
 }
 
 # vim: ft=perl6

@@ -4,7 +4,10 @@ use Nightscape::Types;
 use UUID;
 unit class Nightscape::Parser::Actions;
 
+# increments on each newly found transaction journal entry (0+)
 my Int $entry_number = 0;
+
+# created first in Entry::Header, referenced by Entry::Posting (parent-child)
 my UUID $entry_uuid;
 
 method iso_date($/)
@@ -171,14 +174,21 @@ method entry($/)
     my Nightscape::Entry::Posting @postings = @<posting>».made.list.values;
 
     # posting comments
-    my Str @posting_comments =
-        $<posting_comment>».Str».map({ try {substr($_, 1, *-0).trim} }) // Nil;
+    my Str @posting_comments = $<posting_comment>».Str».map({
+        try {substr($_, 1, *-0).trim}
+    }) // Nil;
 
     # verify entry is limited to one entity
     my VarName @entities;
     push @entities, $_.account.entity for @postings;
-    die "Sorry, only one entity per journal entry allowed"
-        if @entities.grep({ $_ ~~ @entities[0] }).elems != @entities.elems;
+
+    # is the number of elements sharing the same entity name not equal
+    # to the total number of entity names seen?
+    unless @entities.grep(@entities[0]).elems == @entities.elems
+    {
+        # error: invalid use of more than one entity per journal entry
+        die "Sorry, only one entity per journal entry allowed";
+    }
 
     # make hash intended to become Entry class
     make %(:$header, :@postings, :@posting_comments);

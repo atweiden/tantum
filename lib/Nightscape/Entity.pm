@@ -46,7 +46,7 @@ method acct2wllt(
         # fetch costing method for asset code
         my Costing $costing = $GLOBAL::CONF.resolve_costing(
             :$asset_code,
-            :entity_name($.entity_name)
+            :$.entity_name
         );
 
         # for each entry UUID resulting in realized capital gains / losses
@@ -81,7 +81,18 @@ method acct2wllt(
                 # capital losses and capital gains as there can only be
                 # one exchange rate per asset per entry; and we are only
                 # pursuing entries that resulted in >0 realized capital
-                # gains or >0 realized capital losses
+                # gains or >0 realized capital losses:
+                #
+                # - an expenditure had to have happened to instantiate
+                #   the Taxes class, creating those capital gains or
+                #   losses with the associated UUID (the 'taxes.keys')
+                # - if (expend price - basis price) * quantity expended > 0,
+                #   only then will a Taxes class be instantiated and
+                #   realized capital gains recorded
+                # - if (expend price - basis price) * quantity expended < 0,
+                #   only then will a Taxes class be instantiated and
+                #   realized capital losses recorded
+                # - under no other conditions would the key $tax_uuid exist
             }
 
             # fetch targets for incising realized capital gains / losses
@@ -113,7 +124,7 @@ method acct2wllt(
 
                 # entity base currency
                 # - all basis prices are in terms of entity's base currency
-                # - all capital gains are be in terms of entity's base currency
+                # - all capital gains are in terms of entity's base currency
                 my AssetCode $entity_base_currency =
                     $GLOBAL::CONF.resolve_base_currency($.entity_name);
 
@@ -134,6 +145,8 @@ method acct2wllt(
                 );
 
                 # verify the fundamental accounting equation remains balanced
+                # - sum encountered error margin in Entry.is_balanced
+                # - if error margin for eq is this sum or less, eq is balanced
             }
         }
     }
@@ -311,19 +324,26 @@ sub in_wallet(Nightscape::Entity::Wallet $wallet, *@subwallet) is rw
     $subwallet;
 }
 
+# recursively sum balances in terms of entity base currency,
+# all wallets in all Silos
 method get_eqbal(
     Nightscape::Entity::Wallet :%wallet = $.coa.wllt
 ) returns Hash[Rat,Silo]
 {
+    # entity base currency
     my AssetCode $entity_base_currency =
         $GLOBAL::CONF.resolve_base_currency($.entity_name);
 
+    # store total sum Rat balance indexed Silo
     my Rat %balance{Silo};
 
+    # for all assets handled by this entity
     for self.ls_assets_handled -> $asset_code
     {
+        # for all wallets in all Silos
         for %wallet.keys -> $silo
         {
+            # adjust Silo wallet's running balance (in entity's base currency)
             %balance{::($silo)} += in_wallet(%wallet{::($silo)}).get_balance(
                 :$asset_code,
                 :base_currency($entity_base_currency),
@@ -345,10 +365,13 @@ method ls_assets_handled() returns Array[AssetCode]
         die "Sorry, COA missing; needed for Entity.ls_assets_handled";
     }
 
+    # store assets handled by entity
     my AssetCode @assets_handled;
 
+    # for all accts
     for $.coa.acct.kv -> $acct_name, $acct
     {
+        # record assets handled in this acct
         push @assets_handled, $acct.assets_handled;
     }
 
@@ -365,13 +388,19 @@ method mkcoa(Bool :$force)
     # use %.acct to find target list with wallet path
     my Nightscape::Entity::Wallet %wllt{Silo} = self.acct2wllt(:%acct);
 
-    # force instantiate new coa?
-    if $force
+    # instantiate entity's chart of accounts
+    sub init()
     {
-        # instantiate coa
         $!coa = Nightscape::Entity::COA.new(:%acct, :%wllt);
     }
-    # does coa exist?
+
+    # force instantiate new chart of accounts?
+    if $force
+    {
+        # instantiate entity's chart of accounts
+        init();
+    }
+    # does chart of accounts exist?
     elsif $.coa
     {
         # error: coa exists, pass arg :force to overwrite
@@ -379,8 +408,8 @@ method mkcoa(Bool :$force)
     }
     else
     {
-        # instantiate coa
-        $!coa = Nightscape::Entity::COA.new(:%acct, :%wllt);
+        # chart of accounts does not exist, instantiate coa
+        init();
     }
 }
 
@@ -560,10 +589,7 @@ method tree(
         );
 
         # prepend Silo to tree branches
-        loop (my Int $i = 0; $i < @tree.elems; $i++)
-        {
-            @tree[$i].unshift(~$silo);
-        }
+        .unshift(~$silo) for @tree;
 
         # insert root Silo wallet
         {

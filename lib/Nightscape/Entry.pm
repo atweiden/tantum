@@ -33,6 +33,7 @@ method is_balanced() returns Bool
     my Int $id = $.header.id;
 
     # adjust running total for each posting in entry
+    # keep tally of exchange rates per asset code seen
     for @.postings -> $posting
     {
         # get value of posting in entity base currency
@@ -57,7 +58,7 @@ method is_balanced() returns Bool
         my DecInc $decinc = $posting.decinc;
 
         # get multiplier
-        my Int $multiplier = %multiplier{$silo};
+        my Int $multiplier = %multiplier{::($silo)};
 
         # adjust running total
         if $decinc
@@ -78,8 +79,10 @@ method is_balanced() returns Bool
     # within the span of one entry, exit with an error
     if %xe_verify
     {
+        # for each asset code, process list of exchange rates seen
         for %xe_verify.kv -> $asset_code, @exchange_rates
         {
+            # was there more than one unique exchange rate seen?
             unless @exchange_rates.unique.elems == 1
             {
                 # error: exchange rate mismatch detected
