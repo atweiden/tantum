@@ -20,6 +20,7 @@ method deplete(
     Quantity :$quantity! where * > 0,
     UUID :$uuid!,
     Price :$acquisition_price!,
+    AssetCode :$acquisition_price_asset_code!,
     Price :$avco_at_expenditure!
 )
 {
@@ -43,6 +44,7 @@ method deplete(
     %!depletions{$uuid} = Nightscape::Entity::Holding::Basis::Depletion.new(
         :$uuid,
         :$acquisition_price,
+        :$acquisition_price_asset_code,
         :$avco_at_expenditure,
         :$quantity
     );

@@ -39,9 +39,11 @@ method acquire(
 
 # decrease entity's holdings via AVCO/FIFO/LIFO inventory costing method
 method expend(
+    AssetCode :$asset_code!,
     UUID :$uuid!,
     Costing :$costing!,
     Price :$price!,
+    AssetCode :$acquisition_price_asset_code!,
     Quantity :$quantity! where * > 0
 )
 {
@@ -75,6 +77,7 @@ method expend(
                 :$uuid,
                 :quantity($q),
                 :acquisition_price($basis.price),
+                :$acquisition_price_asset_code,
                 :avco_at_expenditure($.avco)
             );
 
@@ -101,8 +104,11 @@ method expend(
                 push %!taxes{$uuid}, Nightscape::Entity::Holding::Taxes.new(
                     :$uuid,
                     :acquisition_price($basis.price),
+                    :$acquisition_price_asset_code,
                     :avco_at_expenditure($.avco),
-                    :$capital_gains
+                    :$capital_gains,
+                    :quantity_expended($q),
+                    :quantity_expended_asset_code($.asset_code)
                 );
             }
             elsif $d < 0
@@ -112,8 +118,11 @@ method expend(
                 push %!taxes{$uuid}, Nightscape::Entity::Holding::Taxes.new(
                     :$uuid,
                     :acquisition_price($basis.price),
+                    :$acquisition_price_asset_code,
                     :avco_at_expenditure($.avco),
-                    :$capital_losses
+                    :$capital_losses,
+                    :quantity_expended($q),
+                    :quantity_expended_asset_code($.asset_code)
                 );
             }
             else
@@ -124,7 +133,7 @@ method expend(
     }
 
     # expend targets
-    &rmtargets(:%targets);
+    rmtargets(:%targets);
 }
 
 # identify unit quantities to be expended, indexed by @.basis array index
@@ -166,7 +175,8 @@ method find_targets(
                 $remaining > 0 ?? $count++ !! last;
             }
             else
-            {   # target only the units necessary from this basis lot
+            {
+                # target only the units necessary from this basis lot
                 %targets{$count} = $remaining;
 
                 # no more units are remaining
@@ -230,59 +240,6 @@ method get_total_value(
 method in_stock(Quantity $quantity) returns Bool
 {
     $quantity <= self.get_total_quantity ?? True !! False;
-}
-
-# fetch acquisition price or avco, costing method depending
-# - FIFO/LIFO: the acquisition price
-# - AVCO: the avco
-method resolve_holding_basis_price(
-    Costing :$costing!,
-    UUID :$uuid!
-) returns Price
-{
-    my Nightscape::Entity::Holding::Basis @basis = @.basis.grep({
-        .depletions{$uuid}.uuid ~~ $uuid
-    });
-
-    # were there unexpected results from grepping @.basis for UUID?
-    unless @basis.elems ~~ 1
-    {
-        # was more than one matching basis lot found?
-        if @basis.elems > 1
-        {
-            # error: more than one matching basis lot
-            die q:to/EOF/;
-            Sorry, got back more than one basis lot with identical causal
-            entry UUID.
-            EOF
-            # TODO: this likely is not cause for exit, seeing as an
-            #       expenditure can target multiple basis lots for
-            #       depletion
-        }
-        # was less than one matching basis lot found?
-        elsif @basis.elems < 1
-        {
-            # error: suitable basis lot not found
-            die q:to/EOF/;
-            Sorry, could not find any basis lots with identical causal
-            entry UUID.
-            EOF
-        }
-    }
-
-    my Price $basis_price;
-
-    if $costing ~~ AVCO
-    {
-        # problematic as we need AVCO at time of expenditure
-        $basis_price = $.avco;
-    }
-    elsif $costing ~~ FIFO or $costing ~~ LIFO
-    {
-        $basis_price = @basis[0].price;
-    }
-
-    $basis_price;
 }
 
 # vim: ft=perl6

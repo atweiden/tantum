@@ -21,6 +21,34 @@ has AssetCode $.xe_asset_code;
 # causal posting's exchange rate asset quantity, if given
 has Quantity $.xe_asset_quantity;
 
+# update balance_delta in-place
+method mkbalance_delta(Rat :$balance_delta!, Bool :$force)
+{
+    # update $.balance_delta in-place
+    sub init()
+    {
+        $!balance_delta = $balance_delta;
+    }
+
+    # was :force arg passed to the method?
+    if $force
+    {
+        # update $.balance_delta in-place
+        init();
+    }
+    # does $.balance_delta exist?
+    elsif $.balance_delta
+    {
+        # error: balance_delta exists, pass :force arg to overwrite
+        die "Sorry, can't overwrite existing balance_delta";
+    }
+    else
+    {
+        # update $.balance_delta in-place
+        init();
+    }
+}
+
 # update xe_asset_quantity in-place
 method mkxeaq(Quantity :$xe_asset_quantity!, Bool :$force)
 {

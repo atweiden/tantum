@@ -17,6 +17,9 @@ has Date $.date;
 # acquisition price / expend price
 has Price $.price;
 
+# asset code of acquisition price
+has AssetCode $.acquisition_price_asset_code;
+
 # quantity to acquire / expend
 has Quantity $.quantity;
 

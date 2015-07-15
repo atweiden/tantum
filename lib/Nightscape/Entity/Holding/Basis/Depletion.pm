@@ -12,6 +12,9 @@ has UUID $.uuid;
 # acquisition price of holding being depleted
 has Price $.acquisition_price;
 
+# asset code of acquisition price
+has AssetCode $.acquisition_price_asset_code;
+
 # average cost of holding being depleted at time of depletion
 has Price $.avco_at_expenditure;
 

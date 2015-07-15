@@ -13,8 +13,8 @@ has Nightscape::Entity::Wallet %.subwallet{VarName};
 # clone balance and subwallets with explicit instantiation and deepmap
 method clone() returns Nightscape::Entity::Wallet
 {
-    my Array[Nightscape::Entity::Wallet::Changeset] %balance{AssetCode}
-        = self.clone_balance;
+    my Array[Nightscape::Entity::Wallet::Changeset] %balance{AssetCode} =
+        self.clone_balance;
     my Nightscape::Entity::Wallet %subwallet{VarName} =
         %.subwallet.deepmap(*.clone);
     my Nightscape::Entity::Wallet $wallet .= new(:%balance, :%subwallet);
@@ -180,6 +180,39 @@ method ls_assets_with_uuids(Bool :$posting) returns Hash[Array[UUID],AssetCode]
     %uuids_handled_by_asset_code;
 }
 
+# list changesets
+method ls_changesets(
+    AssetCode :$asset_code!,
+    UUID :$entry_uuid,
+    UUID :$posting_uuid
+) returns Array[Nightscape::Entity::Wallet::Changeset]
+{
+    my Nightscape::Entity::Wallet::Changeset @c = %.balance{$asset_code}.list;
+    @c = self._ls_changesets(:changesets(@c), :$entry_uuid) if $entry_uuid;
+    @c = self._ls_changesets(:changesets(@c), :$posting_uuid) if $posting_uuid;
+    @c;
+}
+
+multi method _ls_changesets(
+    Nightscape::Entity::Wallet::Changeset :@changesets!,
+    UUID :$entry_uuid!
+) returns Array[Nightscape::Entity::Wallet::Changeset]
+{
+    my Nightscape::Entity::Wallet::Changeset @c = @changesets.grep({
+        .entry_uuid ~~ $entry_uuid
+    });
+}
+
+multi method _ls_changesets(
+    Nightscape::Entity::Wallet::Changeset :@changesets!,
+    UUID :$posting_uuid!
+) returns Array[Nightscape::Entity::Wallet::Changeset]
+{
+    my Nightscape::Entity::Wallet::Changeset @c = @changesets.grep({
+        .posting_uuid ~~ $posting_uuid
+    });
+}
+
 # list UUIDs handled (default: entry UUID)
 method ls_uuids(Str :$asset_code, Bool :$posting) returns Array[UUID]
 {
@@ -217,8 +250,8 @@ method ls_uuids(Str :$asset_code, Bool :$posting) returns Array[UUID]
     @uuids_handled;
 }
 
-# record balance update instruction
-method mkchangeset(
+# record balance update instruction, the final executor (standard mode)
+multi method mkchangeset(
     UUID :$entry_uuid!,
     UUID :$posting_uuid!,
     AssetCode :$asset_code!,
@@ -228,46 +261,180 @@ method mkchangeset(
     Quantity :$xe_asset_quantity
 )
 {
+    # store delta by which to change wallet balance of asset code
+    my Rat $balance_delta;
+
+    # store asset code of balance delta
+    my AssetCode $balance_delta_asset_code = $asset_code;
+
     # INC?
     if $decinc ~~ INC
     {
         # balance +
-        push %!balance{$asset_code}, Nightscape::Entity::Wallet::Changeset.new(
-            :balance_delta($quantity),
-            :balance_delta_asset_code($asset_code),
-            :$entry_uuid,
-            :$posting_uuid,
-            :$xe_asset_code,
-            :$xe_asset_quantity
-        );
+        $balance_delta = $quantity;
     }
     # DEC?
     elsif $decinc ~~ DEC
     {
         # balance -
-        push %!balance{$asset_code}, Nightscape::Entity::Wallet::Changeset.new(
-            :balance_delta(-$quantity),
-            :balance_delta_asset_code($asset_code),
-            :$entry_uuid,
-            :$posting_uuid,
-            :$xe_asset_code,
-            :$xe_asset_quantity
-        );
+        $balance_delta = -$quantity;
     }
+
+    # instantiate changeset and append to list %.balance{$asset_code}
+    push %!balance{$asset_code}, Nightscape::Entity::Wallet::Changeset.new(
+        :$balance_delta,
+        :$balance_delta_asset_code,
+        :$entry_uuid,
+        :$posting_uuid,
+        :$xe_asset_code,
+        :$xe_asset_quantity
+    );
 }
 
-# update xe_asset_quantity in one Entry's changesets (by entry UUID)
-method mod_xeaq(
-    AssetCode :$asset_code!,
+# record balance update instruction, the final executor (splice mode)
+multi method mkchangeset(
     UUID :$entry_uuid!,
-    Quantity :$xe_asset_quantity!
+    UUID :$posting_uuid!,
+    AssetCode :$asset_code!,
+    DecInc :$decinc!,
+    Quantity :$quantity!,
+    AssetCode :$xe_asset_code,
+    Quantity :$xe_asset_quantity,
+    Bool :$splice! where *.so, # :splice arg must be explicitly passed
+    Int :$index! # index at which to insert new Changeset in changesets list
 )
 {
-    for %.balance{$asset_code}.grep({ .entry_uuid ~~ $entry_uuid })
+    # store delta by which to change wallet balance of asset code
+    my Rat $balance_delta;
+
+    # store asset code of balance delta
+    my AssetCode $balance_delta_asset_code = $asset_code;
+
+    # INC?
+    if $decinc ~~ INC
     {
-        my Nightscape::Entity::Wallet::Changeset $changeset := $^a;
-        $changeset.mkxeaq(:$xe_asset_quantity, :force);
+        # balance +
+        $balance_delta = $quantity;
     }
+    # DEC?
+    elsif $decinc ~~ DEC
+    {
+        # balance -
+        $balance_delta = -$quantity;
+    }
+
+    # instantiate changeset
+    my Nightscape::Entity::Wallet::Changeset $changeset .= new(
+        :$balance_delta,
+        :$balance_delta_asset_code,
+        :$entry_uuid,
+        :$posting_uuid,
+        :$xe_asset_code,
+        :$xe_asset_quantity
+    );
+
+    # splice changeset
+    %!balance{$asset_code}.splice($index, 0, $changeset);
+}
+
+# modify existing changeset given asset code, entry UUID, posting UUID
+# and instruction:
+#
+#     MOD | AcctName | QuantityToDebit | XE
+#
+multi method mkchangeset(
+    AssetCode :$asset_code!,
+    AssetCode :$xe_asset_code!,
+    UUID :$entry_uuid!,
+    UUID :$posting_uuid!, # posting UUID of which to modify
+    Instruction :$instruction! (
+        # deconstruct instruction
+        AssetsAcctName :$acct_name!,
+        NewMod :$newmod! where * ~~ MOD,
+        Quantity :$quantity_to_debit!,
+        Quantity :xe($xe_asset_quantity)!
+    )
+)
+{
+    # changesets matching posting uuid under asset code
+    my Nightscape::Entity::Wallet::Changeset @changesets = self.ls_changesets(
+        :$asset_code,
+        :$posting_uuid
+    );
+
+    # was there not exactly one matching changeset?
+    unless @changesets.elems == 1
+    {
+        # no matches?
+        if @changesets.elems < 1
+        {
+            # error: no matching changeset found
+            die "Sorry, could not find changeset with matching posting UUID";
+        }
+        # more than one match?
+        elsif @changesets.elems > 1
+        {
+            # error: more than one changeset found sharing posting UUID
+            die "Sorry, got more than one changeset with same posting UUID";
+        }
+    }
+
+    # choose only element in the list of changesets
+    my Nightscape::Entity::Wallet::Changeset $changeset := @changesets[0];
+
+    # new Changeset.balance_delta
+    my Rat $balance_delta = -$quantity_to_debit; # negated, debiting ASSETS silo
+
+    # update this Changeset.balance_delta
+    $changeset.mkbalance_delta(:$balance_delta, :force);
+
+    # update this Changeset.xe_asset_code
+    $changeset.mkxeaq(:$xe_asset_quantity, :force);
+}
+
+# create changeset given asset code, entry UUID, posting UUID and instruction:
+#
+#     NEW | AcctName | QuantityToDebit | XE
+#
+multi method mkchangeset(
+    AssetCode :$asset_code!,
+    AssetCode :$xe_asset_code!,
+    UUID :$entry_uuid!,
+    UUID :$posting_uuid!, # parent posting UUID, needed for calculating $index
+    Instruction :$instruction! (
+        # deconstruct instruction
+        AssetsAcctName :$acct_name!,
+        NewMod :$newmod! where * ~~ NEW,
+        Quantity :quantity_to_debit($quantity)!,
+        Quantity :xe($xe_asset_quantity)!
+    )
+)
+{
+    # it must be a DEC, since only those postings with net outflow of
+    # asset in wallet of silo ASSETS are being incised for balancing of
+    # realized capital gains / losses
+    my DecInc $decinc = DEC;
+
+    # target index is after parent posting UUID index
+    my Int $index = 1 + %.balance{$asset_code}.first-index({
+        .posting_uuid ~~ $posting_uuid
+    });
+
+    # create new posting UUID
+    my UUID $new_posting_uuid .= new;
+
+    # splice balance update instruction next to parent posting UUID's
+    # location in %.balance{$asset_code} array
+    self.mkchangeset(
+        :$entry_uuid,
+        :posting_uuid($new_posting_uuid),
+        :$asset_code,
+        :$decinc,
+        :$quantity,
+        :$xe_asset_code,
+        :$xe_asset_quantity
+        :splice, :$index
+    );
 }
 
 # list nested wallets/subwallets as hash of wallet names
