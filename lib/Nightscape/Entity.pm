@@ -56,7 +56,8 @@ method acct2wllt(
         for $holdings.taxes.kv -> $tax_uuid, @taxes
         {
             # ensure all original quantities expended are quoted in the
-            # asset code $asset_code
+            # asset code $asset_code, and that acquisition price is
+            # quoted in entity's base currency
             for @taxes
             {
                 # was incorrect asset code expended?
@@ -180,9 +181,7 @@ method acct2wllt(
                 for @instructions -> $instruction
                 {
                     # get wallet path by splitting AcctName on ':'
-                    my VarName @path = $instruction<acct_name>.split(
-                        ':'
-                    );
+                    my VarName @path = $instruction<acct_name>.split(':');
 
                     # make new changeset or modify existing, by instruction
                     &in_wallet(%wllt{::(@path[0])}, @path[1..*]).mkchangeset(
@@ -273,6 +272,13 @@ sub gen_instructions(
         # bucket max capacity
         has Quantity $.capacity = 0.0;
 
+        # was bucket capacity artificially constrained by acct quantity
+        # debited limits?
+        has Bool $.constrained = False;
+
+        # bucket's original, unconstrained capacity
+        has Quantity $.unconstrained_capacity;
+
         # running total filled
         has Quantity $.filled = 0.0;
 
@@ -344,10 +350,15 @@ sub gen_instructions(
     for %total_quantity_debited.values.list[0].hash.kv ->
         $target_acct_name, %target_acct_debit_quantity
     {
-        # for each posting UUID
+        # for each posting UUID from a given target acct
         for %target_acct_debit_quantity.kv ->
             $target_acct_debit_quantity, %balance_delta_by_posting_uuid
         {
+            # must skip to new acct before overdebiting an acct with
+            # realized capital gains / losses incision balacing strategy
+            my Quantity $remaining_acct_debit_quantity =
+                $target_acct_debit_quantity;
+
             # instantiate one bucket per posting UUID, only for those postings
             # with negative balance_delta
             #
@@ -361,6 +372,54 @@ sub gen_instructions(
             });
             for %bdbpu.kv -> $posting_uuid, $balance_delta
             {
+                # store capacity of Bucket
+                my Quantity $capacity;
+
+                # is bucket being constrained by acct quantity debited
+                # limits?
+                my Bool $constrained;
+
+                # if constrained, what is the original unconstrained
+                # capacity?
+                my Quantity $unconstrained_capacity;
+
+                # is this acct's remaining quantity debited greater than
+                # or equal to the posting's quantity debited?
+                #
+                # negate balance delta since it is known to be < 0
+                if $remaining_acct_debit_quantity >= -$balance_delta
+                {
+                    # instantiate Bucket with full capacity of its
+                    # causal Changeset.balance_delta
+                    $capacity = -$balance_delta;
+
+                    # subtract capacity from remaining acct debit quantity
+                    $remaining_acct_debit_quantity -= $capacity;
+                }
+                # is this acct's remaining quantity debited less than
+                # the posting's quantity debited?
+                elsif $remaining_acct_debit_quantity < -$balance_delta
+                {
+                    # special case: mark bucket as having artificially
+                    # constrained capacity, and record its original
+                    # capacity
+                    $constrained = True;
+                    $unconstrained_capacity = -$balance_delta;
+
+                    # instantiate Bucket with partial capacity of its
+                    # causal Changeset.balance_delta
+                    #
+                    # the transaction journal entry subacct net debited
+                    # $target_acct_debit_quantity, and we don't want
+                    # the postings made through this acct to contain
+                    # holding basis lot quantities above the original
+                    # net debited quantity
+                    $capacity = $remaining_acct_debit_quantity;
+
+                    # subtract capacity from remaining acct debit quantity
+                    $remaining_acct_debit_quantity -= $capacity;
+                }
+
                 #
                 # instantiate bucket, indexed by posting UUID with:
                 #
@@ -426,12 +485,25 @@ sub gen_instructions(
                 #     # 15 outflow and the 18 outflow are subdivided, or all
                 #     # three
                 #
-                my Quantity $capacity = -$balance_delta; # * -1 since value < 0
                 %buckets{$posting_uuid} = Bucket.new(
                     :acct_name($target_acct_name),
                     :$capacity,
+                    :$constrained,
+                    :$unconstrained_capacity,
                     :$posting_uuid
                 );
+
+                # is there no remaining quantity to debit in acct?
+                unless $remaining_acct_debit_quantity > 0
+                {
+                    # go to next target acct
+                    last;
+                }
+
+                # defaults to instantiating another bucket for next
+                # %(posting UUID => balance delta) pair from same acct's
+                # posting UUID balance_deltas less than zero, as there
+                # is still some acct debit quantity remaining
             }
         }
     }
@@ -529,8 +601,69 @@ sub gen_instructions(
         # acct name
         my AcctName $acct_name = $bucket.acct_name;
 
+        # was bucket capacity artificially constrained by acct debit
+        # quantity limits?
+        if $bucket.constrained
+        {
+            # what was bucket causal posting's unconstrained capacity?
+            my Quantity $unconstrained_capacity =
+                $bucket.unconstrained_capacity;
+
+            # what was bucket capacity forced down to?
+            my Quantity $capacity = $bucket.capacity;
+
+            # how much of the bucket's forced capacity is filled?
+            my Quantity $filled = $bucket.filled;
+
+            # how much of the bucket's forced capacity is open?
+            my Quantity $open_constrained = $capacity - $filled;
+
+            # open total is the MOD Instruction's quantity_to_debit
+            my Quantity $open_total =
+                $open_constrained + ($unconstrained_capacity - $capacity);
+
+            # is open total not greater than zero?
+            #
+            # open total should always be greater than zero, since the
+            # bucket would not have a constrained capacity in the first
+            # place if it weren't for the original posting's debit
+            # quantity exceeding remaining acct debit quantity
+            unless $open_total > 0
+            {
+                # error: unexpected open total
+                die "Sorry, unexpected open total";
+            }
+
+            # set orig bucket = special case open total
+            {
+                my NewMod $newmod = MOD;
+                my Quantity $quantity_to_debit = $open_total;
+                my Quantity $xe = Nil;
+                my Instruction $instruction = {
+                    :$acct_name,
+                    :$newmod,
+                    :$quantity_to_debit,
+                    :$xe
+                };
+                push @instructions, $instruction;
+            }
+
+            # create one more bucket foreach $bucket.subfills.keys[0..*]
+            for $bucket.subfills.kv -> $acquisition_price, $quantity_to_debit
+            {
+                my NewMod $newmod = NEW;
+                my Quantity $xe = $acquisition_price;
+                my Instruction $instruction = {
+                    :$acct_name,
+                    :$newmod,
+                    :$quantity_to_debit,
+                    :$xe
+                };
+                push @instructions, $instruction;
+            }
+        }
         # does bucket have capacity remaining?
-        if $bucket.open
+        elsif $bucket.open
         {
             # set orig bucket = open size
             {
@@ -785,6 +918,13 @@ sub get_total_quantity_debited(
                 :$asset_code,
                 :$entry_uuid
             );
+
+        # were there no matching changesets found?
+        unless @changesets.elems > 0
+        {
+            # error: unexpected no match for changesets
+            die "Sorry, expected at least one changeset, but none were found";
+        }
 
         # stores each changeset's debit quantity, indexed by posting UUID
         #
@@ -1158,7 +1298,7 @@ method transact(Nightscape::Entity::TXN :$transaction!)
                 :$price,
                 :$acquisition_price_asset_code,
                 :$quantity
-            )
+            );
         }
     }
 

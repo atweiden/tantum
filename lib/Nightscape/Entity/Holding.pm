@@ -60,22 +60,31 @@ method expend(
     # starting from the beginning of the list for AVCO/FIFO, end of
     # the list for LIFO, along with the number of units to expend per
     # array index
-    my Quantity %targets{Int} = self.find_targets(:$costing, :$quantity);
+    my Quantity @targets = self.find_targets(:$costing, :$quantity);
 
     # deplete units in targeted basis lots
     # has side effect of recording capital gains/losses to %.taxes
-    sub rmtargets(:%targets!) # Constraint type check failed for parameter '%targets'
+    sub rmtargets(:@targets!) # Constraint type check failed for parameter '%targets'
     {
         # for each @.basis lot target index $i and associated quantity $q
-        for %targets.kv -> $i, $q
+        for @targets.pairs.kv -> $i, $q
         {
+            # necessary since array can contain skipped basis lot index targets
+            unless $q.value
+            {
+                next;
+            }
+
+            # get value of $q pair
+            my Quantity $qty = $q.value;
+
             # get scalar container of basis lot
             my Nightscape::Entity::Holding::Basis $basis := @!basis[$i];
 
             # try decreasing units by quantity
             $basis.deplete(
                 :$uuid,
-                :quantity($q),
+                :quantity($qty),
                 :acquisition_price($basis.price),
                 :$acquisition_price_asset_code,
                 :avco_at_expenditure($.avco)
@@ -88,13 +97,13 @@ method expend(
             if $costing ~~ AVCO
             {
                 # (expend price - average cost) * quantity expended
-                $d = ($price - $.avco) * $q;
+                $d = ($price - $.avco) * $qty;
             }
             # FIFO or LIFO inventory valuation method?
             elsif $costing ~~ FIFO or $costing ~~ LIFO
             {
                 # (expend price - acquisition price) * quantity expended
-                $d = ($price - $basis.price) * $q;
+                $d = ($price - $basis.price) * $qty;
             }
 
             if $d > 0
@@ -107,7 +116,7 @@ method expend(
                     :$acquisition_price_asset_code,
                     :avco_at_expenditure($.avco),
                     :$capital_gains,
-                    :quantity_expended($q),
+                    :quantity_expended($qty),
                     :quantity_expended_asset_code($.asset_code)
                 );
             }
@@ -121,7 +130,7 @@ method expend(
                     :$acquisition_price_asset_code,
                     :avco_at_expenditure($.avco),
                     :$capital_losses,
-                    :quantity_expended($q),
+                    :quantity_expended($qty),
                     :quantity_expended_asset_code($.asset_code)
                 );
             }
@@ -133,21 +142,21 @@ method expend(
     }
 
     # expend targets
-    rmtargets(:%targets);
+    rmtargets(:@targets);
 }
 
 # identify unit quantities to be expended, indexed by @.basis array index
 method find_targets(
     Costing :$costing!,
     Quantity :$quantity! where * > 0
-) returns Hash[Quantity,Int]
+) returns Array[Quantity]
 {
     # basis lots, to be reversed when LIFO costing method is used
     my Nightscape::Entity::Holding::Basis @basis;
     $costing ~~ LIFO ?? (@basis = @.basis.reverse) !! (@basis = @.basis);
 
     # units to expend, indexed by @.basis array index
-    my Quantity %targets{Int};
+    my Quantity @targets;
 
     # @.basis array index count
     my Int $count = 0;
@@ -166,7 +175,7 @@ method find_targets(
             if $remaining >= $basis.quantity
             {
                 # target all units in this basis lot
-                %targets{$count} = $basis.quantity;
+                @targets[$count] = $basis.quantity;
 
                 # subtract all units in this basis lot from remaining
                 $remaining -= $basis.quantity;
@@ -177,7 +186,7 @@ method find_targets(
             else
             {
                 # target only the units necessary from this basis lot
-                %targets{$count} = $remaining;
+                @targets[$count] = $remaining;
 
                 # no more units are remaining
                 $remaining -= $remaining;
@@ -191,7 +200,7 @@ method find_targets(
         }
     }
 
-    %targets;
+    @targets;
 }
 
 # calculate average cost of current holdings

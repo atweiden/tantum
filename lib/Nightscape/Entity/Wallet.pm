@@ -352,7 +352,7 @@ multi method mkchangeset(
         AssetsAcctName :$acct_name!,
         NewMod :$newmod! where * ~~ MOD,
         Quantity :$quantity_to_debit!,
-        Quantity :xe($xe_asset_quantity)!
+        Quantity :xe($xe_asset_quantity) # optional in certain cases
     )
 )
 {
@@ -389,7 +389,10 @@ multi method mkchangeset(
     $changeset.mkbalance_delta(:$balance_delta, :force);
 
     # update this Changeset.xe_asset_code
-    $changeset.mkxeaq(:$xe_asset_quantity, :force);
+    #
+    # `if` supports cases where a Bucket has part of its original capacity
+    # remaining, which entails only adjusting the Changeset.balance_delta
+    $changeset.mkxeaq(:$xe_asset_quantity, :force) if $xe_asset_quantity;
 }
 
 # create changeset given asset code, entry UUID, posting UUID and instruction:
@@ -406,10 +409,20 @@ multi method mkchangeset(
         AssetsAcctName :$acct_name!,
         NewMod :$newmod! where * ~~ NEW,
         Quantity :quantity_to_debit($quantity)!,
-        Quantity :xe($xe_asset_quantity)!
+        Quantity :xe($xe_asset_quantity)! # required for NEW Instructions
     )
 )
 {
+    # we always need to have an $xe_asset_quantity here because this
+    # method is for balancing silo ASSETS wallet
+    # C<Changeset.balance_delta>s and C<Changeset.xe_asset_quantity>s
+    # to allow for incising INCOME:NSAutoCapitalGains
+    unless $xe_asset_quantity
+    {
+        # error: missing xe_asset_quantity for NEW Instruction
+        die "Sorry, missing xe_asset_quantity for NewMod::NEW Instruction";
+    }
+
     # it must be a DEC, since only those postings with net outflow of
     # asset in wallet of silo ASSETS are being incised for balancing of
     # realized capital gains / losses
