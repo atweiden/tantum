@@ -232,9 +232,10 @@ method acct2wllt(
                     #   only then will a Taxes class be instantiated and
                     #   realized capital losses recorded
                     # - under no other conditions would the key $tax_uuid exist
+                    die "Sorry, unexpected 0 condition of gains - losses";
                 }
 
-                # purposefully empty vars
+                # purposefully empty vars, not needed for NSAutoCapitalGains
                 my UUID $posting_uuid;
                 my AssetCode $xeac;
                 my Quantity $xeaq;
@@ -259,8 +260,9 @@ method acct2wllt(
 # return instructions for incising realized capital gains / losses
 # indexed by causal posting_uuid (NEW/MOD | AcctName | QuantityToDebit | XE)
 sub gen_instructions(
-    Hash[Hash[Hash[Rat,UUID],Quantity],AcctName] :%total_quantity_debited!,
-    Hash[Quantity,Quantity] :%total_quantity_expended!
+    Hash[Hash[Hash[Rat,UUID],Quantity],AcctName]
+        :%total_quantity_debited! is readonly,
+    Hash[Quantity,Quantity] :%total_quantity_expended! is readonly
 ) returns Hash[Array[Instruction],UUID]
 {
     # bucket with fill progress, incl. fills per acquisition price
@@ -350,10 +352,18 @@ sub gen_instructions(
     for %total_quantity_debited.values.list[0].hash.kv ->
         $target_acct_name, %target_acct_debit_quantity
     {
-        # for each posting UUID from a given target acct
+        # for each %(TargetAcctDebitQuantity => Posting) pair
+        #     TargetAcctDebitQuantity => %(
+        #         PostingUUID => PostingUUIDBalanceDelta,
+        #         PostingUUID => PostingUUIDBalanceDelta,
+        #         PostingUUID => PostingUUIDBalanceDelta
+        #     )
         for %target_acct_debit_quantity.kv ->
             $target_acct_debit_quantity, %balance_delta_by_posting_uuid
         {
+            # store quantity remaining to debit of this TargetAcct
+            # (TargetAcctDebitQuantity)
+            #
             # must skip to new acct before overdebiting an acct with
             # realized capital gains / losses incision balacing strategy
             my Quantity $remaining_acct_debit_quantity =
@@ -365,8 +375,8 @@ sub gen_instructions(
             # we subdivide only these postings with asset outflows when incising
             # realized capital gains / losses
 
-            # for all %(posting UUID => balance_delta) pairs with
-            # Changeset.balance_delta less than zero
+            # for all %(PostingUUID => PostingUUIDBalanceDelta) pairs
+            # with Changeset.balance_delta less than zero
             my LessThanZero %bdbpu{UUID} = %balance_delta_by_posting_uuid.grep({
                 .value < 0
             });
@@ -384,13 +394,16 @@ sub gen_instructions(
                 my Quantity $unconstrained_capacity;
 
                 # is this acct's remaining quantity debited greater than
-                # or equal to the posting's quantity debited?
+                # or equal to PostingUUID's PostingUUIDBalanceDelta.abs?
                 #
-                # negate balance delta since it is known to be < 0
+                # to make comparing easier, negate balance delta since
+                # it is known to be < 0
                 if $remaining_acct_debit_quantity >= -$balance_delta
                 {
                     # instantiate Bucket with full capacity of its
-                    # causal Changeset.balance_delta
+                    # causal Changeset.balance_delta, since the quantity
+                    # remaining to debit from this acct is greater than
+                    # or equal to this number
                     $capacity = -$balance_delta;
 
                     # subtract capacity from remaining acct debit quantity
@@ -496,19 +509,20 @@ sub gen_instructions(
                 # is there no remaining quantity to debit in acct?
                 unless $remaining_acct_debit_quantity > 0
                 {
-                    # go to next target acct
+                    # go to next %(TargetAcctDebitQuantity => Posting)
+                    # pair
                     last;
                 }
 
-                # defaults to instantiating another bucket for next
-                # %(posting UUID => balance delta) pair from same acct's
-                # posting UUID balance_deltas less than zero, as there
-                # is still some acct debit quantity remaining
+                # default action:
+                # go to next %(PostingUUID => PostingUUIDBalanceDelta)
+                # pair where PostingUUIDBalanceDelta is less than zero,
+                # as there is still some acct debit quantity remaining
             }
         }
     }
 
-    # for every subtotal quantity needing a bucket to call home
+    # for every subtotal quantity expended needing a bucket to call home
     # (at acquisition price), put each $subtotal_quantity_expended into
     # bucket until/unless full, then fill next bucket
     for %total_quantity_expended.values.list[0].hash.kv ->
@@ -521,11 +535,11 @@ sub gen_instructions(
         while $remaining > 0
         {
             # then disburse the remaining amount to buckets
-            # - amounts are assigned to each bucket/acct lexically, but
-            #   for FIFO/LIFO/AVCO it is arbitrary which wallet spends
-            #   which holdings at each price point expended
+            # - amounts are assigned to each bucket/acct at random,
+            #   but for FIFO/LIFO/AVCO it is arbitrary which wallet
+            #   spends which holdings at each price point expended
 
-            # for each pair %(PostingUUID => Bucket)
+            # for each %(PostingUUID => Bucket) pair
             for %buckets.kv -> $posting_uuid, $bucket
             {
                 # how much capacity in bucket is currently open?
@@ -588,17 +602,19 @@ sub gen_instructions(
         }
     }
 
-    # store lists of instructions indexed by causal posting UUID indexed
-    # by acct name
+    # store lists of instructions indexed by causal posting UUID
     my Array[Instruction] %instructions{UUID};
 
     # convert %buckets to instructions
+
+    # foreach %(PostingUUID => Bucket) pair
     for %buckets.kv -> $posting_uuid, $bucket
     {
-        # store list of instructions generated from buckets
+        # store list of instructions generated from bucket
         my Instruction @instructions;
 
-        # acct name
+        # store bucket's parent acct name, which is the subject of
+        # PostingUUID
         my AcctName $acct_name = $bucket.acct_name;
 
         # was bucket capacity artificially constrained by acct debit
@@ -618,6 +634,26 @@ sub gen_instructions(
             # how much of the bucket's forced capacity is open?
             my Quantity $open_constrained = $capacity - $filled;
 
+            # open total is the sum of the bucket's constrained space
+            # open and its original, unconstrained capacity less the
+            # constrained capacity
+            #
+            # The Special Case of a Constrained Bucket
+            # ----------------------------------------
+            #
+            #     ┏━━━━━━━━━━━━━━━━━┓ <------- $unconstrained_capacity
+            #     ┃                 ┃
+            #     ┃                 ┃
+            #     ┃                 ┃
+            #     ┃                 ┃
+            #     ┃                 ┃
+            #     ┃                 ┃
+            #     ┃─────────────────┃ <------- $capacity
+            #     ┃                 ┃
+            #     ┃┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┃ <------- $open_constrained
+            #     ┃                 ┃
+            #     ┗━━━━━━━━━━━━━━━━━┛
+            #
             # open total is the MOD Instruction's quantity_to_debit
             my Quantity $open_total =
                 $open_constrained + ($unconstrained_capacity - $capacity);
@@ -626,8 +662,8 @@ sub gen_instructions(
             #
             # open total should always be greater than zero, since the
             # bucket would not have a constrained capacity in the first
-            # place if it weren't for the original posting's debit
-            # quantity exceeding remaining acct debit quantity
+            # place if it weren't for the unconstrained capacity exceeding
+            # remaining acct debit quantity
             unless $open_total > 0
             {
                 # error: unexpected open total
@@ -693,6 +729,7 @@ sub gen_instructions(
                 push @instructions, $instruction;
             }
         }
+        # bucket has none of its capacity remaining
         else
         {
             # set orig bucket = $bucket.subfills.keys[0]
@@ -733,16 +770,17 @@ sub gen_instructions(
 
 # given entry, return instantiated transaction
 method gen_txn(
-    Nightscape::Entry :$entry!
+    Nightscape::Entry :$entry! is readonly
 ) returns Nightscape::Entity::TXN
 {
     # verify entry is balanced or exit with an error
     unless $entry.is_balanced
     {
+        my Str $entry_debug = $entry.perl;
         die qq:to/EOF/
         Sorry, cannot gen_txn: entry not balanced
 
-        「$entry」
+        「$entry_debug」
         EOF
     }
 
@@ -874,18 +912,18 @@ method gen_txn(
 
 # get quantity debited in targets, separately and in total
 sub get_total_quantity_debited(
-    Nightscape::Entity::COA::Acct :%acct_targets!,
+    Nightscape::Entity::COA::Acct :%acct_targets! is readonly,
     AssetCode :$asset_code!,
     UUID :$entry_uuid!,
-    Nightscape::Entity::Wallet :%wallet!
+    Nightscape::Entity::Wallet :%wallet! is readonly
 ) returns Hash[Hash[Hash[Hash[Rat,UUID],Quantity],AcctName],Quantity]
 {
     # store total quantity debited
     my Quantity $total_quantity_debited;
 
-    # store Changeset.balance_delta indexed by posting UUID, indexed by subtotal
-    # quantity debited in the acct (the sum of balance deltas one per posting),
-    # indexed by acct name:
+    # store Changeset.balance_delta indexed by posting UUID, indexed
+    # by subtotal quantity debited in the acct (the sum of balance deltas
+    # one per posting), indexed by acct name:
     #
     #     TargetAcctName => %(
     #         TargetAcctDebitQuantity => %(
@@ -911,8 +949,8 @@ sub get_total_quantity_debited(
     # for each target acct
     for %acct_targets.kv -> $acct_name, $acct
     {
-        # get all those changesets in acct affecting only asset code $asset_code,
-        # and sharing entry's UUID $entry_uuid
+        # get all those changesets in acct affecting only asset code
+        # $asset_code, and sharing entry's UUID $entry_uuid
         my Nightscape::Entity::Wallet::Changeset @changesets =
             &in_wallet(%wallet{::($acct.path[0])}, $acct.path[1..*]).ls_changesets(
                 :$asset_code,
@@ -946,17 +984,19 @@ sub get_total_quantity_debited(
             # causal posting's balance adjustment, for summing
             my Rat $posting_uuid_balance_delta = $changeset.balance_delta;
 
+            # changeset's debit quantity, indexed by posting UUID
             %balance_delta_by_posting_uuid{$posting_uuid} =
                 $posting_uuid_balance_delta;
         }
 
-        # sum posting balance deltas, should be less than zero, representing net
-        # expenditure/outflow of asset from ASSETS wallet
+        # sum posting balance deltas, should be less than zero,
+        # representing net expenditure/outflow of asset from silo
+        # ASSETS wallet
         my LessThanZero $target_acct_balance_delta_sum =
             [+] %balance_delta_by_posting_uuid.values;
 
-        # since we're sure the delta sum is less than zero, take absolute value
-        # to get target acct debit quantity
+        # since we're sure the delta sum is less than zero, take absolute
+        # value to get target acct debit quantity
         my Quantity $target_acct_debit_quantity =
             $target_acct_balance_delta_sum.abs;
 
@@ -1005,7 +1045,7 @@ sub get_total_quantity_debited(
 # indexed by total quantity expended
 sub get_total_quantity_expended(
     Costing :$costing!,
-    Nightscape::Entity::Holding::Taxes :@taxes!
+    Nightscape::Entity::Holding::Taxes :@taxes! is readonly
 ) returns Hash[Hash[Quantity,Quantity],Quantity]
 {
     # store total quantity expended
@@ -1013,6 +1053,7 @@ sub get_total_quantity_expended(
     my Quantity $total_quantity_expended;
     my Quantity %per_basis_lot{Quantity};
 
+    # foreach tax event
     for @taxes -> $tax_event
     {
         # get subtotal quantity expended, and add to total
@@ -1078,7 +1119,7 @@ sub in_wallet(Nightscape::Entity::Wallet $wallet, *@subwallet) is rw
 # recursively sum balances in terms of entity base currency,
 # all wallets in all Silos
 method get_eqbal(
-    Nightscape::Entity::Wallet :%wallet = $.coa.wllt
+    Nightscape::Entity::Wallet :%wallet is readonly = $.coa.wllt
 ) returns Hash[Rat,Silo]
 {
     # entity base currency
@@ -1269,7 +1310,7 @@ method !mod_wallet(
 }
 
 # execute transaction
-method transact(Nightscape::Entity::TXN :$transaction!)
+method transact(Nightscape::Entity::TXN :$transaction! is readonly)
 {
     # uuid from causal transaction journal entry
     my UUID $uuid = $transaction.uuid;
@@ -1333,7 +1374,7 @@ method transact(Nightscape::Entity::TXN :$transaction!)
 
 # list wallet tree recursively
 method tree(
-    Nightscape::Entity::Wallet :%wallet = %.wallet,
+    Nightscape::Entity::Wallet :%wallet is readonly = %.wallet,
     Silo :$silo,
     *@subwallet
 ) returns Array[Array[VarName]]

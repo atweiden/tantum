@@ -17,7 +17,7 @@ our $CONF = Nightscape::Config.new;
     try
     {
         use TOML;
-        my $toml_text = slurp $CONF.config_file
+        my Str $toml_text = slurp $CONF.config_file
             or die "Sorry, couldn't read config file: ", $CONF.config_file;
         %toml = %(from-toml $toml_text);
         CATCH

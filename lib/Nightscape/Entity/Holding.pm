@@ -218,7 +218,7 @@ method gen_avco() returns Price
 
 # calculate total quantity of units held
 method get_total_quantity(
-    Nightscape::Entity::Holding::Basis :@basis = @.basis
+    Nightscape::Entity::Holding::Basis :@basis is readonly = @.basis
 ) returns Quantity
 {
     my Quantity $quantity = [+] (.quantity for @basis);
@@ -229,7 +229,7 @@ method get_total_quantity(
 # by default assumes price paid at acquisition
 # pass :market for market price (NYI)
 method get_total_value(
-    Nightscape::Entity::Holding::Basis :@basis = @.basis,
+    Nightscape::Entity::Holding::Basis :@basis is readonly = @.basis,
     Bool :$market
 ) returns Price
 {

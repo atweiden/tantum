@@ -162,8 +162,10 @@ method ls_assets_with_uuids(Bool :$posting) returns Hash[Array[UUID],AssetCode]
     # for each asset code handled
     for @assets_handled -> $asset_code
     {
+        # was :posting arg passed?
         if $posting
         {
+            # get posting UUIDs handled by asset code
             %uuids_handled_by_asset_code{$asset_code} = self.ls_uuids(
                 :$asset_code,
                 :posting
@@ -171,6 +173,7 @@ method ls_assets_with_uuids(Bool :$posting) returns Hash[Array[UUID],AssetCode]
         }
         else
         {
+            # get entry UUIDs handled by asset code
             %uuids_handled_by_asset_code{$asset_code} = self.ls_uuids(
                 :$asset_code
             );
@@ -194,7 +197,7 @@ method ls_changesets(
 }
 
 multi method _ls_changesets(
-    Nightscape::Entity::Wallet::Changeset :@changesets!,
+    Nightscape::Entity::Wallet::Changeset :@changesets! is readonly,
     UUID :$entry_uuid!
 ) returns Array[Nightscape::Entity::Wallet::Changeset]
 {
@@ -204,7 +207,7 @@ multi method _ls_changesets(
 }
 
 multi method _ls_changesets(
-    Nightscape::Entity::Wallet::Changeset :@changesets!,
+    Nightscape::Entity::Wallet::Changeset :@changesets! is readonly,
     UUID :$posting_uuid!
 ) returns Array[Nightscape::Entity::Wallet::Changeset]
 {

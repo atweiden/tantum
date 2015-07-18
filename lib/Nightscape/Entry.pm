@@ -120,7 +120,7 @@ method is_balanced() returns Bool
 
 # list unique asset codes in postings
 method ls_asset_codes(
-    Nightscape::Entry::Posting :@postings = @.postings
+    Nightscape::Entry::Posting :@postings is readonly = @.postings
 ) returns Array[AssetCode]
 {
     my AssetCode @asset_codes;
@@ -133,7 +133,7 @@ method ls_asset_codes(
 
 # list postings from entries
 multi method ls_postings(
-    Nightscape::Entry :@entries!
+    Nightscape::Entry :@entries! is readonly
 ) returns Array[Nightscape::Entry::Posting]
 {
     my Nightscape::Entry::Posting @postings;
@@ -146,7 +146,7 @@ multi method ls_postings(
 
 # filter postings
 multi method ls_postings(
-    Nightscape::Entry::Posting :@postings = @.postings,
+    Nightscape::Entry::Posting :@postings is readonly = @.postings,
     Regex :$asset_code,
     Silo :$silo,
     UUID :$posting_uuid
@@ -161,7 +161,7 @@ multi method ls_postings(
 
 # list postings by asset code
 multi method _ls_postings(
-    Nightscape::Entry::Posting :@postings!,
+    Nightscape::Entry::Posting :@postings! is readonly,
     Regex :$asset_code!
 ) returns Array[Nightscape::Entry::Posting]
 {
@@ -172,7 +172,7 @@ multi method _ls_postings(
 
 # list postings by silo
 multi method _ls_postings(
-    Nightscape::Entry::Posting :@postings!,
+    Nightscape::Entry::Posting :@postings! is readonly,
     Silo :$silo!
 ) returns Array[Nightscape::Entry::Posting]
 {
@@ -183,7 +183,7 @@ multi method _ls_postings(
 
 # list postings by uuid
 multi method _ls_postings(
-    Nightscape::Entry::Posting :@postings!,
+    Nightscape::Entry::Posting :@postings! is readonly,
     UUID :$posting_uuid!
 ) returns Array[Nightscape::Entry::Posting]
 {

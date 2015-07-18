@@ -54,7 +54,7 @@ multi method ls_entries(
 
 # filter entries
 multi method ls_entries(
-    Nightscape::Entry :@entries = @.entries,
+    Nightscape::Entry :@entries is readonly = @.entries,
     Date :$date,
     Regex :$description,
     Regex :$entity,
@@ -75,7 +75,7 @@ multi method ls_entries(
 
 # list entries by date
 multi method _ls_entries(
-    Nightscape::Entry :@entries!,
+    Nightscape::Entry :@entries! is readonly,
     Date :$date!
 ) returns Array[Nightscape::Entry]
 {
@@ -84,7 +84,7 @@ multi method _ls_entries(
 
 # list entries by entity
 multi method _ls_entries(
-    Nightscape::Entry :@entries!,
+    Nightscape::Entry :@entries! is readonly,
     Regex :$entity!
 ) returns Array[Nightscape::Entry]
 {

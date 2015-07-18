@@ -161,7 +161,7 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$price-dir)
         try
         {
             use TOML;
-            my $toml_text = slurp $CONF.config_file
+            my Str $toml_text = slurp $CONF.config_file
                 or die "Sorry, couldn't read config file: ", $CONF.config_file;
             %toml = %(from-toml $toml_text);
             CATCH
@@ -228,7 +228,7 @@ sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$price-dir)
     }
     else
     {
-        die "Sorry, couldn't locate file: $file";
+        die "Sorry, couldn't locate file 「$file」";
     }
 
     say "\n", q:to/EOF/;
