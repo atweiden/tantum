@@ -184,7 +184,7 @@ method acct2wllt(
                     my VarName @path = $instruction<acct_name>.split(':');
 
                     # make new changeset or modify existing, by instruction
-                    &in_wallet(%wllt{::(@path[0])}, @path[1..*]).mkchangeset(
+                    in_wallet(%wllt{::(@path[0])}, @path[1..*]).mkchangeset(
                         :$asset_code,
                         :xe_asset_code($entity_base_currency),
                         :entry_uuid($tax_uuid),
@@ -241,7 +241,7 @@ method acct2wllt(
                 my Quantity $xeaq;
 
                 # enter realized capital capital gains / losses in Silo INCOME
-                &in_wallet(%wllt{INCOME}, "NSAutoCapitalGains").mkchangeset(
+                in_wallet(%wllt{INCOME}, "NSAutoCapitalGains").mkchangeset(
                     :entry_uuid($tax_uuid),
                     :$posting_uuid,
                     :asset_code($entity_base_currency),
@@ -952,7 +952,7 @@ sub get_total_quantity_debited(
         # get all those changesets in acct affecting only asset code
         # $asset_code, and sharing entry's UUID $entry_uuid
         my Nightscape::Entity::Wallet::Changeset @changesets =
-            &in_wallet(%wallet{::($acct.path[0])}, $acct.path[1..*]).ls_changesets(
+            in_wallet(%wallet{::($acct.path[0])}, $acct.path[1..*]).ls_changesets(
                 :$asset_code,
                 :$entry_uuid
             );
@@ -1297,8 +1297,8 @@ method !mod_wallet(
         %!wallet{$silo} = Nightscape::Entity::Wallet.new;
     }
 
-    # dec/inc wallet balance (potential side effect from &in_wallet)
-    &in_wallet(%!wallet{$silo}, @subwallet).mkchangeset(
+    # dec/inc wallet balance (potential side effect from in_wallet)
+    in_wallet(%!wallet{$silo}, @subwallet).mkchangeset(
         :$entry_uuid,
         :$posting_uuid,
         :$asset_code,
@@ -1394,7 +1394,7 @@ method tree(
 
         # fill tree
         @tree = Nightscape::Entity::Wallet.tree(
-            &in_wallet(%wallet{$silo}, @subwallet).tree(:hash)
+            in_wallet(%wallet{$silo}, @subwallet).tree(:hash)
         );
 
         # prepend Silo to tree branches
