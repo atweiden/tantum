@@ -197,30 +197,42 @@ method acct2wllt(
             # incise silo INCOME with realized capital gains / losses
             for @taxes -> $tax_event
             {
-                # take difference of realized capital gains and losses
+                # store realized capital gains, realized capital losses
+                #
+                # use of Quantity subset type on Taxes.capital_gains
+                # and Taxes.capital_losses proves neither capital gains
+                # nor capital losses can be less than zero
                 my Quantity $capital_gains = $tax_event.capital_gains;
                 my Quantity $capital_losses = $tax_event.capital_losses;
-                my Rat $gains_less_losses = $capital_gains - $capital_losses;
 
-                # determine whether gain (INC) or loss (DEC)
-                my DecInc $decinc;
-                if $gains_less_losses > 0
+                # check that, if capital gains exist, capital losses
+                # don't exist, and vice versa
+                if $capital_gains > 0
                 {
-                    $decinc = INC;
+                    unless $capital_losses == 0
+                    {
+                        die "Sorry, unexpected capital losses in the
+                            presence of capital gains on a per tax
+                            event basis";
+                    }
                 }
-                elsif $gains_less_losses < 0
+                elsif $capital_losses > 0
                 {
-                    $decinc = DEC;
+                    unless $capital_gains == 0
+                    {
+                        die "Sorry, unexpected capital gains in the
+                            presence of capital losses on a per tax
+                            event basis";
+                    }
                 }
                 else
                 {
-                    # impossible for gains_less_losses == 0 since
-                    # realized capital gains and realized capital losses
-                    # of a certain asset, on a per entry basis, can't
-                    # have both capital losses and capital gains as there
-                    # can only be one exchange rate per asset per entry;
-                    # and we are only pursuing entries that resulted in >0
-                    # realized capital gains or >0 realized capital losses:
+                    # impossible for a single tax event to have
+                    # neither capital gains nor capital losses since
+                    # &Holding.expend::rmtargets generates Taxes.new per
+                    # each basis lot expended, computing gains or losses,
+                    # or no gains/losses, relative to each basis lot
+                    # being targeted:
                     #
                     # - an expenditure had to have happened to instantiate
                     #   the Taxes class, creating those capital gains or
@@ -232,7 +244,23 @@ method acct2wllt(
                     #   only then will a Taxes class be instantiated and
                     #   realized capital losses recorded
                     # - under no other conditions would the key $tax_uuid exist
-                    die "Sorry, unexpected 0 condition of gains - losses";
+                    # - each single tax event will necessarily be either
+                    #   a gain or a loss
+                    die "Sorry, unexpected absence of capital gains and losses";
+                }
+
+                # take difference of realized capital gains and losses
+                my Rat $gains_less_losses = $capital_gains - $capital_losses;
+
+                # determine whether gain (INC) or loss (DEC)
+                my DecInc $decinc;
+                if $gains_less_losses > 0
+                {
+                    $decinc = INC;
+                }
+                elsif $gains_less_losses < 0
+                {
+                    $decinc = DEC;
                 }
 
                 # purposefully empty vars, not needed for NSAutoCapitalGains
@@ -1038,7 +1066,7 @@ sub get_total_quantity_debited(
     #                  |     |      |        |                                 |
     #                  |     |      |        |                                 |
     my Hash[Hash[Hash[Rat,UUID],Quantity],AcctName] %total_quantity_debited{Quantity} =
-            $total_quantity_debited => %total_debits_per_acct;
+        $total_quantity_debited => %total_debits_per_acct;
 }
 
 # get quantity expended of a holding indexed by acquisition price,
