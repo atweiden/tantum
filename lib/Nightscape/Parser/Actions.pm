@@ -187,7 +187,8 @@ method entry($/)
     unless @entities.grep(@entities[0]).elems == @entities.elems
     {
         # error: invalid use of more than one entity per journal entry
-        die "Sorry, only one entity per journal entry allowed";
+        die "Sorry, only one entity per journal entry allowed, but found: ",
+            @entities.perl, " in entry with header: ", $header.perl;
     }
 
     # make hash intended to become Entry class
