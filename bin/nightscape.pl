@@ -24,7 +24,13 @@ our $CONF = Nightscape::Config.new;
 # main
 # -----------------------------------------------------------------------------
 
-sub MAIN($file, :c(:$config), :$data-dir, :$log-dir, :$price-dir)
+sub MAIN(
+    Str $file,
+    Str :c(:$config),
+    Str :$data-dir,
+    Str :$log-dir,
+    Str :$price-dir
+)
 {
     # initialize config profile from cmdline args
     {
