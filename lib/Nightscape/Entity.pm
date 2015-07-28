@@ -103,14 +103,14 @@ method acct2wllt(
             #
             #     TotalQuantityDebited => %(
             #         TargetAcctName => %(
-            #             TargetAcctDebitQuantity => %(
+            #             TargetAcctBalanceDelta => %(
             #                 PostingUUID => PostingUUIDBalanceDelta,
             #                 PostingUUID => PostingUUIDBalanceDelta,
             #                 PostingUUID => PostingUUIDBalanceDelta
             #             )
             #         ),
             #         TargetAcctName => %(
-            #             TargetAcctDebitQuantity => %(
+            #             TargetAcctBalanceDelta => %(
             #                 PostingUUID => PostingUUIDBalanceDelta,
             #                 PostingUUID => PostingUUIDBalanceDelta,
             #                 PostingUUID => PostingUUIDBalanceDelta
@@ -120,9 +120,9 @@ method acct2wllt(
             #
             # where:
             #
-            # - TotalQuantityDebited is sum of all TargetAcctDebitQuantity
+            # - TotalQuantityDebited is sum of all TargetAcctBalanceDelta
             # - TargetAcctName is COA::Acct.name ("ASSETS:Personal:Bankwest")
-            # - TargetAcctDebitQuantity is sum of all PostingUUIDBalanceDelta
+            # - TargetAcctBalanceDelta is sum of all PostingUUIDBalanceDelta
             # - PostingUUID is UUID of posting in Entry UUID causing
             #   this round of realized capital gains / losses, wrt asset
             #   code $asset_code
@@ -132,7 +132,7 @@ method acct2wllt(
             #             entry_uuid => $tax_uuid
             #         );
             # - PostingUUIDBalanceDelta is Changeset.balance_delta
-            my Hash[Hash[Hash[Rat,UUID],Quantity],AcctName]
+            my Hash[Hash[Hash[Rat,UUID],Rat],AcctName]
                 %total_quantity_debited{Quantity} = get_total_quantity_debited(
                         :%acct_targets,
                         :$asset_code,
@@ -288,7 +288,7 @@ method acct2wllt(
 # return instructions for incising realized capital gains / losses
 # indexed by causal posting_uuid (NEW/MOD | AcctName | QuantityToDebit | XE)
 sub gen_instructions(
-    Hash[Hash[Hash[Rat,UUID],Quantity],AcctName]
+    Hash[Hash[Hash[Rat,UUID],Rat],AcctName]
         :%total_quantity_debited! is readonly,
     Hash[Quantity,Quantity] :%total_quantity_expended! is readonly
 ) returns Hash[Array[Instruction],UUID]
@@ -362,14 +362,14 @@ sub gen_instructions(
     #
     #     TotalQuantityDebited => %(
     #         TargetAcctName => %(
-    #             TargetAcctDebitQuantity => %(
+    #             TargetAcctBalanceDelta => %(
     #                 PostingUUID => PostingUUIDBalanceDelta,
     #                 PostingUUID => PostingUUIDBalanceDelta,
     #                 PostingUUID => PostingUUIDBalanceDelta
     #             )
     #         ),
     #         TargetAcctName => %(
-    #             TargetAcctDebitQuantity => %(
+    #             TargetAcctBalanceDelta => %(
     #                 PostingUUID => PostingUUIDBalanceDelta,
     #                 PostingUUID => PostingUUIDBalanceDelta,
     #                 PostingUUID => PostingUUIDBalanceDelta
@@ -378,24 +378,34 @@ sub gen_instructions(
     #     )
     #
     for %total_quantity_debited.values.list[0].hash.kv ->
-        $target_acct_name, %target_acct_debit_quantity
+        $target_acct_name, %target_acct_balance_delta
     {
-        # for each %(TargetAcctDebitQuantity => Posting) pair
-        #     TargetAcctDebitQuantity => %(
+        # filter out accts where no assets were debited
+        # ($target_acct_balance_delta_sum >= 0)
+        unless %target_acct_balance_delta.keys[0] < 0
+        {
+            next;
+        }
+
+        # for each %(TargetAcctBalanceDelta => Posting) pair where
+        # TargetAcctBalanceDelta < 0:
+        #
+        #     TargetAcctBalanceDelta => %(
         #         PostingUUID => PostingUUIDBalanceDelta,
         #         PostingUUID => PostingUUIDBalanceDelta,
         #         PostingUUID => PostingUUIDBalanceDelta
         #     )
-        for %target_acct_debit_quantity.kv ->
-            $target_acct_debit_quantity, %balance_delta_by_posting_uuid
+        #
+        for %target_acct_balance_delta.kv ->
+            $target_acct_balance_delta_sum, %balance_delta_by_posting_uuid
         {
             # store quantity remaining to debit of this TargetAcct
-            # (TargetAcctDebitQuantity)
+            # (TargetAcctBalanceDelta)
             #
             # must skip to new acct before overdebiting an acct with
             # realized capital gains / losses incision balacing strategy
             my Quantity $remaining_acct_debit_quantity =
-                $target_acct_debit_quantity;
+                $target_acct_balance_delta_sum.abs;
 
             # instantiate one bucket per posting UUID, only for those postings
             # with negative balance_delta
@@ -537,7 +547,7 @@ sub gen_instructions(
                 # is there no remaining quantity to debit in acct?
                 unless $remaining_acct_debit_quantity > 0
                 {
-                    # go to next %(TargetAcctDebitQuantity => Posting)
+                    # go to next %(TargetAcctBalanceDelta => Posting)
                     # pair
                     last;
                 }
@@ -944,24 +954,27 @@ sub get_total_quantity_debited(
     AssetCode :$asset_code!,
     UUID :$entry_uuid!,
     Nightscape::Entity::Wallet :%wallet! is readonly
-) returns Hash[Hash[Hash[Hash[Rat,UUID],Quantity],AcctName],Quantity]
+) returns Hash[Hash[Hash[Hash[Rat,UUID],Rat],AcctName],Quantity]
 {
-    # store total quantity debited
-    my Quantity $total_quantity_debited;
+    # store subtotal quantity debited
+    my Quantity $subtotal_quantity_debited;
+
+    # store subtotal quantity credited
+    my Quantity $subtotal_quantity_credited;
 
     # store Changeset.balance_delta indexed by posting UUID, indexed
     # by subtotal quantity debited in the acct (the sum of balance deltas
     # one per posting), indexed by acct name:
     #
     #     TargetAcctName => %(
-    #         TargetAcctDebitQuantity => %(
+    #         TargetAcctBalanceDelta => %(
     #             PostingUUID => PostingUUIDBalanceDelta,
     #             PostingUUID => PostingUUIDBalanceDelta,
     #             PostingUUID => PostingUUIDBalanceDelta
     #         )
     #     ),
     #     TargetAcctName => %(
-    #         TargetAcctDebitQuantity => %(
+    #         TargetAcctBalanceDelta => %(
     #             PostingUUID => PostingUUIDBalanceDelta,
     #             PostingUUID => PostingUUIDBalanceDelta,
     #             PostingUUID => PostingUUIDBalanceDelta
@@ -970,9 +983,9 @@ sub get_total_quantity_debited(
     #
     #  -------
     #
-    #  $total_quantity_debited = [+] (.TargetAcctDebitQuantity for TargetAcctName)
+    #  $total_quantity_debited = [+] (.TargetAcctBalanceDelta for TargetAcctName)
     #
-    my Hash[Hash[Rat,UUID],Quantity] %total_debits_per_acct{AcctName};
+    my Hash[Hash[Rat,UUID],Rat] %total_balance_delta_per_acct{AcctName};
 
     # for each target acct
     for %acct_targets.kv -> $acct_name, $acct
@@ -1020,37 +1033,80 @@ sub get_total_quantity_debited(
         # sum posting balance deltas, should be less than zero,
         # representing net expenditure/outflow of asset from silo
         # ASSETS wallet
-        my LessThanZero $target_acct_balance_delta_sum =
+        my Rat $target_acct_balance_delta_sum =
             [+] %balance_delta_by_posting_uuid.values;
 
-        # since we're sure the delta sum is less than zero, take absolute
-        # value to get target acct debit quantity
-        my Quantity $target_acct_debit_quantity =
-            $target_acct_balance_delta_sum.abs;
+        # store this target acct's debits to asset
+        my Quantity $target_acct_debit_quantity = 0.0;
+
+        # store this target acct's credits to asset
+        my Quantity $target_acct_credit_quantity = 0.0;
+
+        # is sum of target acct's balance deltas less than zero?
+        if $target_acct_balance_delta_sum < 0
+        {
+            # since we're sure the delta sum is less than zero, take
+            # absolute value to get target acct debit quantity
+            $target_acct_debit_quantity = $target_acct_balance_delta_sum.abs;
+        }
+        # is sum of target acct's balance deltas greater than zero?
+        elsif $target_acct_balance_delta_sum > 0
+        {
+            # since we're sure the delta sum is greater than zero,
+            # this is a credit
+            $target_acct_credit_quantity = $target_acct_balance_delta_sum;
+        }
+
+        # ensure only one of target acct credit quantity or debit quantity
+        # is > 0
+        if $target_acct_debit_quantity
+        {
+            unless $target_acct_credit_quantity == 0
+            {
+                die "Sorry, unexpected presence of target acct credits
+                     when debits are present";
+            }
+        }
+        elsif $target_acct_credit_quantity
+        {
+            unless $target_acct_debit_quantity == 0
+            {
+                die "Sorry, unexpected presence of target acct debits
+                     when credits are present";
+            }
+        }
 
         # the intuitive version doesn't work
-        #     %total_debits_per_acct{$acct.name}{$target_acct_debit_quantity} =
-        #         $%balance_delta_by_posting_uuid;
+        #     %total_balance_delta_per_acct{$acct.name} =
+        #         $target_acct_balance_delta_sum =>
+        #             $%balance_delta_by_posting_uuid;
         #
         # helper:
-        my Hash[Rat,UUID] %target_acct_debit_quantity{Quantity} =
-            $target_acct_debit_quantity => $%balance_delta_by_posting_uuid;
-        %total_debits_per_acct{$acct_name} = $%target_acct_debit_quantity;
+        my Hash[Rat,UUID] %target_acct_balance_delta{Rat} =
+            $target_acct_balance_delta_sum => $%balance_delta_by_posting_uuid;
+        %total_balance_delta_per_acct{$acct_name} = $%target_acct_balance_delta;
 
-        # add subtotal balance delta to total quantity debited
-        $total_quantity_debited += $target_acct_debit_quantity;
+        # add subtotal balance delta to total quantity debited / credited
+        # as appropriate
+        $subtotal_quantity_debited += $target_acct_debit_quantity;
+        $subtotal_quantity_credited += $target_acct_credit_quantity;
     }
+
+    # store total quantity debited (subtotal quantity debited less
+    # subtotal quantity credited)
+    my GreaterThanZero $total_quantity_debited =
+        $subtotal_quantity_debited - $subtotal_quantity_credited;
 
     # TotalQuantityDebited => %(
     #     TargetAcctName => %(
-    #         TargetAcctDebitQuantity => %(
+    #         TargetAcctBalanceDelta => %(
     #             PostingUUID => PostingUUIDBalanceDelta,
     #             PostingUUID => PostingUUIDBalanceDelta,
     #             PostingUUID => PostingUUIDBalanceDelta
     #         )
     #     ),
     #     TargetAcctName => %(
-    #         TargetAcctDebitQuantity => %(
+    #         TargetAcctBalanceDelta => %(
     #             PostingUUID => PostingUUIDBalanceDelta,
     #             PostingUUID => PostingUUIDBalanceDelta,
     #             PostingUUID => PostingUUIDBalanceDelta
@@ -1058,15 +1114,15 @@ sub get_total_quantity_debited(
     #     )
     # )
     #
-    # TotalQuantityDebited ----------------------------------------------------+
-    # TargetAcctName ------------------------+                                 |
-    # TargetAcctDebitQuantity ------+        |                                 |
-    # PostingUUID -----------+      |        |                                 |
-    #PostingUUIDBalanceDelta |      |        |                                 |
-    #                  |     |      |        |                                 |
-    #                  |     |      |        |                                 |
-    my Hash[Hash[Hash[Rat,UUID],Quantity],AcctName] %total_quantity_debited{Quantity} =
-        $total_quantity_debited => %total_debits_per_acct;
+    # TotalQuantityDebited -----------------------------------------------+
+    # TargetAcctName ---------------------+                               |
+    # TargetAcctBalanceDelta ----+        |                               |
+    # PostingUUID -----------+   |        |                               |
+    #PostingUUIDBalanceDelta |   |        |                               |
+    #                  |     |   |        |                               |
+    #                  |     |   |        |                               |
+    my Hash[Hash[Hash[Rat,UUID],Rat],AcctName] %total_quantity_debited{Quantity} =
+        $total_quantity_debited => %total_balance_delta_per_acct;
 }
 
 # get quantity expended of a holding indexed by acquisition price,
