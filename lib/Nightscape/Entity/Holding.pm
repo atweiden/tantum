@@ -213,7 +213,7 @@ method gen_avco() returns Price
     my Quantity $quantity = self.get_total_quantity;
 
     # weighted average cost
-    $value / $quantity;
+    my Price $avco = Rat($value / $quantity);
 }
 
 # calculate total quantity of units held
