@@ -354,11 +354,19 @@ multi method mkchangeset(
         # deconstruct instruction
         AssetsAcctName :$acct_name!,
         NewMod :$newmod! where * ~~ MOD,
+        UUID :posting_uuid($posting_uuid_instr)!,
         Quantity :$quantity_to_debit!,
         Quantity :xe($xe_asset_quantity) # optional in certain cases
     )
 )
 {
+    # ensure Instruction posting UUID matches the causal posting UUID
+    unless $posting_uuid ~~ $posting_uuid_instr
+    {
+        # error: Instruction posting UUID does not match causal posting UUID
+        die "Sorry, Instruction posting UUID does not match causal posting UUID";
+    }
+
     # changesets matching posting uuid under asset code
     my Nightscape::Entity::Wallet::Changeset @changesets = self.ls_changesets(
         :$asset_code,
@@ -411,11 +419,19 @@ multi method mkchangeset(
         # deconstruct instruction
         AssetsAcctName :$acct_name!,
         NewMod :$newmod! where * ~~ NEW,
+        UUID :posting_uuid($posting_uuid_instr)!,
         Quantity :quantity_to_debit($quantity)!,
         Quantity :xe($xe_asset_quantity)! # required for NEW Instructions
     )
 )
 {
+    # ensure Instruction posting UUID matches the causal posting UUID
+    unless $posting_uuid ~~ $posting_uuid_instr
+    {
+        # error: Instruction posting UUID does not match causal posting UUID
+        die "Sorry, Instruction posting UUID does not match causal posting UUID";
+    }
+
     # we always need to have an $xe_asset_quantity here because this
     # method is for balancing silo ASSETS wallet
     # C<Changeset.balance_delta>s and C<Changeset.xe_asset_quantity>s

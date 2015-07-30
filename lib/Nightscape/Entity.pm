@@ -14,14 +14,22 @@ has VarName $.entity_name;
 # chart of accounts (acct, eq, wllt)
 has Nightscape::Entity::COA $.coa;
 
+# entries by this entity
+has Nightscape::Entry @.entries;
+
 # holdings with cost basis, indexed by asset code
 has Nightscape::Entity::Holding %.holdings{AssetCode};
 
 # transactions queue
-has Nightscape::Entity::TXN @.transactions;
+has Nightscape::Entity::TXN @.transactions is rw;
 
 # wallets indexed by silo
-has Nightscape::Entity::Wallet %.wallet{Silo};
+has Nightscape::Entity::Wallet %.wallet{Silo} =
+    ::(ASSETS) => Nightscape::Entity::Wallet.new,
+    ::(EXPENSES) => Nightscape::Entity::Wallet.new,
+    ::(INCOME) => Nightscape::Entity::Wallet.new,
+    ::(LIABILITIES) => Nightscape::Entity::Wallet.new,
+    ::(EQUITY) => Nightscape::Entity::Wallet.new;
 
 # given holdings + wallet, return wllt including capital gains / losses
 method acct2wllt(
@@ -175,6 +183,96 @@ method acct2wllt(
                 :%total_quantity_expended
             );
 
+            # run another check to make sure, after instructions are
+            # applied, the difference in total quantity debited in entity
+            # base currency is balanced by the change to NSAutoCapitalGains
+
+            # get original quantity debited value in entity base currency,
+            # of asset code $asset_code in entry uuid $tax_uuid, that is,
+            # the sum of balance deltas
+            #
+            # NOTE: it is crucial to only sum the value of postings
+            #       rewritten by Instructions (%instructions.keys)
+            my Quantity $original_value_debited =
+                [+] (self.get_posting_value(
+                        :base_currency($entity_base_currency),
+                        :entry_uuid($tax_uuid),
+                        :posting_uuid($_)
+                    ) for %instructions.keys);
+
+            # get new quantity debited value in entity base currency,
+            # of asset code $asset_code in entry uuid $tax_uuid, from
+            # Instructions
+            my Quantity $new_value_debited;
+            for %instructions.values -> @instructions
+            {
+                for @instructions -> $instruction
+                {
+                    # all Instructions include quantity to debit
+                    my Quantity $quantity_to_debit =
+                        $instruction<quantity_to_debit>;
+
+                    # some MOD Instructions and all NEW Instructions
+                    # include xe
+                    my Quantity $xe;
+                    if $instruction<xe>
+                    {
+                        $xe = $instruction<xe>;
+                    }
+                    else
+                    {
+                        # find xe by backtracing to causal transaction
+                        my Nightscape::Entity::TXN $txn = self.ls_txn(
+                            :posting_uuid($instruction<posting_uuid>)
+                        );
+                        my Nightscape::Entity::TXN::ModWallet @mod_wallets =
+                            $txn.mod_wallet.grep({
+                                .posting_uuid ~~ $instruction<posting_uuid>
+                            });
+                        unless @mod_wallets.elems == 1
+                        {
+                            if @mod_wallets.elems > 1
+                            {
+                                die "Sorry, found more than one
+                                     TXN.mod_wallet with the same posting
+                                     UUID, which should be impossible";
+                            }
+                            elsif @mod_wallets.elems < 1
+                            {
+                                die "Sorry, found no matching
+                                     TXN.mod_wallet with the same
+                                     posting UUID";
+                            }
+                        }
+                        my Nightscape::Entity::TXN::ModWallet $mod_wallet =
+                            @mod_wallets[0];
+                        $xe = $mod_wallet.xe_asset_quantity;
+                    }
+
+                    my Quantity $val = Rat($quantity_to_debit * $xe);
+                    $new_value_debited += $val;
+                }
+            }
+
+            # we expect NSAutoCapitalGains to change by this amount
+            # if >0, realized capital gains, NSAutoCapitalGains++
+            # if <0, realized capital losses, NSAutoCapitalGains--
+            my Rat $expected_income_delta =
+                $original_value_debited - $new_value_debited;
+
+            # the amount to change NSAutoCapitalGains by
+            my Rat $actual_income_delta =
+                [+] (.capital_gains - .capital_losses for @taxes);
+
+            # was expected income delta not the same as actual income
+            # delta?
+            unless $expected_income_delta == $actual_income_delta
+            {
+                # error: expectations differ from actual
+                die "Sorry, expected income delta not equivalent to
+                     gains less losses";
+            }
+
             # apply instructions to balance out NSAutoCapitalGains later
             for %instructions.kv -> $posting_uuid, @instructions
             {
@@ -268,7 +366,7 @@ method acct2wllt(
                 my AssetCode $xeac;
                 my Quantity $xeaq;
 
-                # enter realized capital capital gains / losses in Silo INCOME
+                # enter realized capital gains / losses in Silo INCOME
                 in_wallet(%wllt{INCOME}, "NSAutoCapitalGains").mkchangeset(
                     :entry_uuid($tax_uuid),
                     :$posting_uuid,
@@ -283,6 +381,17 @@ method acct2wllt(
     }
 
     %wllt;
+}
+
+method gen_acct(
+    Nightscape::Entity::Wallet:D :%wallet! is readonly
+) returns Hash[Nightscape::Entity::COA::Acct,AcctName]
+{
+    my Array[VarName] @tree = self.tree(:%wallet);
+    my Nightscape::Entity::COA::Acct %acct{AcctName} = self.tree2acct(
+        :@tree,
+        :%wallet
+    );
 }
 
 # return instructions for incising realized capital gains / losses
@@ -560,6 +669,9 @@ sub gen_instructions(
         }
     }
 
+    my Quantity $remaining_total_quantity_expended =
+        %total_quantity_expended.keys[0];
+
     # for every subtotal quantity expended needing a bucket to call home
     # (at acquisition price), put each $subtotal_quantity_expended into
     # bucket until/unless full, then fill next bucket
@@ -610,6 +722,7 @@ sub gen_instructions(
 
                     # subtract $open from $remaining, ensuring we have
                     # $open less to disburse
+                    $remaining_total_quantity_expended -= $open;
                     $remaining -= $open;
 
                     # if remaining was disbursed in full due to bucket's
@@ -629,6 +742,7 @@ sub gen_instructions(
                     );
 
                     # ensure $remaining less $remaining is 0
+                    $remaining_total_quantity_expended -= $remaining;
                     $remaining -= $remaining;
 
                     # break from this original subtotal quantity lot needing
@@ -638,6 +752,13 @@ sub gen_instructions(
                 }
             }
         }
+    }
+
+    # is there not zero remaining of total quantity expended?
+    unless $remaining_total_quantity_expended == 0
+    {
+        # error: total quantity expended failed to be reassigned in full
+        die "Sorry, expected remaining total quantity expended to be zero";
     }
 
     # store lists of instructions indexed by causal posting UUID
@@ -716,6 +837,7 @@ sub gen_instructions(
                 my Instruction $instruction = {
                     :$acct_name,
                     :$newmod,
+                    :$posting_uuid,
                     :$quantity_to_debit,
                     :$xe
                 };
@@ -730,6 +852,7 @@ sub gen_instructions(
                 my Instruction $instruction = {
                     :$acct_name,
                     :$newmod,
+                    :$posting_uuid,
                     :$quantity_to_debit,
                     :$xe
                 };
@@ -747,6 +870,7 @@ sub gen_instructions(
                 my Instruction $instruction = {
                     :$acct_name,
                     :$newmod,
+                    :$posting_uuid,
                     :$quantity_to_debit,
                     :$xe
                 };
@@ -761,6 +885,7 @@ sub gen_instructions(
                 my Instruction $instruction = {
                     :$acct_name,
                     :$newmod,
+                    :$posting_uuid,
                     :$quantity_to_debit,
                     :$xe
                 };
@@ -778,6 +903,7 @@ sub gen_instructions(
                 my Instruction $instruction = {
                     :$acct_name,
                     :$newmod,
+                    :$posting_uuid,
                     :$quantity_to_debit,
                     :$xe
                 };
@@ -793,6 +919,7 @@ sub gen_instructions(
                 my Instruction $instruction = {
                     :$acct_name,
                     :$newmod,
+                    :$posting_uuid,
                     :$quantity_to_debit,
                     :$xe
                 };
@@ -946,6 +1073,66 @@ method gen_txn(
 
     # build transaction
     Nightscape::Entity::TXN.new(:$uuid, :%mod_holdings, :@mod_wallet);
+}
+
+# recursively sum balances in terms of entity base currency,
+# all wallets in all Silos
+method get_eqbal(
+    Nightscape::Entity::Wallet:D :%wallet! is readonly,
+    Nightscape::Entity::COA::Acct :%acct is readonly
+) returns Hash[Rat,Silo]
+{
+    # entity base currency
+    my AssetCode $entity_base_currency =
+        $GLOBAL::CONF.resolve_base_currency($.entity_name);
+
+    # assets handled, from COA::Acct if %acct was passed, falling back
+    # to the COA::Acct generated from Wallet if COA::Acct was not passed
+    my AssetCode @assets_handled =
+        %acct ?? self.ls_assets_handled(:%acct)
+              !! self.ls_assets_handled(:%wallet);
+
+    # store total sum Rat balance indexed by Silo
+    my Rat %balance{Silo};
+
+    # sum wallet balances and store in %balance
+    sub fill_balance(AssetCode $asset_code)
+    {
+        # for all wallets in all Silos
+        for Silo.enums.keys -> $silo
+        {
+            # adjust Silo wallet's running balance (in entity's base currency)
+            %balance{::($silo)} += in_wallet(%wallet{::($silo)}).get_balance(
+                :$asset_code,
+                :base_currency($entity_base_currency),
+                :recursive
+            );
+        }
+    }
+
+    # calculate %balance for all assets handled by this entity
+    fill_balance($_) for @assets_handled;
+
+    %balance;
+}
+
+method get_posting_value(
+    AssetCode :$base_currency!,
+    UUID :$entry_uuid!,
+    UUID :$posting_uuid!
+) returns Quantity
+{
+    my Quantity $posting_value;
+    my Nightscape::Entity::TXN $txn = self.ls_txn(:$entry_uuid);
+    $txn.mod_wallet.grep({ .posting_uuid ~~ $posting_uuid }).map({
+        unless .xe_asset_code ~~ $base_currency
+        {
+            die "Sorry, unexpected xe_asset_code";
+        };
+        $posting_value += .quantity * .xe_asset_quantity
+    });
+
+    $posting_value;
 }
 
 # get quantity debited in targets, separately and in total
@@ -1162,7 +1349,7 @@ sub get_total_quantity_expended(
 
         # record acquisition price => subtotal quantity expended key-value pair
         # in %per_basis_lot
-        %per_basis_lot{$xe_asset_quantity} = $subtotal_quantity_expended;
+        %per_basis_lot{$xe_asset_quantity} += $subtotal_quantity_expended;
     }
 
     %total_quantity_expended = $total_quantity_expended => $%per_basis_lot;
@@ -1200,52 +1387,16 @@ sub in_wallet(Nightscape::Entity::Wallet $wallet, *@subwallet) is rw
     $subwallet;
 }
 
-# recursively sum balances in terms of entity base currency,
-# all wallets in all Silos
-method get_eqbal(
-    Nightscape::Entity::Wallet :%wallet is readonly = $.coa.wllt
-) returns Hash[Rat,Silo]
-{
-    # entity base currency
-    my AssetCode $entity_base_currency =
-        $GLOBAL::CONF.resolve_base_currency($.entity_name);
-
-    # store total sum Rat balance indexed Silo
-    my Rat %balance{Silo};
-
-    # for all assets handled by this entity
-    for self.ls_assets_handled -> $asset_code
-    {
-        # for all wallets in all Silos
-        for %wallet.keys -> $silo
-        {
-            # adjust Silo wallet's running balance (in entity's base currency)
-            %balance{::($silo)} += in_wallet(%wallet{::($silo)}).get_balance(
-                :$asset_code,
-                :base_currency($entity_base_currency),
-                :recursive
-            );
-        }
-    }
-
-    %balance;
-}
-
 # list all unique asset codes handled by entity
-method ls_assets_handled() returns Array[AssetCode]
+multi method ls_assets_handled(
+    Nightscape::Entity::COA::Acct:D :%acct! is readonly
+) returns Array[AssetCode]
 {
-    # is $.coa missing?
-    unless $.coa
-    {
-        # error: COA missing
-        die "Sorry, COA missing; needed for Entity.ls_assets_handled";
-    }
-
     # store assets handled by entity
     my AssetCode @assets_handled;
 
     # for all accts
-    for $.coa.acct.kv -> $acct_name, $acct
+    for %acct.kv -> $acct_name, $acct
     {
         # record assets handled in this acct
         push @assets_handled, $acct.assets_handled;
@@ -1254,11 +1405,60 @@ method ls_assets_handled() returns Array[AssetCode]
     @assets_handled .= unique;
 }
 
+multi method ls_assets_handled(
+    Nightscape::Entity::Wallet:D :%wallet! is readonly
+) returns Array[AssetCode]
+{
+    # generate acct from %wallet
+    my Nightscape::Entity::COA::Acct %acct{AcctName} = self.gen_acct(:%wallet);
+
+    # store assets handled by entity
+    my AssetCode @assets_handled = self.ls_assets_handled(:%acct);
+}
+
+multi method ls_txn(UUID :$entry_uuid!) returns Nightscape::Entity::TXN
+{
+    my Nightscape::Entity::TXN @txn = @.transactions.grep({
+        .uuid ~~ $entry_uuid
+    });
+    unless @txn.elems == 1
+    {
+        if @txn.elems > 1
+        {
+            die "Sorry, found more matching transactions than expected";
+        }
+        elsif @txn.elems < 1
+        {
+            die "Sorry, couldn't find matching transaction";
+        }
+    }
+    my Nightscape::Entity::TXN $txn = @txn[0];
+}
+
+multi method ls_txn(UUID :$posting_uuid!) returns Nightscape::Entity::TXN
+{
+    my Nightscape::Entity::TXN @txn = @.transactions.grep({
+        .mod_wallet».posting_uuid.grep($posting_uuid)
+    });
+    unless @txn.elems == 1
+    {
+        if @txn.elems > 1
+        {
+            die "Sorry, found more matching transactions than expected";
+        }
+        elsif @txn.elems < 1
+        {
+            die "Sorry, couldn't find matching transaction";
+        }
+    }
+    my Nightscape::Entity::TXN $txn = @txn[0];
+}
+
 # instantiate entity's chart of accounts
 method mkcoa(Bool :$force)
 {
-    # store accts indexed by acct name
-    my Nightscape::Entity::COA::Acct %acct{AcctName} = self.tree2acct;
+    # generate acct from %.wallet
+    my Nightscape::Entity::COA::Acct %acct{AcctName} = self.gen_acct(:%.wallet);
 
     # find entries with realized capital gains / realized capital losses
     # use %.acct to find target list with wallet path
@@ -1458,7 +1658,7 @@ method transact(Nightscape::Entity::TXN :$transaction! is readonly)
 
 # list wallet tree recursively
 method tree(
-    Nightscape::Entity::Wallet :%wallet is readonly = %.wallet,
+    Nightscape::Entity::Wallet:D :%wallet! is readonly,
     Silo :$silo,
     *@subwallet
 ) returns Array[Array[VarName]]
@@ -1469,13 +1669,6 @@ method tree(
     # was $silo arg specified?
     if defined $silo
     {
-        # does Silo wallet not exist?
-        unless %wallet{::($silo)}
-        {
-            # instantiate it
-            %wallet{::($silo)} = Nightscape::Entity::Wallet.new;
-        }
-
         # fill tree
         @tree = Nightscape::Entity::Wallet.tree(
             in_wallet(%wallet{$silo}, @subwallet).tree(:hash)
@@ -1503,7 +1696,8 @@ method tree(
 
 # given wallet tree, generate hash of accts, indexed by acct name
 method tree2acct(
-    Array[VarName] :@tree = self.tree
+    Array[VarName] :@tree!,
+    Nightscape::Entity::Wallet:D :%wallet! is readonly
 ) returns Hash[Nightscape::Entity::COA::Acct,AcctName]
 {
     # store accts indexed by acct name
@@ -1516,7 +1710,7 @@ method tree2acct(
         my AcctName $name = @path.join(':');
 
         # root Silo wallet
-        my Nightscape::Entity::Wallet $wallet = %.wallet{::(@path[0])};
+        my Nightscape::Entity::Wallet $wallet = %wallet{::(@path[0])};
 
         # store all assets handled
         my AssetCode @assets_handled =

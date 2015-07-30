@@ -183,6 +183,8 @@ method find_targets(
                 # increment @.basis array index if remaining targets, else break
                 $remaining > 0 ?? $count++ !! last;
             }
+            # is the quantity of units in this basis greater than or
+            # equal to the amount of units still needed?
             else
             {
                 # target only the units necessary from this basis lot

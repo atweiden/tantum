@@ -8,7 +8,8 @@ use UUID;
 
 plan 2;
 
-our $CONF = Nightscape::Config.new;
+my Str $config_file = "t/data/sample.conf";
+our $CONF = Nightscape::Config.new(:$config_file);
 
 # prepare assets and entities for transaction journal parsing
 {
@@ -86,18 +87,22 @@ else
     my VarName @entity_names = Nightscape.ls_entity_names(:@entries);
     for @entity_names -> $entity_name
     {
-        # instantiate Entity
-        my Nightscape::Entity $entity .= new(:$entity_name);
-
         # get entries by Entity
         my Nightscape::Entry @entries_entity = Nightscape.ls_entries(
             :@entries,
             :entity(/$entity_name/)
         );
 
+        # instantiate Entity
+        my Nightscape::Entity $entity .= new(
+            :$entity_name,
+            :entries(@entries_entity)
+        );
+
         # instantiate transactions by Entity
         my Nightscape::Entity::TXN @transactions;
-        push @transactions, $entity.gen_txn(:entry($_)) for @entries_entity;
+        push @transactions, $entity.gen_txn(:entry($_)) for $entity.entries;
+        $entity.transactions = @transactions;
 
         # exec transactions by Entity
         $entity.transact(:transaction($_)) for @transactions;
@@ -200,9 +205,13 @@ else
     }
 }
 
+# say "Entity: ", @entities[0].entity_name;
 # say $_.perl for @entities[0].tree(:wallet(@entities[0].coa.wllt));
 
-my Rat %balance{Silo} = @entities[0].get_eqbal;
+my Rat %balance{Silo} = @entities[0].get_eqbal(
+    :wallet(@entities[0].coa.wllt)
+    :acct(@entities[0].coa.acct)
+);
 # say "Entity.coa.wllt eqbal: ", %balance.perl;
 
 # my Rat %balance_orig{Silo} = @entities[0].get_eqbal(
@@ -248,18 +257,22 @@ else
     );
     for @entity_names -> $entity_name
     {
-        # instantiate Entity
-        my Nightscape::Entity $entity .= new(:$entity_name);
-
         # get entries by Entity
         my Nightscape::Entry @entries_entity = Nightscape.ls_entries(
             :entries(@entries_advanced),
             :entity(/$entity_name/)
         );
 
+        # instantiate Entity
+        my Nightscape::Entity $entity .= new(
+            :$entity_name,
+            :entries(@entries_entity)
+        );
+
         # instantiate transactions by Entity
         my Nightscape::Entity::TXN @transactions;
-        push @transactions, $entity.gen_txn(:entry($_)) for @entries_entity;
+        push @transactions, $entity.gen_txn(:entry($_)) for $entity.entries;
+        $entity.transactions = @transactions;
 
         # exec transactions by Entity
         $entity.transact(:transaction($_)) for @transactions;
@@ -364,7 +377,10 @@ else
 
 # say $_.perl for @entities_advanced[0].tree(:wallet(@entities_advanced[0].coa.wllt));
 
-my Rat %balance_advanced{Silo} = @entities_advanced[0].get_eqbal;
+my Rat %balance_advanced{Silo} = @entities_advanced[0].get_eqbal(
+    :wallet(@entities_advanced[0].coa.wllt)
+    :acct(@entities_advanced[0].coa.acct)
+);
 # say "Entity.coa.wllt eqbal: ", %balance_advanced.perl;
 
 # my Rat %balance_advanced_orig{Silo} = @entities_advanced[0].get_eqbal(

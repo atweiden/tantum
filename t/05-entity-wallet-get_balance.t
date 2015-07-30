@@ -7,7 +7,8 @@ use Nightscape::Types;
 
 plan 3;
 
-our $CONF = Nightscape::Config.new;
+my Str $config_file = "t/data/sample.conf";
+our $CONF = Nightscape::Config.new(:$config_file);
 
 # prepare assets and entities for transaction journal parsing
 {

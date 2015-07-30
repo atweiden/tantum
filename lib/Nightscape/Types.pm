@@ -18,7 +18,7 @@ subset GreaterThanZero of Rat is export where * > 0;
 
 subset Instruction of Hash is export where
 {
-    .keys.sort ~~ <acct_name newmod quantity_to_debit xe>;
+    .keys.sort ~~ <acct_name newmod posting_uuid quantity_to_debit xe>;
 }
 
 subset LessThanZero of Rat is export where * < 0;
