@@ -149,9 +149,9 @@ method gen_pricesheet(:%prices!) returns Hash[Hash[Price,Date],AssetCode]
 
 # return instantiated asset settings
 multi method gen_settings(
-    AssetCode :$asset_code!,
+    AssetCode:D :$asset_code!,
     :$asset_data!
-) returns Nightscape::Config::Asset
+) returns Nightscape::Config::Asset:D
 {
     # asset costing
     my Costing $costing;
@@ -168,9 +168,9 @@ multi method gen_settings(
 
 # return instantiated entity settings
 multi method gen_settings(
-    VarName :$entity_name!,
+    VarName:D :$entity_name!,
     :$entity_data!
-) returns Nightscape::Config::Entity
+) returns Nightscape::Config::Entity:D
 {
     # populate entity-specific asset settings
     my Nightscape::Config::Asset %assets{AssetCode};
@@ -208,13 +208,13 @@ multi method gen_settings(
 }
 
 # return date-price hash by resolving price-file config option (NYI)
-sub read_price_file(:$price_file!) returns Hash[Price,Date]
+sub read_price_file(Str:D :$price_file!) returns Hash[Price,Date]
 {
     say "Reading price file: $price_file…";
 }
 
 # get entity's base currency or if not present, the default base-currency
-method resolve_base_currency(VarName $entity) returns AssetCode
+method resolve_base_currency(VarName:D $entity) returns AssetCode:D
 {
     my AssetCode $base_currency;
 
@@ -250,7 +250,7 @@ method resolve_base_currency(VarName $entity) returns AssetCode
 }
 
 # conf precedence: $PWD/nightscape.conf, $HOME/.nightscape.conf, $HOME/.nightscape/config.toml
-sub resolve_config_file() returns Str
+sub resolve_config_file() returns Str:D
 {
     my Str $config_file;
 
@@ -275,9 +275,9 @@ sub resolve_config_file() returns Str
 
 # get inventory costing method
 method resolve_costing(
-    AssetCode :$asset_code!,
-    VarName :$entity_name!
-) returns Costing
+    AssetCode:D :$asset_code!,
+    VarName:D :$entity_name!
+) returns Costing:D
 {
     my Costing $costing_asset;
     my Costing $costing_entity;
@@ -327,11 +327,11 @@ method resolve_costing(
 # given posting asset code (aux), base asset code (base), and a date,
 # return price of aux in terms of base on date
 method resolve_price(
-    AssetCode :$aux!,
-    AssetCode :$base!,
-    Date :$date!,
+    AssetCode:D :$aux!,
+    AssetCode:D :$base!,
+    Date:D :$date!,
     VarName :$entity_name
-) returns Price
+) returns Price:D
 {
     my Price $price_asset;
     my Price $price_entity;

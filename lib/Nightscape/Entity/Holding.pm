@@ -19,10 +19,10 @@ has Array[Nightscape::Entity::Holding::Taxes] %.taxes{UUID};
 
 # increase entity's holdings
 method acquire(
-    UUID :$uuid!,
-    Date :$date!,
-    Price :$price!,
-    Quantity :$quantity! where * > 0
+    UUID:D :$uuid!,
+    Date:D :$date!,
+    Price:D :$price!,
+    Quantity:D :$quantity! where * > 0
 )
 {
     # add to holdings
@@ -39,12 +39,12 @@ method acquire(
 
 # decrease entity's holdings via AVCO/FIFO/LIFO inventory costing method
 method expend(
-    AssetCode :$asset_code!,
-    UUID :$uuid!,
-    Costing :$costing!,
-    Price :$price!,
-    AssetCode :$acquisition_price_asset_code!,
-    Quantity :$quantity! where * > 0
+    AssetCode:D :$asset_code!,
+    UUID:D :$uuid!,
+    Costing:D :$costing!,
+    Price:D :$price!,
+    AssetCode:D :$acquisition_price_asset_code!,
+    Quantity:D :$quantity! where * > 0
 )
 {
     # check for sufficient unit quantity of asset in holdings
@@ -64,7 +64,7 @@ method expend(
 
     # deplete units in targeted basis lots
     # has side effect of recording capital gains/losses to %.taxes
-    sub rmtargets(:@targets!) # Constraint type check failed for parameter '%targets'
+    sub rmtargets(Rat :@targets! where * >= 0) # When typecheck: Quantity => Constraint type check failed for parameter '@targets'
     {
         # for each @.basis lot target index $i and associated quantity $q
         for @targets.pairs.kv -> $i, $q
@@ -147,9 +147,9 @@ method expend(
 
 # identify unit quantities to be expended, indexed by @.basis array index
 method find_targets(
-    Costing :$costing!,
-    Quantity :$quantity! where * > 0
-) returns Array[Quantity]
+    Costing:D :$costing!,
+    Quantity:D :$quantity! where * > 0
+) returns Array[Quantity] # returned Quantity can be undefined in cases where basis array index is skipped
 {
     # basis lots, to be reversed when LIFO costing method is used
     my Nightscape::Entity::Holding::Basis @basis;
@@ -206,7 +206,7 @@ method find_targets(
 }
 
 # calculate average cost of current holdings
-method gen_avco() returns Price
+method gen_avco() returns Price:D
 {
     # calculate total value of units held
     my Price $value = self.get_total_value;
@@ -220,8 +220,8 @@ method gen_avco() returns Price
 
 # calculate total quantity of units held
 method get_total_quantity(
-    Nightscape::Entity::Holding::Basis :@basis is readonly = @.basis
-) returns Quantity
+    Nightscape::Entity::Holding::Basis:D :@basis is readonly = @.basis
+) returns Quantity:D
 {
     my Quantity $quantity = [+] (.quantity for @basis);
     $quantity;
@@ -231,24 +231,16 @@ method get_total_quantity(
 # by default assumes price paid at acquisition
 # pass :market for market price (NYI)
 method get_total_value(
-    Nightscape::Entity::Holding::Basis :@basis is readonly = @.basis,
+    Nightscape::Entity::Holding::Basis:D :@basis is readonly = @.basis,
     Bool :$market
-) returns Price
+) returns Price:D
 {
-    my Price @value;
-    for @basis -> $b
-    {
-        my Price $p = $b.price;
-        my Quantity $q = $b.quantity;
-        my Price $v = $p * $q;
-        push @value, $v;
-    }
-    my Price $value = [+] @value;
+    my Price $value = [+] (.price * .quantity for @basis);
     $value;
 }
 
 # check for sufficient unit quantity of asset in holdings
-method in_stock(Quantity $quantity) returns Bool
+method in_stock(Quantity:D $quantity) returns Bool:D
 {
     $quantity <= self.get_total_quantity ?? True !! False;
 }

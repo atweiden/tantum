@@ -33,10 +33,10 @@ has Nightscape::Entity::Wallet %.wallet{Silo} =
 
 # given holdings + wallet, return wllt including capital gains / losses
 method acct2wllt(
-    Nightscape::Entity::COA::Acct :%acct! is readonly,
-    Nightscape::Entity::Holding :%holdings is readonly = %.holdings,
-    Nightscape::Entity::Wallet :%wallet is readonly = %.wallet
-) returns Hash[Nightscape::Entity::Wallet,Silo]
+    Nightscape::Entity::COA::Acct:D :%acct! is readonly,
+    Nightscape::Entity::Holding:D :%holdings is readonly = %.holdings,
+    Nightscape::Entity::Wallet:D :%wallet is readonly = %.wallet
+) returns Hash[Nightscape::Entity::Wallet:D,Silo:D]
 {
     # get entity base currency for cross-checking acquisition price asset codes
     my AssetCode $entity_base_currency = $GLOBAL::CONF.resolve_base_currency(
@@ -385,7 +385,7 @@ method acct2wllt(
 
 method gen_acct(
     Nightscape::Entity::Wallet:D :%wallet! is readonly
-) returns Hash[Nightscape::Entity::COA::Acct,AcctName]
+) returns Hash[Nightscape::Entity::COA::Acct:D,AcctName:D]
 {
     my Array[VarName] @tree = self.tree(:%wallet);
     my Nightscape::Entity::COA::Acct %acct{AcctName} = self.tree2acct(
@@ -397,10 +397,10 @@ method gen_acct(
 # return instructions for incising realized capital gains / losses
 # indexed by causal posting_uuid (NEW/MOD | AcctName | QuantityToDebit | XE)
 sub gen_instructions(
-    Hash[Hash[Hash[Rat,UUID],Rat],AcctName]
+    Hash[Hash[Hash[Rat:D,UUID:D],Rat:D],AcctName:D]
         :%total_quantity_debited! is readonly,
-    Hash[Quantity,Quantity] :%total_quantity_expended! is readonly
-) returns Hash[Array[Instruction],UUID]
+    Hash[Quantity:D,Quantity:D] :%total_quantity_expended! is readonly
+) returns Hash[Array[Instruction:D],UUID:D]
 {
     # bucket with fill progress, incl. fills per acquisition price
     class Bucket
@@ -935,8 +935,8 @@ sub gen_instructions(
 
 # given entry, return instantiated transaction
 method gen_txn(
-    Nightscape::Entry :$entry! is readonly
-) returns Nightscape::Entity::TXN
+    Nightscape::Entry:D :$entry! is readonly
+) returns Nightscape::Entity::TXN:D
 {
     # verify entry is balanced or exit with an error
     unless $entry.is_balanced
@@ -1087,7 +1087,7 @@ method gen_txn(
 method get_eqbal(
     Nightscape::Entity::Wallet:D :%wallet! is readonly,
     Nightscape::Entity::COA::Acct :%acct is readonly
-) returns Hash[Rat,Silo]
+) returns Hash[Rat:D,Silo:D]
 {
     # entity base currency
     my AssetCode $entity_base_currency =
@@ -1124,10 +1124,10 @@ method get_eqbal(
 }
 
 method get_posting_value(
-    AssetCode :$base_currency!,
-    UUID :$entry_uuid!,
-    UUID :$posting_uuid!
-) returns Quantity
+    AssetCode:D :$base_currency!,
+    UUID:D :$entry_uuid!,
+    UUID:D :$posting_uuid!
+) returns Quantity:D
 {
     my Quantity $posting_value;
     my Nightscape::Entity::TXN $txn = self.ls_txn(:$entry_uuid);
@@ -1144,11 +1144,11 @@ method get_posting_value(
 
 # get quantity debited in targets, separately and in total
 sub get_total_quantity_debited(
-    Nightscape::Entity::COA::Acct :%acct_targets! is readonly,
-    AssetCode :$asset_code!,
-    UUID :$entry_uuid!,
-    Nightscape::Entity::Wallet :%wallet! is readonly
-) returns Hash[Hash[Hash[Hash[Rat,UUID],Rat],AcctName],Quantity]
+    Nightscape::Entity::COA::Acct:D :%acct_targets! is readonly,
+    AssetCode:D :$asset_code!,
+    UUID:D :$entry_uuid!,
+    Nightscape::Entity::Wallet:D :%wallet! is readonly
+) returns Hash[Hash[Hash[Hash[Rat:D,UUID:D],Rat:D],AcctName:D],Quantity:D]
 {
     # store subtotal quantity debited
     my Quantity $subtotal_quantity_debited;
@@ -1322,9 +1322,9 @@ sub get_total_quantity_debited(
 # get quantity expended of a holding indexed by acquisition price,
 # indexed by total quantity expended
 sub get_total_quantity_expended(
-    Costing :$costing!,
-    Nightscape::Entity::Holding::Taxes :@taxes! is readonly
-) returns Hash[Hash[Quantity,Quantity],Quantity]
+    Costing:D :$costing!,
+    Nightscape::Entity::Holding::Taxes:D :@taxes! is readonly
+) returns Hash[Hash[Quantity:D,Quantity:D],Quantity:D]
 {
     # store total quantity expended
     my Hash[Quantity,Quantity] %total_quantity_expended{Quantity};
@@ -1397,7 +1397,7 @@ sub in_wallet(Nightscape::Entity::Wallet $wallet, *@subwallet) is rw
 # list all unique asset codes handled by entity
 multi method ls_assets_handled(
     Nightscape::Entity::COA::Acct:D :%acct! is readonly
-) returns Array[AssetCode]
+) returns Array[AssetCode:D]
 {
     # store assets handled by entity
     my AssetCode @assets_handled;
@@ -1414,7 +1414,7 @@ multi method ls_assets_handled(
 
 multi method ls_assets_handled(
     Nightscape::Entity::Wallet:D :%wallet! is readonly
-) returns Array[AssetCode]
+) returns Array[AssetCode:D]
 {
     # generate acct from %wallet
     my Nightscape::Entity::COA::Acct %acct{AcctName} = self.gen_acct(:%wallet);
@@ -1423,7 +1423,7 @@ multi method ls_assets_handled(
     my AssetCode @assets_handled = self.ls_assets_handled(:%acct);
 }
 
-multi method ls_txn(UUID :$entry_uuid!) returns Nightscape::Entity::TXN
+multi method ls_txn(UUID:D :$entry_uuid!) returns Nightscape::Entity::TXN:D
 {
     my Nightscape::Entity::TXN @txn = @.transactions.grep({
         .uuid ~~ $entry_uuid
@@ -1442,7 +1442,7 @@ multi method ls_txn(UUID :$entry_uuid!) returns Nightscape::Entity::TXN
     my Nightscape::Entity::TXN $txn = @txn[0];
 }
 
-multi method ls_txn(UUID :$posting_uuid!) returns Nightscape::Entity::TXN
+multi method ls_txn(UUID:D :$posting_uuid!) returns Nightscape::Entity::TXN:D
 {
     my Nightscape::Entity::TXN @txn = @.transactions.grep({
         .mod_wallet».posting_uuid.grep($posting_uuid)
@@ -1497,21 +1497,21 @@ method mkcoa(Bool :$force)
 }
 
 # instantiate TXN and append to entity's transactions queue
-method mktxn(Nightscape::Entry $entry is readonly)
+method mktxn(Nightscape::Entry:D $entry is readonly)
 {
     push @!transactions, self.gen_txn(:$entry);
 }
 
 # acquire/expend the applicable holdings
 method !mod_holdings(
-    UUID :$uuid!,
-    AssetCode :$asset_code!,
-    AssetFlow :$asset_flow!,
-    Costing :$costing!,
-    Date :$date!,
-    Price :$price!,
-    AssetCode :$acquisition_price_asset_code!,
-    Quantity :$quantity!
+    UUID:D :$uuid!,
+    AssetCode:D :$asset_code!,
+    AssetFlow:D :$asset_flow!,
+    Costing:D :$costing!,
+    Date:D :$date!,
+    Price:D :$price!,
+    AssetCode:D :$acquisition_price_asset_code!,
+    Quantity:D :$quantity!
 )
 {
     # acquisition?
@@ -1577,15 +1577,15 @@ method !mod_holdings(
 
 # dec/inc the applicable wallet balance
 method !mod_wallet(
-    UUID :$entry_uuid!,
-    UUID :$posting_uuid!,
-    AssetCode :$asset_code!,
-    DecInc :$decinc!,
-    Quantity :$quantity!,
-    Silo :$silo!,
+    UUID:D :$entry_uuid!,
+    UUID:D :$posting_uuid!,
+    AssetCode:D :$asset_code!,
+    DecInc:D :$decinc!,
+    Quantity:D :$quantity!,
+    Silo:D :$silo!,
+    Str :@subwallet, # When typecheck: VarName => Constraint type check failed for parameter '@subwallet'
     AssetCode :$xe_asset_code,
-    Quantity :$xe_asset_quantity,
-    :@subwallet! # Constraint type check failed for parameter '@subwallet'
+    Quantity :$xe_asset_quantity
 )
 {
     # ensure $silo wallet exists (potential side effect)
@@ -1607,7 +1607,7 @@ method !mod_wallet(
 }
 
 # execute transaction
-method transact(Nightscape::Entity::TXN $transaction is readonly)
+method transact(Nightscape::Entity::TXN:D $transaction is readonly)
 {
     # uuid from causal transaction journal entry
     my UUID $uuid = $transaction.uuid;
@@ -1674,7 +1674,7 @@ method tree(
     Nightscape::Entity::Wallet:D :%wallet! is readonly,
     Silo :$silo,
     *@subwallet
-) returns Array[Array[VarName]]
+) returns Array[Array[VarName:D]]
 {
     # store wallet tree
     my Array[VarName] @tree;
@@ -1709,9 +1709,9 @@ method tree(
 
 # given wallet tree, generate hash of accts, indexed by acct name
 method tree2acct(
-    Array[VarName] :@tree!,
+    Array[VarName:D] :@tree!,
     Nightscape::Entity::Wallet:D :%wallet! is readonly
-) returns Hash[Nightscape::Entity::COA::Acct,AcctName]
+) returns Hash[Nightscape::Entity::COA::Acct:D,AcctName:D]
 {
     # store accts indexed by acct name
     my Nightscape::Entity::COA::Acct %acct{AcctName};

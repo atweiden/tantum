@@ -24,7 +24,7 @@ has Nightscape::Entity::TXN::ModWallet @.mod_wallet;
 method get_drift(
     Nightscape::Entity::TXN::ModWallet:D :@mod_wallet is readonly =
         @.mod_wallet
-) returns Hash[Hash[Rat,AcctName],Rat]
+) returns Hash[Hash[Rat:D,AcctName:D],Rat:D]
 {
     my Hash[Rat,AcctName] %drift{Rat};
     my Rat $drift;

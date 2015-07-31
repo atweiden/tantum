@@ -17,11 +17,11 @@ has Nightscape::Entity::Holding::Basis::Depletion %.depletions{UUID};
 
 # decrease units held in this basis lot
 method deplete(
-    Quantity :$quantity! where * > 0,
-    UUID :$uuid!,
-    Price :$acquisition_price!,
-    AssetCode :$acquisition_price_asset_code!,
-    Price :$avco_at_expenditure!
+    Quantity:D :$quantity! where * > 0,
+    UUID:D :$uuid!,
+    Price:D :$acquisition_price!,
+    AssetCode:D :$acquisition_price_asset_code!,
+    Price:D :$avco_at_expenditure!
 )
 {
     # check for sufficient unit quantity of asset in holdings

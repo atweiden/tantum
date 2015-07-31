@@ -42,7 +42,7 @@ enum NewMod is export <NEW MOD>;
 
 enum Silo is export <ASSETS EXPENSES INCOME LIABILITIES EQUITY>;
 
-method mkasset_flow(Rat $d) returns AssetFlow
+method mkasset_flow(Rat:D $d) returns AssetFlow:D
 {
     if $d > 0
     {
@@ -58,7 +58,7 @@ method mkasset_flow(Rat $d) returns AssetFlow
     }
 }
 
-method mkdecinc(Bool $minus_sign) returns DecInc
+method mkdecinc(Bool:D $minus_sign) returns DecInc:D
 {
     if $minus_sign
     {

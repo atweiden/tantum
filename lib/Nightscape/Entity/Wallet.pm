@@ -11,7 +11,7 @@ has Array[Nightscape::Entity::Wallet::Changeset] %.balance{AssetCode};
 has Nightscape::Entity::Wallet %.subwallet{VarName};
 
 # clone balance and subwallets with explicit instantiation and deepmap
-method clone() returns Nightscape::Entity::Wallet
+method clone() returns Nightscape::Entity::Wallet:D
 {
     my Array[Nightscape::Entity::Wallet::Changeset] %balance{AssetCode} =
         self.clone_balance;
@@ -23,7 +23,7 @@ method clone() returns Nightscape::Entity::Wallet
 
 # clone changesets indexed by asset code with explicit instantiation
 method clone_balance(
-) returns Hash[Array[Nightscape::Entity::Wallet::Changeset],AssetCode]
+) returns Hash[Array[Nightscape::Entity::Wallet::Changeset:D],AssetCode:D]
 {
     my Array[Nightscape::Entity::Wallet::Changeset] %balance{AssetCode};
     for %.balance.keys -> $asset_code
@@ -46,11 +46,10 @@ method clone_balance(
 
 # get wallet balance
 method get_balance(
-    AssetCode :$asset_code!,      # get wallet balance for this asset code
-    Str :$base_currency,          # (optional) request results in $base_currency
-                                  # When typecheck: AssetCode => Constraint type check failed for parameter '$base_currency'
+    AssetCode:D :$asset_code!,    # get wallet balance for this asset code
+    AssetCode :$base_currency,    # (optional) request results in $base_currency
     Bool :$recursive              # (optional) recursively query subwallets
-) returns Rat
+) returns Rat:D
 {
     my Rat $balance;
     my Rat @deltas;
@@ -62,7 +61,7 @@ method get_balance(
         for %.balance{$asset_code}.list -> $changeset
         {
             # convert balance into $base_currency?
-            if $base_currency
+            if defined $base_currency
             {
                 # does posting's asset code match the requested base currency?
                 if $changeset.balance_delta_asset_code ~~ $base_currency
@@ -129,12 +128,16 @@ method get_balance(
         # is there a subwallet?
         if %.subwallet
         {
+            # the :base_currency parameter must always be passed to
+            # Wallet.get_balance
+            my AssetCode $bc = defined($base_currency) ?? $base_currency !! Nil;
+
             # add subwallet balance to $balance
             for %.subwallet.kv -> $name, $subwallet
             {
                 $balance += $subwallet.get_balance(
                     :$asset_code,
-                    :$base_currency,
+                    :base_currency($bc),
                     :recursive
                 );
             }
@@ -145,13 +148,15 @@ method get_balance(
 }
 
 # list all assets handled
-method ls_assets() returns Array[AssetCode]
+method ls_assets() returns Array[AssetCode:D]
 {
     my AssetCode @assets_handled = %.balance.keys;
 }
 
 # list UUIDs handled, indexed by asset code (default: entry UUID)
-method ls_assets_with_uuids(Bool :$posting) returns Hash[Array[UUID],AssetCode]
+method ls_assets_with_uuids(
+    Bool :$posting
+) returns Hash[Array[UUID:D],AssetCode:D]
 {
     # store UUIDs handled, indexed by asset code
     my Array[UUID] %uuids_handled_by_asset_code{AssetCode};
@@ -185,7 +190,7 @@ method ls_assets_with_uuids(Bool :$posting) returns Hash[Array[UUID],AssetCode]
 
 # list changesets
 method ls_changesets(
-    AssetCode :$asset_code!,
+    AssetCode:D :$asset_code!,
     UUID :$entry_uuid,
     UUID :$posting_uuid
 ) returns Array[Nightscape::Entity::Wallet::Changeset]
@@ -197,8 +202,8 @@ method ls_changesets(
 }
 
 multi method _ls_changesets(
-    Nightscape::Entity::Wallet::Changeset :@changesets! is readonly,
-    UUID :$entry_uuid!
+    Nightscape::Entity::Wallet::Changeset:D :@changesets! is readonly,
+    UUID:D :$entry_uuid!
 ) returns Array[Nightscape::Entity::Wallet::Changeset]
 {
     my Nightscape::Entity::Wallet::Changeset @c = @changesets.grep({
@@ -207,8 +212,8 @@ multi method _ls_changesets(
 }
 
 multi method _ls_changesets(
-    Nightscape::Entity::Wallet::Changeset :@changesets! is readonly,
-    UUID :$posting_uuid!
+    Nightscape::Entity::Wallet::Changeset:D :@changesets! is readonly,
+    UUID:D :$posting_uuid!
 ) returns Array[Nightscape::Entity::Wallet::Changeset]
 {
     my Nightscape::Entity::Wallet::Changeset @c = @changesets.grep({
@@ -255,11 +260,11 @@ method ls_uuids(Str :$asset_code, Bool :$posting) returns Array[UUID]
 
 # record balance update instruction, the final executor (standard mode)
 multi method mkchangeset(
-    UUID :$entry_uuid!,
-    UUID :$posting_uuid!,
-    AssetCode :$asset_code!,
-    DecInc :$decinc!,
-    Quantity :$quantity!,
+    UUID:D :$entry_uuid!,
+    UUID :$posting_uuid!,           # is undefined for NSAutoCapitalGains
+    AssetCode:D :$asset_code!,
+    DecInc:D :$decinc!,
+    Quantity:D :$quantity!,
     AssetCode :$xe_asset_code,
     Quantity :$xe_asset_quantity
 )
@@ -296,15 +301,15 @@ multi method mkchangeset(
 
 # record balance update instruction, the final executor (splice mode)
 multi method mkchangeset(
-    UUID :$entry_uuid!,
-    UUID :$posting_uuid!,
-    AssetCode :$asset_code!,
-    DecInc :$decinc!,
-    Quantity :$quantity!,
+    UUID:D :$entry_uuid!,
+    UUID:D :$posting_uuid!,
+    AssetCode:D :$asset_code!,
+    DecInc:D :$decinc!,
+    Quantity:D :$quantity!,
     AssetCode :$xe_asset_code,
     Quantity :$xe_asset_quantity,
-    Bool :$splice! where *.so, # :splice arg must be explicitly passed
-    Int :$index! # index at which to insert new Changeset in changesets list
+    Bool:D :$splice! where *.so, # :splice arg must be explicitly passed
+    Int:D :$index! # index at which to insert new Changeset in changesets list
 )
 {
     # store delta by which to change wallet balance of asset code
@@ -346,16 +351,16 @@ multi method mkchangeset(
 #     MOD | AcctName | QuantityToDebit | XE
 #
 multi method mkchangeset(
-    AssetCode :$asset_code!,
-    AssetCode :$xe_asset_code!,
-    UUID :$entry_uuid!,
-    UUID :$posting_uuid!, # posting UUID of which to modify
-    Instruction :$instruction! (
+    AssetCode:D :$asset_code!,
+    AssetCode:D :$xe_asset_code!,
+    UUID:D :$entry_uuid!,
+    UUID:D :$posting_uuid!, # posting UUID of which to modify
+    Instruction:D :$instruction! (
         # deconstruct instruction
-        AssetsAcctName :$acct_name!,
-        NewMod :$newmod! where * ~~ MOD,
-        UUID :posting_uuid($posting_uuid_instr)!,
-        Quantity :$quantity_to_debit!,
+        AssetsAcctName:D :$acct_name!,
+        NewMod:D :$newmod! where * ~~ MOD,
+        UUID:D :posting_uuid($posting_uuid_instr)!,
+        Quantity:D :$quantity_to_debit!,
         Quantity :xe($xe_asset_quantity) # optional in certain cases
     )
 )
@@ -411,17 +416,17 @@ multi method mkchangeset(
 #     NEW | AcctName | QuantityToDebit | XE
 #
 multi method mkchangeset(
-    AssetCode :$asset_code!,
-    AssetCode :$xe_asset_code!,
-    UUID :$entry_uuid!,
-    UUID :$posting_uuid!, # parent posting UUID, needed for calculating $index
-    Instruction :$instruction! (
+    AssetCode:D :$asset_code!,
+    AssetCode:D :$xe_asset_code!,
+    UUID:D :$entry_uuid!,
+    UUID:D :$posting_uuid!, # parent posting UUID, needed for calculating $index
+    Instruction:D :$instruction! (
         # deconstruct instruction
-        AssetsAcctName :$acct_name!,
-        NewMod :$newmod! where * ~~ NEW,
-        UUID :posting_uuid($posting_uuid_instr)!,
-        Quantity :quantity_to_debit($quantity)!,
-        Quantity :xe($xe_asset_quantity)! # required for NEW Instructions
+        AssetsAcctName:D :$acct_name!,
+        NewMod:D :$newmod! where * ~~ NEW,
+        UUID:D :posting_uuid($posting_uuid_instr)!,
+        Quantity:D :quantity_to_debit($quantity)!,
+        Quantity:D :xe($xe_asset_quantity)! # required for NEW Instructions
     )
 )
 {
@@ -470,7 +475,7 @@ multi method mkchangeset(
 }
 
 # list nested wallets/subwallets as hash of wallet names
-multi method tree(Bool :$hash!) returns Hash
+multi method tree(Bool:D :$hash! where *.so) returns Hash
 {
     my %tree;
     sub deref(%tree, *@k) is rw
@@ -484,7 +489,7 @@ multi method tree(Bool :$hash!) returns Hash
 }
 
 # list nested wallets/subwallets as list of wallet names for easy access
-multi method tree(%tree) returns Array[Array[VarName]]
+multi method tree(%tree) returns Array[Array[VarName:D]]
 {
     #
     # incoming:
@@ -510,7 +515,7 @@ multi method tree(%tree) returns Array[Array[VarName]]
     #     ["BitBroker"]
     #
 
-    sub grind(%tree, Str :$carry = "") returns Array[AcctName]
+    sub grind(%tree, Str :$carry = "") returns Array[AcctName:D]
     {
         my AcctName @acct_names;
         for %tree.keys -> $toplevel

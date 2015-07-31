@@ -102,10 +102,15 @@ else
     # execute transactions of entity Personal
     $entity_personal.transact($_) for $entity_personal.transactions;
 
+    # the :base_currency parameter must always be passed to
+    # Wallet.get_balance
+    my AssetCode $bc;
+
     # check that the balance of entity Personal's ASSETS is -837.84 USD
     is(
         $entity_personal.wallet{ASSETS}.get_balance(
             :asset_code("USD"),
+            :base_currency($bc),
             :recursive
         ),
         -837.84,
@@ -125,6 +130,7 @@ else
     is(
         $entity_personal.wallet{ASSETS}.get_balance(
             :asset_code("BTC"),
+            :base_currency($bc),
             :recursive
         ),
         1.91111111,

@@ -10,7 +10,7 @@ has Nightscape::Entry::Posting @.postings;
 has Str @.posting_comments;
 
 # check if entry is balanced
-method is_balanced() returns Bool
+method is_balanced() returns Bool:D
 {
     # Assets + Expenses = Income + Liabilities + Equity
     my Int %multiplier{Silo} =
@@ -120,8 +120,8 @@ method is_balanced() returns Bool
 
 # list unique asset codes in postings
 method ls_asset_codes(
-    Nightscape::Entry::Posting :@postings is readonly = @.postings
-) returns Array[AssetCode]
+    Nightscape::Entry::Posting:D :@postings is readonly = @.postings
+) returns Array[AssetCode:D]
 {
     my AssetCode @asset_codes;
     for @postings -> $posting
@@ -133,8 +133,8 @@ method ls_asset_codes(
 
 # list postings from entries
 multi method ls_postings(
-    Nightscape::Entry :@entries! is readonly
-) returns Array[Nightscape::Entry::Posting]
+    Nightscape::Entry:D :@entries! is readonly
+) returns Array[Nightscape::Entry::Posting:D]
 {
     my Nightscape::Entry::Posting @postings;
     for @entries -> $entry
@@ -146,7 +146,7 @@ multi method ls_postings(
 
 # filter postings
 multi method ls_postings(
-    Nightscape::Entry::Posting :@postings is readonly = @.postings,
+    Nightscape::Entry::Posting:D :@postings is readonly = @.postings,
     Regex :$asset_code,
     Silo :$silo,
     UUID :$posting_uuid
@@ -161,8 +161,8 @@ multi method ls_postings(
 
 # list postings by asset code
 multi method _ls_postings(
-    Nightscape::Entry::Posting :@postings! is readonly,
-    Regex :$asset_code!
+    Nightscape::Entry::Posting:D :@postings! is readonly,
+    Regex:D :$asset_code!
 ) returns Array[Nightscape::Entry::Posting]
 {
     my Nightscape::Entry::Posting @p = @postings.grep({
@@ -172,8 +172,8 @@ multi method _ls_postings(
 
 # list postings by silo
 multi method _ls_postings(
-    Nightscape::Entry::Posting :@postings! is readonly,
-    Silo :$silo!
+    Nightscape::Entry::Posting:D :@postings! is readonly,
+    Silo:D :$silo!
 ) returns Array[Nightscape::Entry::Posting]
 {
     my Nightscape::Entry::Posting @p = @postings.grep({
@@ -183,8 +183,8 @@ multi method _ls_postings(
 
 # list postings by uuid
 multi method _ls_postings(
-    Nightscape::Entry::Posting :@postings! is readonly,
-    UUID :$posting_uuid!
+    Nightscape::Entry::Posting:D :@postings! is readonly,
+    UUID:D :$posting_uuid!
 ) returns Array[Nightscape::Entry::Posting]
 {
     my Nightscape::Entry::Posting @p = @postings.grep({

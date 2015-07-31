@@ -22,7 +22,7 @@ has AssetCode $.xe_asset_code;
 has Quantity $.xe_asset_quantity;
 
 # update balance_delta in-place
-method mkbalance_delta(Rat :$balance_delta!, Bool :$force)
+method mkbalance_delta(Rat:D :$balance_delta!, Bool :$force)
 {
     # update $.balance_delta in-place
     sub init()
@@ -50,7 +50,7 @@ method mkbalance_delta(Rat :$balance_delta!, Bool :$force)
 }
 
 # update xe_asset_quantity in-place
-method mkxeaq(Quantity :$xe_asset_quantity!, Bool :$force)
+method mkxeaq(Quantity:D :$xe_asset_quantity!, Bool :$force)
 {
     # update $.xe_asset_quantity in-place
     sub init()

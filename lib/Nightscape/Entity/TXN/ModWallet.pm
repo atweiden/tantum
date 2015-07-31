@@ -26,14 +26,14 @@ has AssetCode $.xe_asset_code;
 has Quantity $.xe_asset_quantity;
 
 # get AcctName
-method get_acct_name() returns AcctName
+method get_acct_name() returns AcctName:D
 {
     my VarName @path = ~$.silo, @.subwallet;
     my AcctName $acct_name = @path.join(':');
 }
 
 # get value of TXN::ModWallet in entity base currency
-method get_value() returns Quantity
+method get_value() returns Quantity:D
 {
     # TXN::ModWallet value in entity base currency
     my Quantity $value;
@@ -76,7 +76,7 @@ method get_value() returns Quantity
 }
 
 # deconstruct value of TXN::ModWallet into ٍ± Rat
-method get_raw_value() returns Rat
+method get_raw_value() returns Rat:D
 {
     # get DecInc
     my DecInc $decinc = $.decinc;

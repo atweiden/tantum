@@ -13,8 +13,8 @@ has Nightscape::Entry @.entries is rw;
 
 # list unique entity names defined in entries
 method ls_entity_names(
-    Nightscape::Entry :@entries! is readonly
-) returns Array[VarName]
+    Nightscape::Entry:D :@entries! is readonly
+) returns Array[VarName:D]
 {
     my VarName @entities = .postings[0].account.entity for @entries;
     @entities .= unique;
@@ -22,7 +22,7 @@ method ls_entity_names(
 
 # list entries from on disk transaction journal
 multi method ls_entries(
-    Str :$file!,
+    Str:D :$file!,
     Bool :$sort
 ) returns Array[Nightscape::Entry]
 {
@@ -56,7 +56,7 @@ multi method ls_entries(
 
 # filter entries
 multi method ls_entries(
-    Nightscape::Entry :@entries is readonly = @.entries,
+    Nightscape::Entry:D :@entries is readonly = @.entries,
     Date :$date,
     Regex :$description,
     Regex :$entity,
@@ -77,8 +77,8 @@ multi method ls_entries(
 
 # list entries by date
 multi method _ls_entries(
-    Nightscape::Entry :@entries! is readonly,
-    Date :$date!
+    Nightscape::Entry:D :@entries! is readonly,
+    Date:D :$date!
 ) returns Array[Nightscape::Entry]
 {
     my Nightscape::Entry @e = @entries.grep({ .header.date ~~ $date });
@@ -86,8 +86,8 @@ multi method _ls_entries(
 
 # list entries by entity
 multi method _ls_entries(
-    Nightscape::Entry :@entries! is readonly,
-    Regex :$entity!
+    Nightscape::Entry:D :@entries! is readonly,
+    Regex:D :$entity!
 ) returns Array[Nightscape::Entry]
 {
     my Nightscape::Entry @e = @entries.grep({
@@ -96,7 +96,7 @@ multi method _ls_entries(
 }
 
 # instantiate entity
-method mkentity(VarName :$entity_name!, Bool :$force)
+method mkentity(VarName:D :$entity_name!, Bool :$force)
 {
     sub init()
     {

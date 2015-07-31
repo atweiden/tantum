@@ -25,7 +25,7 @@ our $CONF = Nightscape::Config.new;
 # -----------------------------------------------------------------------------
 
 sub MAIN(
-    Str $file,
+    Str:D $file,
     Str :c(:$config),
     Str :$data-dir,
     Str :$log-dir,
@@ -218,14 +218,14 @@ sub MAIN(
         }
     }
 
-    say qq:to/EOF/;
+    say q:to/EOF/;
     Diagnostics
     ===========
     EOF
 
     if $file.IO.e
     {
-        say qq:to/EOF/;
+        say q:to/EOF/;
         Journal
         -------
         EOF

@@ -3,7 +3,7 @@ use Nightscape::Parser::Actions;
 use Nightscape::Parser::Grammar;
 unit class Nightscape::Parser;
 
-method parse(Str $content) returns Match
+method parse(Str:D $content) returns Match
 {
     my Nightscape::Parser::Actions $actions .= new;
     Nightscape::Parser::Grammar.parse($content, :$actions);

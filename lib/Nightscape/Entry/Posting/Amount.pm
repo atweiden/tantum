@@ -11,8 +11,8 @@ has Nightscape::Entry::Posting::Amount::XE $.exchange_rate;
 
 # update exchange rate in-place
 method mkxe(
-    AssetCode :$posting_entity_base_currency!,
-    Quantity :$price!,
+    AssetCode:D :$posting_entity_base_currency!,
+    Quantity:D :$price!,
     Bool :$force
 )
 {
