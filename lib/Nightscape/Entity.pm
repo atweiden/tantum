@@ -21,7 +21,7 @@ has Nightscape::Entry @.entries;
 has Nightscape::Entity::Holding %.holdings{AssetCode};
 
 # transactions queue
-has Nightscape::Entity::TXN @.transactions is rw;
+has Nightscape::Entity::TXN @.transactions;
 
 # wallets indexed by silo
 has Nightscape::Entity::Wallet %.wallet{Silo} =
@@ -1496,6 +1496,12 @@ method mkcoa(Bool :$force)
     }
 }
 
+# instantiate TXN and append to entity's transactions queue
+method mktxn(Nightscape::Entry $entry is readonly)
+{
+    push @!transactions, self.gen_txn(:$entry);
+}
+
 # acquire/expend the applicable holdings
 method !mod_holdings(
     UUID :$uuid!,
@@ -1601,7 +1607,7 @@ method !mod_wallet(
 }
 
 # execute transaction
-method transact(Nightscape::Entity::TXN :$transaction! is readonly)
+method transact(Nightscape::Entity::TXN $transaction is readonly)
 {
     # uuid from causal transaction journal entry
     my UUID $uuid = $transaction.uuid;

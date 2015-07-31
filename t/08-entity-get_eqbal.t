@@ -100,12 +100,10 @@ else
         );
 
         # instantiate transactions by Entity
-        my Nightscape::Entity::TXN @transactions;
-        push @transactions, $entity.gen_txn(:entry($_)) for $entity.entries;
-        $entity.transactions = @transactions;
+        $entity.mktxn($_) for $entity.entries;
 
         # exec transactions by Entity
-        $entity.transact(:transaction($_)) for $entity.transactions;
+        $entity.transact($_) for $entity.transactions;
 
         # make chart of accounts for Entity
         $entity.mkcoa;
@@ -275,12 +273,10 @@ else
         );
 
         # instantiate transactions by Entity
-        my Nightscape::Entity::TXN @transactions;
-        push @transactions, $entity.gen_txn(:entry($_)) for $entity.entries;
-        $entity.transactions = @transactions;
+        $entity.mktxn($_) for $entity.entries;
 
         # exec transactions by Entity
-        $entity.transact(:transaction($_)) for @transactions;
+        $entity.transact($_) for $entity.transactions;
 
         # make chart of accounts for Entity
         $entity.mkcoa;

@@ -81,23 +81,26 @@ else
 }
 
 {
-    # make entity Personal
-    my Nightscape::Entity $entity_personal .= new(:entity_name("Personal"));
+    # entity name
+    my VarName $entity_name = "Personal";
 
     # get entries by entity Personal
     my Nightscape::Entry @entries_by_entity_personal = Nightscape.ls_entries(
         :@entries,
-        :entity(/Personal/)
+        :entity(/$entity_name/)
+    );
+
+    # make entity Personal
+    my Nightscape::Entity $entity_personal .= new(
+        :$entity_name,
+        :entries(@entries_by_entity_personal)
     );
 
     # generate transactions from entries by entity Personal
-    my Nightscape::Entity::TXN @transactions_by_entity_personal;
-    push @transactions_by_entity_personal, $entity_personal.gen_txn(:entry($_))
-        for @entries_by_entity_personal;
+    $entity_personal.mktxn($_) for $entity_personal.entries;
 
     # execute transactions of entity Personal
-    $entity_personal.transact(:transaction($_))
-        for @transactions_by_entity_personal;
+    $entity_personal.transact($_) for $entity_personal.transactions;
 
     # check that the balance of entity Personal's ASSETS is -837.84 USD
     is(
