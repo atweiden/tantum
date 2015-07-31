@@ -3,6 +3,9 @@ use Nightscape::Types;
 use UUID;
 unit class Nightscape::Entity::TXN::ModWallet;
 
+# parent entity
+has VarName $.entity;
+
 # causal entry's uuid
 has UUID $.entry_uuid;
 
@@ -21,5 +24,68 @@ has Quantity $.quantity;
 # xe
 has AssetCode $.xe_asset_code;
 has Quantity $.xe_asset_quantity;
+
+# get AcctName
+method get_acct_name() returns AcctName
+{
+    my VarName @path = ~$.silo, @.subwallet;
+    my AcctName $acct_name = @path.join(':');
+}
+
+# get value of TXN::ModWallet in entity base currency
+method get_value() returns Quantity
+{
+    # TXN::ModWallet value in entity base currency
+    my Quantity $value;
+
+    # entity base currency
+    my AssetCode $entity_base_currency = $GLOBAL::CONF.resolve_base_currency(
+        $.entity
+    );
+
+    # is it necessary to search for an exchange rate?
+    if $.asset_code !eq $entity_base_currency
+    {
+        # is an exchange rate given in the TXN?
+        if $.xe_asset_quantity
+        {
+            # try calculating value in base currency
+            if $.xe_asset_code eq $entity_base_currency
+            {
+                $value = $.quantity * $.xe_asset_quantity;
+            }
+            else
+            {
+                die "Sorry, TXN::ModWallet xe_asset_code did not match
+                     entity base currency asset code";
+            }
+        }
+        else
+        {
+            die "Sorry, missing xe_asset_quantity in TXN::ModWallet of
+                 aux asset";
+        }
+    }
+    else
+    {
+        # use main asset code
+        $value = $.quantity;
+    }
+
+    $value;
+}
+
+# deconstruct value of TXN::ModWallet into ٍ± Rat
+method get_raw_value() returns Rat
+{
+    # get DecInc
+    my DecInc $decinc = $.decinc;
+
+    # get value
+    my Quantity $value = self.get_value;
+
+    # convert to raw Rat value
+    my Rat $raw_value = $decinc ~~ INC ?? $value !! -$value;
+}
 
 # vim: ft=perl6

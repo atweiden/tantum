@@ -2,6 +2,9 @@ use v6;
 use Nightscape::Types;
 unit class Nightscape::Entity::TXN::ModHolding;
 
+# parent entity
+has VarName $.entity;
+
 # holding asset code
 has AssetCode $.asset_code;
 

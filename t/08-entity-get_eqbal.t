@@ -105,7 +105,7 @@ else
         $entity.transactions = @transactions;
 
         # exec transactions by Entity
-        $entity.transact(:transaction($_)) for @transactions;
+        $entity.transact(:transaction($_)) for $entity.transactions;
 
         # make chart of accounts for Entity
         $entity.mkcoa;
@@ -207,6 +207,11 @@ else
 
 # say "Entity: ", @entities[0].entity_name;
 # say $_.perl for @entities[0].tree(:wallet(@entities[0].coa.wllt));
+
+# if drift is negative, then INCOME + LIABILITIES + EQUITY outweighs
+# ASSETS + EXPENSES, because INCOME, LIABILITIES and EQUITY have a
+# -1 multiplier
+my Rat $drift = [+] (.drift for @entities[0].transactions);
 
 my Rat %balance{Silo} = @entities[0].get_eqbal(
     :wallet(@entities[0].coa.wllt)
@@ -377,6 +382,7 @@ else
 
 # say $_.perl for @entities_advanced[0].tree(:wallet(@entities_advanced[0].coa.wllt));
 
+my Rat $drift_advanced = [+] (.drift for @entities_advanced[0].transactions);
 my Rat %balance_advanced{Silo} = @entities_advanced[0].get_eqbal(
     :wallet(@entities_advanced[0].coa.wllt)
     :acct(@entities_advanced[0].coa.acct)
@@ -390,8 +396,8 @@ my Rat %balance_advanced{Silo} = @entities_advanced[0].get_eqbal(
 
 is(
     %balance_advanced{ASSETS} + %balance_advanced{EXPENSES},
-    %balance_advanced{INCOME} +
-        %balance_advanced{LIABILITIES} + %balance_advanced{EQUITY},
+    %balance_advanced{INCOME} + %balance_advanced{LIABILITIES}
+        + %balance_advanced{EQUITY} + $drift_advanced,
     q:to/EOF/
     ♪ [get_eqbal] - 2 of 2
     ┏━━━━━━━━━━━━━┓

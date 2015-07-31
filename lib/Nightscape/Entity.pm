@@ -981,6 +981,7 @@ method gen_txn(
 
         # build mod_wallet
         push @mod_wallet, Nightscape::Entity::TXN::ModWallet.new(
+            :entity($.entity_name),
             :entry_uuid($uuid),
             :$posting_uuid,
             :$asset_code,
@@ -1061,6 +1062,7 @@ method gen_txn(
         # build mod_holdings
         %mod_holdings{$aux_asset_code} =
             Nightscape::Entity::TXN::ModHolding.new(
+                :entity($.entity_name),
                 :asset_code($aux_asset_code),
                 :$asset_flow,
                 :$costing,
@@ -1072,7 +1074,12 @@ method gen_txn(
     }
 
     # build transaction
-    Nightscape::Entity::TXN.new(:$uuid, :%mod_holdings, :@mod_wallet);
+    Nightscape::Entity::TXN.new(
+        :entity($.entity_name),
+        :$uuid,
+        :%mod_holdings,
+        :@mod_wallet
+    );
 }
 
 # recursively sum balances in terms of entity base currency,
