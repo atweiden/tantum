@@ -41,6 +41,7 @@ method acquire(
 method expend(
     AssetCode:D :$asset_code!,
     UUID:D :$uuid!,
+    Date:D :$date!,
     Costing:D :$costing!,
     Price:D :$price!,
     AssetCode:D :$acquisition_price_asset_code!,
@@ -81,13 +82,21 @@ method expend(
             # get scalar container of basis lot
             my Nightscape::Entity::Holding::Basis $basis := @!basis[$i];
 
+            # acquisition date
+            my Date $acquisition_date = $basis.date;
+
+            # date of expenditure
+            my Date $date_of_expenditure = $date;
+
             # try decreasing units by quantity
             $basis.deplete(
                 :$uuid,
                 :quantity($qty),
+                :$acquisition_date,
                 :acquisition_price($basis.price),
                 :$acquisition_price_asset_code,
-                :avco_at_expenditure($.avco)
+                :avco_at_expenditure($.avco),
+                :$date_of_expenditure
             );
 
             # for calculating capital gains/losses
@@ -112,9 +121,11 @@ method expend(
                 my Quantity $capital_gains = $d.abs;
                 push %!taxes{$uuid}, Nightscape::Entity::Holding::Taxes.new(
                     :$uuid,
+                    :$acquisition_date,
                     :acquisition_price($basis.price),
                     :$acquisition_price_asset_code,
                     :avco_at_expenditure($.avco),
+                    :$date_of_expenditure,
                     :$capital_gains,
                     :quantity_expended($qty),
                     :quantity_expended_asset_code($.asset_code)
@@ -126,9 +137,11 @@ method expend(
                 my Quantity $capital_losses = $d.abs;
                 push %!taxes{$uuid}, Nightscape::Entity::Holding::Taxes.new(
                     :$uuid,
+                    :$acquisition_date,
                     :acquisition_price($basis.price),
                     :$acquisition_price_asset_code,
                     :avco_at_expenditure($.avco),
+                    :$date_of_expenditure,
                     :$capital_losses,
                     :quantity_expended($qty),
                     :quantity_expended_asset_code($.asset_code)

@@ -9,6 +9,9 @@ has Quantity $.quantity;
 # causal entry's UUID of this depletion
 has UUID $.uuid;
 
+# date of acquisition of holding being depleted
+has Date $.acquisition_date;
+
 # acquisition price of holding being depleted
 has Price $.acquisition_price;
 
@@ -17,5 +20,8 @@ has AssetCode $.acquisition_price_asset_code;
 
 # average cost of holding being depleted at time of depletion
 has Price $.avco_at_expenditure;
+
+# date of expenditure
+has Date $.date_of_expenditure;
 
 # vim: ft=perl6

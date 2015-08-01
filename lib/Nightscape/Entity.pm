@@ -303,6 +303,11 @@ method acct2wllt(
                 my Quantity $capital_gains = $tax_event.capital_gains;
                 my Quantity $capital_losses = $tax_event.capital_losses;
 
+                # get holding period and convert to wallet name
+                my HoldingPeriod $holding_period = $tax_event.holding_period;
+                my VarName $holding_period_name =
+                    $holding_period ~~ LONG_TERM ?? "LongTerm" !! "ShortTerm";
+
                 # check that, if capital gains exist, capital losses
                 # don't exist, and vice versa
                 if $capital_gains > 0
@@ -367,7 +372,11 @@ method acct2wllt(
                 my Quantity $xeaq;
 
                 # enter realized capital gains / losses in Silo INCOME
-                in_wallet(%wllt{INCOME}, "NSAutoCapitalGains").mkchangeset(
+                in_wallet(
+                    %wllt{INCOME},
+                    "NSAutoCapitalGains",
+                    $holding_period_name
+                ).mkchangeset(
                     :entry_uuid($tax_uuid),
                     :$posting_uuid,
                     :asset_code($entity_base_currency),
@@ -1561,6 +1570,7 @@ method !mod_holdings(
         # expend asset
         %!holdings{$asset_code}.expend(
             :$uuid,
+            :$date,
             :$asset_code,
             :$costing,
             :$price,

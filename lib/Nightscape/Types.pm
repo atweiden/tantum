@@ -38,6 +38,8 @@ enum Costing is export <AVCO FIFO LIFO>;
 
 enum DecInc is export <DEC INC>;
 
+enum HoldingPeriod is export <SHORT_TERM LONG_TERM>;
+
 enum NewMod is export <NEW MOD>;
 
 enum Silo is export <ASSETS EXPENSES INCOME LIABILITIES EQUITY>;

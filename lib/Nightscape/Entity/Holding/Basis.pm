@@ -19,9 +19,11 @@ has Nightscape::Entity::Holding::Basis::Depletion %.depletions{UUID};
 method deplete(
     Quantity:D :$quantity! where * > 0,
     UUID:D :$uuid!,
+    Date:D :$acquisition_date!,
     Price:D :$acquisition_price!,
     AssetCode:D :$acquisition_price_asset_code!,
-    Price:D :$avco_at_expenditure!
+    Price:D :$avco_at_expenditure!,
+    Date:D :$date_of_expenditure!
 )
 {
     # check for sufficient unit quantity of asset in holdings
@@ -43,9 +45,11 @@ method deplete(
     # record causal entry UUID of depletion with quantity depleted
     %!depletions{$uuid} = Nightscape::Entity::Holding::Basis::Depletion.new(
         :$uuid,
+        :$acquisition_date,
         :$acquisition_price,
         :$acquisition_price_asset_code,
         :$avco_at_expenditure,
+        :$date_of_expenditure,
         :$quantity
     );
 }
