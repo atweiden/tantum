@@ -432,8 +432,8 @@ sub gen_instructions(
 
         # add subfill to %.subfills at acquisition price (xe_asset_quantity)
         method mksubfill(
-            Quantity :$acquisition_price!,    # price at acquisition (or avco)
-            Quantity :$subfill!               # amount to fill at price
+            Quantity:D :$acquisition_price!,    # price at acquisition (or avco)
+            Quantity:D :$subfill!               # amount to fill at price
         )
         {
             # ensure bucket has capacity open for this subfill
@@ -1103,7 +1103,7 @@ method get_eqbal(
     my Rat %balance{Silo};
 
     # sum wallet balances and store in %balance
-    sub fill_balance(AssetCode $asset_code)
+    sub fill_balance(AssetCode:D $asset_code)
     {
         # for all wallets in all Silos
         for Silo.enums.keys -> $silo
