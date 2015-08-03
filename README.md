@@ -1,7 +1,8 @@
 Nightscape
 ==========
 
-Bitcoin double-entry cmdline accounting system (WIP)
+Double-entry cmdline accounting system with support for automatic capital
+gains / losses calculation using an intuitive syntax.
 
 
 Description
