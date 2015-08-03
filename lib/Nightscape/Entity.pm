@@ -1762,7 +1762,7 @@ method tree2acct(
             :@assets_handled,
             :%entry_uuids_by_asset,
             :@entry_uuids_handled,
-            :%posting_uuids_by_asset
+            :%posting_uuids_by_asset,
             :@posting_uuids_handled
         );
     }

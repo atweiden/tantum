@@ -171,7 +171,7 @@ method ls_assets_with_uuids(
         if $posting
         {
             # get posting UUIDs handled by asset code
-            %uuids_handled_by_asset_code{$asset_code} = self.ls_uuids(
+            %uuids_handled_by_asset_code{$asset_code} = self.ls_uuids_by_asset(
                 :$asset_code,
                 :posting
             );
@@ -179,7 +179,7 @@ method ls_assets_with_uuids(
         else
         {
             # get entry UUIDs handled by asset code
-            %uuids_handled_by_asset_code{$asset_code} = self.ls_uuids(
+            %uuids_handled_by_asset_code{$asset_code} = self.ls_uuids_by_asset(
                 :$asset_code
             );
         }
@@ -221,14 +221,11 @@ multi method _ls_changesets(
     });
 }
 
-# list UUIDs handled (default: entry UUID)
-method ls_uuids(Str :$asset_code, Bool :$posting) returns Array[UUID]
+# list UUIDs handled, all asset codes (default: entry UUID)
+method ls_uuids(Bool :$posting) returns Array[UUID:D]
 {
     # populate assets handled
-    my AssetCode @assets_handled;
-    $asset_code
-        ?? (@assets_handled = $asset_code)
-        !! (@assets_handled = self.ls_assets);
+    my AssetCode @assets_handled = self.ls_assets;
 
     # store UUIDs handled
     my UUID @uuids_handled;
@@ -236,22 +233,29 @@ method ls_uuids(Str :$asset_code, Bool :$posting) returns Array[UUID]
     # fetch UUIDs handled
     for @assets_handled -> $asset_code
     {
-        for %.balance{$asset_code} -> @changesets
+        push @uuids_handled, self.ls_uuids_by_asset(:$asset_code, :$posting);
+    }
+
+    @uuids_handled;
+}
+
+# list UUIDs handled, single asset code (default: entry UUID)
+method ls_uuids_by_asset(
+    AssetCode:D :$asset_code!,
+    Bool :$posting
+) returns Array[UUID]
+{
+    # store UUIDs handled
+    my UUID @uuids_handled;
+
+    # fetch UUIDs handled
+    for %.balance{$asset_code} -> @changesets
+    {
+        for @changesets -> $changeset
         {
-            for @changesets -> $changeset
-            {
-                # requested posting UUIDs?
-                if $posting
-                {
-                    # gather causal posting UUIDs
-                    push @uuids_handled, $changeset.posting_uuid;
-                }
-                else
-                {
-                    # gather causal entry UUIDs
-                    push @uuids_handled, $changeset.entry_uuid;
-                }
-            }
+            # posting UUIDs if posting requested, else entry UUIDs
+            push @uuids_handled,
+                $posting ?? $changeset.posting_uuid !! $changeset.entry_uuid;
         }
     }
 
