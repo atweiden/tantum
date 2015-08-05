@@ -16,7 +16,7 @@ method ls_entity_names(
     Nightscape::Entry:D :@entries! is readonly
 ) returns Array[VarName:D]
 {
-    my VarName @entities = .postings[0].account.entity for @entries;
+    my VarName @entities = (.postings[0].account.entity for @entries);
     @entities .= unique;
 }
 

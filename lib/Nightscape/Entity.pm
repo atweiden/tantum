@@ -1091,6 +1091,37 @@ method gen_txn(
     );
 }
 
+# get balance of each asset present in wallet %wallet Silo Assets
+method get_balance(
+    Nightscape::Entity::Wallet:D :%wallet! is readonly
+) returns Hash[Rat,AssetCode]
+{
+    my Rat %balance{AssetCode};
+    my AssetCode @assets_handled = self.ls_assets_handled(:%wallet);
+    for @assets_handled -> $asset_code
+    {
+        %balance{$asset_code} = self.get_balance_by_asset(
+            :$asset_code,
+            :%wallet
+        );
+    }
+    %balance;
+}
+
+# get balance of asset $asset_code in wallet %wallet Silo Assets
+method get_balance_by_asset(
+    AssetCode:D :$asset_code!,
+    Nightscape::Entity::Wallet:D :%wallet! is readonly,
+) returns Rat
+{
+    my AssetCode $base_currency; # purposefully empty var
+    my Rat $balance = in_wallet(%wallet{ASSETS}).get_balance(
+        :$asset_code,
+        :$base_currency,
+        :recursive
+    );
+}
+
 # recursively sum balances in terms of entity base currency,
 # all wallets in all Silos
 method get_eqbal(
