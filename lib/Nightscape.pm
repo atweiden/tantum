@@ -16,6 +16,16 @@ method ls_entity_names(
     Nightscape::Entry:D :@entries! is readonly
 ) returns Array[VarName:D]
 {
+    # to instantiate Nightscape::Entry, exec Nightscape.ls_entries(:$file)
+    # to parse entries. Actions.pm contains logic barring more than one
+    # entity per entry:
+    #
+    #     die unless @entities.grep(@entities[0]).elems == @entities.elems
+    #
+    # entries that include more than one entity violate syntax rules
+    #
+    # `.postings[0]` is allowable because we know only one entity can
+    # appear in each entry
     my VarName @entities = (.postings[0].account.entity for @entries);
     @entities .= unique;
 }

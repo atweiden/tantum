@@ -49,7 +49,7 @@ method get_balance(
     AssetCode:D :$asset_code!,    # get wallet balance for this asset code
     AssetCode :$base_currency,    # (optional) request results in $base_currency
     Bool :$recursive              # (optional) recursively query subwallets
-) returns Rat:D
+) returns Rat:D                   # returns 0.0 if asset code does not exist
 {
     my Rat $balance;
     my Rat @deltas;
