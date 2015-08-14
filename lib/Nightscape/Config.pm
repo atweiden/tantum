@@ -126,16 +126,20 @@ method gen_pricesheet(:%prices!) returns Hash[Hash[Price,Date],AssetCode]
         # price-file directive found?
         if $price_file
         {
-            # if price-file directive given, check that the file exists
-            # TODO: if price-file is given as relative path, prepend to it self.currencies_dir
-            if $price_file.IO.e
+            # if toml price-file is given as relative path, prepend to
+            # it $.price_dir
+            if $price_file.IO.is-relative
             {
-                %dates_and_prices_from_file = read_price_file(:$price_file);
+                $price_file = $.price_dir, "/", $price_file;
             }
-            else
+
+            # does price file exist?
+            unless $price_file.IO.e
             {
                 die "Sorry, could not locate price file at 「$price_file」";
             }
+
+            %dates_and_prices_from_file = read_price_file(:$price_file);
         }
 
         # merge %dates_and_prices_from_file with %dates_and_prices,
