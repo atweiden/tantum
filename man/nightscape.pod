@@ -1,0 +1,18 @@
+=encoding utf8
+
+=head1 NAME
+
+nightscape - a plain-text cmdline double-entry bookkeeping system
+
+=head1 SYNOPSIS
+
+B<nightscape> [-h] [--config=CONFIG_FILE] TRANSACTION_JOURNAL
+
+=head1 DESCRIPTION
+
+Double-entry cmdline accounting system with support for automatic capital
+gains / losses calculation using an intuitive syntax.
+
+=head1 SEE ALSO
+
+L<ledger(1)>
