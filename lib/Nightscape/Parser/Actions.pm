@@ -42,7 +42,7 @@ method header($/)
     $entry_uuid = $uuid;
 
     # entry date
-    my Date $date = $<iso_date>».made.pairs[0].value;
+    my Date $date = $<iso_date>.made;
 
     # entry description
     my Str $description;
@@ -126,8 +126,8 @@ method amount($/)
     $minus_sign = $<minus_sign>.Str if $<minus_sign>;
 
     # exchange rate
-    my Nightscape::Entry::Posting::Amount::XE $exchange_rate =
-        $<exchange_rate>».made.pairs[0].value // Nil;
+    my Nightscape::Entry::Posting::Amount::XE $exchange_rate;
+    $exchange_rate = $<exchange_rate>».made.pairs[0].value if $<exchange_rate>;
 
     # make amount
     make Nightscape::Entry::Posting::Amount.new(
@@ -174,7 +174,7 @@ method entry($/)
     my Nightscape::Entry::Posting @postings = @<posting>».made.list.values;
 
     # posting comments
-    my Str @posting_comments = $<posting_comment>».Str».map({
+    my Str @posting_comments = $<posting_comment>».Str.map({
         try {substr($_, 1, *-0).trim}
     }) // Nil;
 
@@ -238,7 +238,7 @@ method journal($/)
     if $<entry>
     {
         # journal entry
-        my %entry = $<entry>».made;
+        my %entry = $<entry>.made;
         my Nightscape::Entry::Header $header = %entry<header>;
         my Nightscape::Entry::Posting @postings = %entry<postings>.list;
         my Str @posting_comments = %entry<posting_comments>.list;
@@ -249,7 +249,7 @@ method journal($/)
     elsif $<include>
     {
         # included transaction journal
-        make $<include>».made.list[0];
+        make $<include>.made;
     }
 }
 

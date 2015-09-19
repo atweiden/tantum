@@ -13,7 +13,7 @@ has Costing $.base_costing;
 has AssetCode $.base_currency;
 
 # open date range
-has Range $.open{Date};
+has Range $.open;
 
 # entity-specific asset settings parsed from config, indexed by asset code
 has Nightscape::Config::Asset %.assets{AssetCode};

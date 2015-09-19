@@ -199,7 +199,7 @@ multi method gen_settings(
     $base_currency = $entity_data<base-currency> if $entity_data<base-currency>;
 
     # TODO: populate entity open dates if found
-    my Range $open{Date};
+    my Range $open;
 
     # build entity settings
     Nightscape::Config::Entity.new(

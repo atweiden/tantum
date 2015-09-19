@@ -47,7 +47,8 @@ multi method ls_entries(
             for $parsed.made.grep(Nightscape::Parser::Include);
 
         # entries, unsorted, with included transaction journals
-        @entries = ($parsed.made.grep(Nightscape::Entry), @entries_included);
+        push @entries, $parsed.made.grep(Nightscape::Entry);
+        push @entries, @entries_included;
 
         # entries, sorted by date ascending then by importance descending
         @entries = @entries.sort({

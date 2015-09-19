@@ -1020,10 +1020,8 @@ method gen_txn(
         Nightscape::Entry.ls_postings(:@postings, :$asset_code, :$silo);
 
     # filter out base currency postings
-    my Set $postings_remainder{Nightscape::Entry::Posting} =
-        @postings_assets_silo (-) @postings_assets_silo_base_currency;
     my Nightscape::Entry::Posting @postings_remainder =
-        $postings_remainder.list;
+        (@postings_assets_silo (-) @postings_assets_silo_base_currency).keys;
 
     # find unique aux asset codes
     my VarName @aux_asset_codes = Nightscape::Entry.ls_asset_codes(
