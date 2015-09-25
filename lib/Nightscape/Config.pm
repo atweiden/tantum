@@ -25,15 +25,19 @@ has Nightscape::Config::Entity %.entities{VarName} is rw;
 # filter asset price data from unvalidated %toml config
 method detoml_assets(%toml) returns Hash[Any,AssetCode]
 {
-    # detect assets toml header
+    # store [Aa]ssets toml header (case insensitive)
     my VarName $assets_header;
-    %toml.map({ $assets_header = $/.orig.Str if $_.keys ~~ m:i / ^assets /; });
+
+    # match is stored in special perlvar 「$/」, orig.Str Stringifies
+    # the original matching text for case insensitivity
+    %toml.map({ $assets_header = $/.orig.Str if $_.keys ~~ /:i ^assets/; });
 
     # store assets found
     my %assets_found{AssetCode};
+
+    # assign assets data (under case insensitive [Aa]ssets toml header)
     %assets_found = %(%toml{$assets_header}) if $assets_header;
 
-    # assets found
     %assets_found;
 }
 
