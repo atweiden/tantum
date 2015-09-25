@@ -11,7 +11,12 @@ unit class Nightscape::Entity;
 # entity name
 has VarName $.entity_name;
 
-# chart of accounts (acct, eq, wllt)
+# entity base currency
+has AssetCode $.entity_base_currency =
+    $GLOBAL::CONF ?? $GLOBAL::CONF.resolve_base_currency($!entity_name)
+                  !! "USD";
+
+# chart of accounts
 has Nightscape::Entity::COA $.coa;
 
 # entries by this entity
@@ -38,18 +43,36 @@ method acct2wllt(
     Nightscape::Entity::Wallet:D :%wallet is readonly = %.wallet
 ) returns Hash[Nightscape::Entity::Wallet:D,Silo:D]
 {
-    # get entity base currency for cross-checking acquisition price asset codes
-    my AssetCode $entity_base_currency = $GLOBAL::CONF.resolve_base_currency(
-        $.entity_name
-    );
-
     # make copy of %wallet for incising realized capital gains / losses
+    my Nightscape::Entity::Wallet %wllt{Silo} = clone_wallet(:%wallet);
+    %wllt = self!incise_capital_gains_and_losses(
+        :%acct,
+        :%holdings,
+        :%wallet,
+        :%wllt
+    );
+}
+
+sub clone_wallet(
+    Nightscape::Entity::Wallet:D :%wallet! is readonly
+) returns Hash[Nightscape::Entity::Wallet:D,Silo:D]
+{
     my Nightscape::Entity::Wallet %wllt{Silo};
     for %wallet.kv -> $silo, $wallet
     {
         %wllt{::($silo)} = $wallet.clone;
     }
+    %wllt;
+}
 
+# modify %wllt on a per $tax_uuid basis using %instructions
+method !incise_capital_gains_and_losses(
+    Nightscape::Entity::COA::Acct:D :%acct! is readonly,
+    Nightscape::Entity::Holding:D :%holdings! is readonly,
+    Nightscape::Entity::Wallet:D :%wallet! is readonly,
+    Nightscape::Entity::Wallet:D :%wllt!
+) returns Hash[Nightscape::Entity::Wallet:D,Silo:D]
+{
     # for each asset code in holdings
     for %holdings.kv -> $asset_code, $holdings
     {
@@ -66,46 +89,14 @@ method acct2wllt(
             # ensure all original quantities expended are quoted in the
             # asset code $asset_code, and that acquisition price is
             # quoted in entity's base currency
-            for @taxes
-            {
-                # was incorrect asset code expended?
-                unless $^a.quantity_expended_asset_code ~~ $asset_code
-                {
-                    # error: improper asset code expended
-                    die "Sorry, improper asset code expended in tax event";
-                }
-
-                # did asset code used for acquisition price differ from
-                # entity's base currency?
-                unless $^a.acquisition_price_asset_code ~~ $entity_base_currency
-                {
-                    # error: acquisition price asset code differs from
-                    # entity base currency
-                    die "Sorry, asset code for acquisition price differs
-                         from entity base currency";
-                }
-            }
+            self.perform_sanity_check(:$asset_code, :@taxes);
 
             # fetch all accts containing this asset code with changesets created
             # from entry UUID $tax_uuid
             # - associated realized capital gains / losses must have resulted
             #   from the assorted changesets in these wallets
-            # - we're grepping for wallet paths containing Wallet.balance
-            #   adjustment events only of asset code $asset_code, and caused only
-            #   by entry UUID $tax_uuid leading to realized capital gains or
-            #   realized capital losses
-            #   - the changesets are not being pointed to, just the wallets
-            #     containing those changesets
             my Nightscape::Entity::COA::Acct %acct_targets{AcctName} =
-                %acct.grep({
-                    # only find targets in Silo ASSETS
-                    .value.path[0] ~~ "ASSETS"
-                }).grep({
-                    # only find targets with matching asset code and entry UUID
-                    .value.entry_uuids_by_asset{$asset_code}.grep(
-                        $tax_uuid
-                    )
-                });
+                resolve_acct_targets();
 
             # total quantity debited in targets, separately and in total
             #
@@ -147,34 +138,15 @@ method acct2wllt(
                         :entry_uuid($tax_uuid),
                         :%wallet
                     );
-            my Quantity $total_quantity_debited =
-                %total_quantity_debited.keys[0];
 
             # total quantity expended, separately and in total
             my Hash[Quantity,Quantity] %total_quantity_expended{Quantity} =
                 get_total_quantity_expended(:$costing, :@taxes);
-            my Quantity $total_quantity_expended =
-                %total_quantity_expended.keys[0];
 
-            # verify that the sum total quantity being debited from
-            # ASSETS wallets == the sum total quantity expended according
-            # to Taxes{$tax_uuid}
-            #
-            # was the total quantity debited of asset code $asset_code in target
-            # ASSETS wallets different from the total quantity expended
-            # according to Taxes instances generated by entry UUID $tax_uuid?
-            #
-            # they should always be equivalent
-            unless $total_quantity_debited == $total_quantity_expended
-            {
-                # error: total quantity debited mismatch
-                die "Sorry, encountered total quantity debited mismatch";
-                # this suggests original Holding.EXPEND call calculation
-                # of INCs - DECs contains a bug not caught in testing, or
-                # that the above %acct_targets were grepped for using
-                # flawed terms, or that Entity.get_total_quantity_debited
-                # call to Wallet.ls_changesets produced unexpected results
-            }
+            self.perform_sanity_check(
+                :%total_quantity_debited,
+                :%total_quantity_expended
+            );
 
             # fetch instructions for incising realized capital gains / losses
             # NEW/MOD | AcctName | QuantityToDebit | XE
@@ -183,213 +155,319 @@ method acct2wllt(
                 :%total_quantity_expended
             );
 
-            # run another check to make sure, after instructions are
-            # applied, the difference in total quantity debited in entity
-            # base currency is balanced by the change to NSAutoCapitalGains
+            self!mkincision(
+                :$asset_code,
+                :%instructions,
+                :$tax_uuid,
+                :@taxes,
+                :%wllt
+            );
+        }
+    }
+}
 
-            # get original quantity debited value in entity base currency,
-            # of asset code $asset_code in entry uuid $tax_uuid, that is,
-            # the sum of balance deltas
-            #
-            # NOTE: it is crucial to only sum the value of postings
-            #       rewritten by Instructions (%instructions.keys)
-            my Quantity $original_value_debited =
-                [+] (self.get_posting_value(
-                        :base_currency($entity_base_currency),
-                        :entry_uuid($tax_uuid),
-                        :posting_uuid($_)
-                    ) for %instructions.keys);
+method !mkincision(
+    AssetCode:D :$asset_code!,
+    Array[Instruction:D] :%instructions!,
+    UUID:D :$tax_uuid!,
+    Nightscape::Entity::Holding::Taxes:D :@taxes! is readonly,
+    Nightscape::Entity::Wallet:D :%wllt!
+)
+{
+    # run another check to make sure, after instructions are
+    # applied, the difference in total quantity debited in entity
+    # base currency is balanced by the change to NSAutoCapitalGains
+    self.perform_sanity_check(:%instructions, :$tax_uuid, :@taxes);
 
-            # get new quantity debited value in entity base currency,
-            # of asset code $asset_code in entry uuid $tax_uuid, from
-            # Instructions
-            my Quantity $new_value_debited;
-            for %instructions.values -> @instructions
-            {
-                for @instructions -> $instruction
-                {
-                    # all Instructions include quantity to debit
-                    my Quantity $quantity_to_debit =
-                        $instruction<quantity_to_debit>;
+    # apply instructions to balance out NSAutoCapitalGains later
+    for %instructions.kv -> $posting_uuid, @instructions
+    {
+        for @instructions -> $instruction
+        {
+            # get wallet path by splitting AcctName on ':'
+            my VarName @path = $instruction<acct_name>.split(':');
 
-                    # some MOD Instructions and all NEW Instructions
-                    # include xe
-                    my Quantity $xe;
-                    if $instruction<xe>
-                    {
-                        $xe = $instruction<xe>;
-                    }
-                    else
-                    {
-                        # find xe by backtracing to causal transaction
-                        my Nightscape::Entity::TXN $txn = self.ls_txn(
-                            :posting_uuid($instruction<posting_uuid>)
-                        );
-                        my Nightscape::Entity::TXN::ModWallet @mod_wallets =
-                            $txn.mod_wallet.grep({
-                                .posting_uuid ~~ $instruction<posting_uuid>
-                            });
-                        unless @mod_wallets.elems == 1
-                        {
-                            if @mod_wallets.elems > 1
-                            {
-                                die "Sorry, found more than one
-                                     TXN.mod_wallet with the same posting
-                                     UUID, which should be impossible";
-                            }
-                            elsif @mod_wallets.elems < 1
-                            {
-                                die "Sorry, found no matching
-                                     TXN.mod_wallet with the same
-                                     posting UUID";
-                            }
-                        }
-                        my Nightscape::Entity::TXN::ModWallet $mod_wallet =
-                            @mod_wallets[0];
-                        $xe = $mod_wallet.xe_asset_quantity;
-                    }
-
-                    my Quantity $val = Rat($quantity_to_debit * $xe);
-                    $new_value_debited += $val;
-                }
-            }
-
-            # we expect NSAutoCapitalGains to change by this amount
-            # if >0, realized capital gains, NSAutoCapitalGains++
-            # if <0, realized capital losses, NSAutoCapitalGains--
-            my Rat $expected_income_delta =
-                $original_value_debited - $new_value_debited;
-
-            # the amount to change NSAutoCapitalGains by
-            my Rat $actual_income_delta =
-                [+] (.capital_gains - .capital_losses for @taxes);
-
-            # was expected income delta not the same as actual income
-            # delta?
-            unless $expected_income_delta == $actual_income_delta
-            {
-                # error: expectations differ from actual
-                die "Sorry, expected income delta not equivalent to
-                     gains less losses";
-            }
-
-            # apply instructions to balance out NSAutoCapitalGains later
-            for %instructions.kv -> $posting_uuid, @instructions
-            {
-                for @instructions -> $instruction
-                {
-                    # get wallet path by splitting AcctName on ':'
-                    my VarName @path = $instruction<acct_name>.split(':');
-
-                    # make new changeset or modify existing, by instruction
-                    in_wallet(%wllt{::(@path[0])}, @path[1..*]).mkchangeset(
-                        :$asset_code,
-                        :xe_asset_code($entity_base_currency),
-                        :entry_uuid($tax_uuid),
-                        :$posting_uuid,
-                        :$instruction
-                    );
-                }
-            }
-
-            # incise silo INCOME with realized capital gains / losses
-            for @taxes -> $tax_event
-            {
-                # store realized capital gains, realized capital losses
-                #
-                # use of Quantity subset type on Taxes.capital_gains
-                # and Taxes.capital_losses proves neither capital gains
-                # nor capital losses can be less than zero
-                my Quantity $capital_gains = $tax_event.capital_gains;
-                my Quantity $capital_losses = $tax_event.capital_losses;
-
-                # get holding period and convert to wallet name
-                my HoldingPeriod $holding_period = $tax_event.holding_period;
-                my VarName $holding_period_name =
-                    $holding_period ~~ LONG_TERM ?? "LongTerm" !! "ShortTerm";
-
-                # check that, if capital gains exist, capital losses
-                # don't exist, and vice versa
-                if $capital_gains > 0
-                {
-                    unless $capital_losses == 0
-                    {
-                        die "Sorry, unexpected capital losses in the
-                            presence of capital gains on a per tax
-                            event basis";
-                    }
-                }
-                elsif $capital_losses > 0
-                {
-                    unless $capital_gains == 0
-                    {
-                        die "Sorry, unexpected capital gains in the
-                            presence of capital losses on a per tax
-                            event basis";
-                    }
-                }
-                else
-                {
-                    # impossible for a single tax event to have
-                    # neither capital gains nor capital losses since
-                    # &Holding.expend::rmtargets generates Taxes.new per
-                    # each basis lot expended, computing gains or losses,
-                    # or no gains/losses, relative to each basis lot
-                    # being targeted:
-                    #
-                    # - an expenditure had to have happened to instantiate
-                    #   the Taxes class, creating those capital gains or
-                    #   losses with the associated UUID (the 'taxes.keys')
-                    # - if (expend price - basis price) * quantity expended > 0,
-                    #   only then will a Taxes class be instantiated and
-                    #   realized capital gains recorded
-                    # - if (expend price - basis price) * quantity expended < 0,
-                    #   only then will a Taxes class be instantiated and
-                    #   realized capital losses recorded
-                    # - under no other conditions would the key $tax_uuid exist
-                    # - each single tax event will necessarily be either
-                    #   a gain or a loss
-                    die "Sorry, unexpected absence of capital gains and losses";
-                }
-
-                # take difference of realized capital gains and losses
-                my Rat $gains_less_losses = $capital_gains - $capital_losses;
-
-                # determine whether gain (INC) or loss (DEC)
-                my DecInc $decinc;
-                if $gains_less_losses > 0
-                {
-                    $decinc = INC;
-                }
-                elsif $gains_less_losses < 0
-                {
-                    $decinc = DEC;
-                }
-
-                # purposefully empty vars, not needed for NSAutoCapitalGains
-                my UUID $posting_uuid;
-                my AssetCode $xeac;
-                my Quantity $xeaq;
-
-                # enter realized capital gains / losses in Silo INCOME
-                in_wallet(
-                    %wllt{INCOME},
-                    "NSAutoCapitalGains",
-                    $holding_period_name
-                ).mkchangeset(
-                    :entry_uuid($tax_uuid),
-                    :$posting_uuid,
-                    :asset_code($entity_base_currency),
-                    :$decinc,
-                    :quantity($gains_less_losses.abs),
-                    :xe_asset_code($xeac),
-                    :xe_asset_quantity($xeaq)
-                );
-            }
+            # make new changeset or modify existing, by instruction
+            in_wallet(%wllt{::(@path[0])}, @path[1..*]).mkchangeset(
+                :$asset_code,
+                :xe_asset_code($.entity_base_currency),
+                :entry_uuid($tax_uuid),
+                :$posting_uuid,
+                :$instruction
+            );
         }
     }
 
-    %wllt;
+    # incise silo INCOME with realized capital gains / losses
+    for @taxes -> $tax_event
+    {
+        # store realized capital gains, realized capital losses
+        #
+        # use of Quantity subset type on Taxes.capital_gains
+        # and Taxes.capital_losses proves neither capital gains
+        # nor capital losses can be less than zero
+        my Quantity $capital_gains = $tax_event.capital_gains;
+        my Quantity $capital_losses = $tax_event.capital_losses;
+
+        # get holding period and convert to wallet name
+        my HoldingPeriod $holding_period = $tax_event.holding_period;
+        my VarName $holding_period_name =
+            $holding_period ~~ LONG_TERM ?? "LongTerm" !! "ShortTerm";
+
+        # check that, if capital gains exist, capital losses
+        # don't exist, and vice versa
+        self.perform_sanity_check(:$capital_gains, :$capital_losses);
+
+        # take difference of realized capital gains and losses
+        my Rat $gains_less_losses = $capital_gains - $capital_losses;
+
+        # determine whether gain (INC) or loss (DEC)
+        my DecInc $decinc;
+        if $gains_less_losses > 0
+        {
+            $decinc = INC;
+        }
+        elsif $gains_less_losses < 0
+        {
+            $decinc = DEC;
+        }
+
+        # purposefully empty vars, not needed for NSAutoCapitalGains
+        my UUID $posting_uuid;
+        my AssetCode $xeac;
+        my Quantity $xeaq;
+
+        # enter realized capital gains / losses in Silo INCOME
+        in_wallet(
+            %wllt{INCOME},
+            "NSAutoCapitalGains",
+            $holding_period_name
+        ).mkchangeset(
+            :entry_uuid($tax_uuid),
+            :$posting_uuid,
+            :asset_code($.entity_base_currency),
+            :$decinc,
+            :quantity($gains_less_losses.abs),
+            :xe_asset_code($xeac),
+            :xe_asset_quantity($xeaq)
+        );
+    }
+}
+
+multi method perform_sanity_check(
+    AssetCode:D :$asset_code!,
+    Nightscape::Entity::Holding::Taxes:D :@taxes! is readonly
+)
+{
+    for @taxes
+    {
+        # was incorrect asset code expended?
+        unless $_.quantity_expended_asset_code ~~ $asset_code
+        {
+            # error: improper asset code expended
+            die "Sorry, improper asset code expended in tax event";
+        }
+
+        # did asset code used for acquisition price differ from
+        # entity's base currency?
+        unless $_.acquisition_price_asset_code ~~ $.entity_base_currency
+        {
+            # error: acquisition price asset code differs from
+            # entity base currency
+            die "Sorry, asset code for acquisition price differs
+                    from entity base currency";
+        }
+    }
+}
+
+multi method perform_sanity_check(
+    Hash[Hash[Hash[Rat:D,UUID:D],Rat:D],AcctName:D]
+        :%total_quantity_debited!,
+    Hash[Quantity:D,Quantity:D] :%total_quantity_expended!,
+)
+{
+    my Quantity $total_quantity_debited = %total_quantity_debited.keys[0];
+    my Quantity $total_quantity_expended = %total_quantity_expended.keys[0];
+
+    # verify that the sum total quantity being debited from
+    # ASSETS wallets == the sum total quantity expended according
+    # to Taxes{$tax_uuid}
+    #
+    # was the total quantity debited of asset code $asset_code in target
+    # ASSETS wallets different from the total quantity expended
+    # according to Taxes instances generated by entry UUID $tax_uuid?
+    #
+    # they should always be equivalent
+    unless $total_quantity_debited == $total_quantity_expended
+    {
+        # error: total quantity debited mismatch
+        die "Sorry, encountered total quantity debited mismatch";
+        # this suggests original Holding.EXPEND call calculation
+        # of INCs - DECs contains a bug not caught in testing, or
+        # that the above %acct_targets were grepped for using
+        # flawed terms, or that Entity.get_total_quantity_debited
+        # call to Wallet.ls_changesets produced unexpected results
+    }
+}
+
+multi method perform_sanity_check(
+    Array[Instruction:D] :%instructions!,
+    UUID:D :$tax_uuid!,
+    Nightscape::Entity::Holding::Taxes:D :@taxes! is readonly
+)
+{
+    # get original quantity debited value in entity base currency,
+    # of asset code $asset_code in entry uuid $tax_uuid, that is,
+    # the sum of balance deltas
+    #
+    # NOTE: it is crucial to only sum the value of postings
+    #       rewritten by Instructions (%instructions.keys)
+    my Quantity $original_value_debited =
+        [+] (self.get_posting_value(
+                :base_currency($.entity_base_currency),
+                :entry_uuid($tax_uuid),
+                :posting_uuid($_)
+            ) for %instructions.keys);
+
+    # get new quantity debited value in entity base currency,
+    # of asset code $asset_code in entry uuid $tax_uuid, from
+    # Instructions
+    my Quantity $new_value_debited;
+    for %instructions.values -> @instructions
+    {
+        for @instructions -> $instruction
+        {
+            # all Instructions include quantity to debit
+            my Quantity $quantity_to_debit =
+                $instruction<quantity_to_debit>;
+
+            # some MOD Instructions and all NEW Instructions
+            # include xe
+            my Quantity $xe;
+            if $instruction<xe>
+            {
+                $xe = $instruction<xe>;
+            }
+            else
+            {
+                # find xe by backtracing to causal transaction
+                my Nightscape::Entity::TXN $txn = self.ls_txn(
+                    :posting_uuid($instruction<posting_uuid>)
+                );
+                my Nightscape::Entity::TXN::ModWallet @mod_wallets =
+                    $txn.mod_wallet.grep({
+                        .posting_uuid ~~ $instruction<posting_uuid>
+                    });
+                unless @mod_wallets.elems == 1
+                {
+                    if @mod_wallets.elems > 1
+                    {
+                        die "Sorry, found more than one TXN.mod_wallet
+                             with the same posting UUID, which should
+                             be impossible";
+                    }
+                    elsif @mod_wallets.elems < 1
+                    {
+                        die "Sorry, found no matching TXN.mod_wallet
+                             with the same posting UUID";
+                    }
+                }
+                my Nightscape::Entity::TXN::ModWallet $mod_wallet =
+                    @mod_wallets[0];
+                $xe = $mod_wallet.xe_asset_quantity;
+            }
+
+            my Quantity $val = Rat($quantity_to_debit * $xe);
+            $new_value_debited += $val;
+        }
+    }
+
+    # we expect NSAutoCapitalGains to change by this amount
+    # if >0, realized capital gains, NSAutoCapitalGains++
+    # if <0, realized capital losses, NSAutoCapitalGains--
+    my Rat $expected_income_delta =
+        $original_value_debited - $new_value_debited;
+
+    # the amount to change NSAutoCapitalGains by
+    my Rat $actual_income_delta =
+        [+] (.capital_gains - .capital_losses for @taxes);
+
+    # was expected income delta not the same as actual income
+    # delta?
+    unless $expected_income_delta == $actual_income_delta
+    {
+        # error: expectations differ from actual
+        die "Sorry, expected income delta not equivalent to gains less losses";
+    }
+}
+
+multi method perform_sanity_check(
+    Rat:D :$capital_gains!,
+    Rat:D :$capital_losses!
+)
+{
+    if $capital_gains > 0
+    {
+        unless $capital_losses == 0
+        {
+            die "Sorry, unexpected capital losses in the
+                presence of capital gains on a per tax
+                event basis";
+        }
+    }
+    elsif $capital_losses > 0
+    {
+        unless $capital_gains == 0
+        {
+            die "Sorry, unexpected capital gains in the
+                presence of capital losses on a per tax
+                event basis";
+        }
+    }
+    else
+    {
+        # impossible for a single tax event to have
+        # neither capital gains nor capital losses since
+        # &Holding.expend::rmtargets generates Taxes.new per
+        # each basis lot expended, computing gains or losses,
+        # or no gains/losses, relative to each basis lot
+        # being targeted:
+        #
+        # - an expenditure had to have happened to instantiate
+        #   the Taxes class, creating those capital gains or
+        #   losses with the associated UUID (the 'taxes.keys')
+        # - if (expend price - basis price) * quantity expended > 0,
+        #   only then will a Taxes class be instantiated and
+        #   realized capital gains recorded
+        # - if (expend price - basis price) * quantity expended < 0,
+        #   only then will a Taxes class be instantiated and
+        #   realized capital losses recorded
+        # - under no other conditions would the key $tax_uuid exist
+        # - each single tax event will necessarily be either
+        #   a gain or a loss
+        die "Sorry, unexpected absence of capital gains and losses";
+    }
+}
+
+# grep for wallet paths C<AcctName>s containing Wallet.balance
+# adjustment events only of asset code $asset_code, and caused only
+# by entry UUID $tax_uuid leading to realized capital gains or
+# realized capital losses
+# - the changesets are not being returned, just the paths to wallets
+#   containing those changesets (AcctName) and related info (Acct)
+sub resolve_acct_targets(
+    Nightscape::Entity::COA::Acct:D :%acct! is readonly,
+    AssetCode:D :$asset_code!,
+    UUID:D :$tax_uuid!
+) returns Hash[Nightscape::Entity::COA::Acct:D,AcctName:D]
+{
+    my Nightscape::Entity::COA::Acct %acct_targets{AcctName} = %acct.grep({
+        # only find targets in Silo ASSETS
+        .value.path[0] ~~ "ASSETS"
+    }).grep({
+        # only find targets with matching asset code and entry UUID
+        .value.entry_uuids_by_asset{$asset_code}.grep($tax_uuid)
+    });
 }
 
 method gen_acct(
@@ -1011,11 +1089,7 @@ method gen_txn(
     my Nightscape::Entry::Posting @postings_assets_silo =
         Nightscape::Entry.ls_postings(:@postings, :$silo);
 
-    # find entry postings affecting silo ASSETS, entity base currency only
-    my AssetCode $entity_base_currency = $GLOBAL::CONF.resolve_base_currency(
-        $.entity_name
-    );
-    my Regex $asset_code = /$entity_base_currency/;
+    my Regex $asset_code = /{$.entity_base_currency}/;
     my Nightscape::Entry::Posting @postings_assets_silo_base_currency =
         Nightscape::Entry.ls_postings(:@postings, :$asset_code, :$silo);
 
@@ -1127,10 +1201,6 @@ method get_eqbal(
     Nightscape::Entity::COA::Acct :%acct is readonly
 ) returns Hash[Rat:D,Silo:D]
 {
-    # entity base currency
-    my AssetCode $entity_base_currency =
-        $GLOBAL::CONF.resolve_base_currency($.entity_name);
-
     # assets handled, from COA::Acct if %acct was passed, falling back
     # to the COA::Acct generated from Wallet if COA::Acct was not passed
     my AssetCode @assets_handled =
@@ -1149,7 +1219,7 @@ method get_eqbal(
             # adjust Silo wallet's running balance (in entity's base currency)
             %balance{::($silo)} += in_wallet(%wallet{::($silo)}).get_balance(
                 :$asset_code,
-                :base_currency($entity_base_currency),
+                :base_currency($.entity_base_currency),
                 :recursive
             );
         }
