@@ -481,76 +481,71 @@ method gen_acct(
     );
 }
 
-# return instructions for incising realized capital gains / losses
-# indexed by causal posting_uuid (NEW/MOD | AcctName | QuantityToDebit | XE)
-sub gen_instructions(
-    Hash[Hash[Hash[Rat:D,UUID:D],Rat:D],AcctName:D]
-        :%total_quantity_debited! is readonly,
-    Hash[Quantity:D,Quantity:D] :%total_quantity_expended! is readonly
-) returns Hash[Array[Instruction:D],UUID:D]
+# bucket with fill progress, incl. fills per acquisition price
+class Bucket
 {
-    # bucket with fill progress, incl. fills per acquisition price
-    class Bucket
+    # containing acct (ownership, lookup path)
+    has AcctName $.acct_name;
+
+    # bucket max capacity
+    has Quantity $.capacity = 0.0;
+
+    # was bucket capacity artificially constrained by acct quantity
+    # debited limits?
+    has Bool $.constrained = False;
+
+    # bucket's original, unconstrained capacity
+    has Quantity $.unconstrained_capacity;
+
+    # running total filled
+    has Quantity $.filled = 0.0;
+
+    # capacity less filled
+    has Quantity $.open = $!capacity - $!filled;
+
+    # causal posting UUID
+    has UUID $.posting_uuid;
+
+    # subfills indexed by acquisition price
+    has Quantity %.subfills{Quantity};
+
+    # add subfill to %.subfills at acquisition price (xe_asset_quantity)
+    method mksubfill(
+        Quantity:D :$acquisition_price!,    # price at acquisition (or avco)
+        Quantity:D :$subfill!               # amount to fill at price
+    )
     {
-        # containing acct (ownership, lookup path)
-        has AcctName $.acct_name;
-
-        # bucket max capacity
-        has Quantity $.capacity = 0.0;
-
-        # was bucket capacity artificially constrained by acct quantity
-        # debited limits?
-        has Bool $.constrained = False;
-
-        # bucket's original, unconstrained capacity
-        has Quantity $.unconstrained_capacity;
-
-        # running total filled
-        has Quantity $.filled = 0.0;
-
-        # capacity less filled
-        has Quantity $.open = $!capacity - $!filled;
-
-        # causal posting UUID
-        has UUID $.posting_uuid;
-
-        # subfills indexed by acquisition price
-        has Quantity %.subfills{Quantity};
-
-        # add subfill to %.subfills at acquisition price (xe_asset_quantity)
-        method mksubfill(
-            Quantity:D :$acquisition_price!,    # price at acquisition (or avco)
-            Quantity:D :$subfill!               # amount to fill at price
-        )
+        # ensure bucket has capacity open for this subfill
+        self!update_open;
+        unless $subfill <= $.open
         {
-            # ensure bucket has capacity open for this subfill
-            self!update_open;
-            unless $subfill <= $.open
-            {
-                die "Sorry, cannot mksubfill, not enough capacity remaining";
-            }
-            %!subfills{$acquisition_price} = $subfill;
-            self!update_filled;
-            self!update_open;
+            die "Sorry, cannot mksubfill, not enough capacity remaining";
         }
-
-        # calculate bucket capacity less filled
-        method !update_open()
-        {
-            $!open = $.capacity - $.filled;
-        }
-
-        # update $.filled, gets called after every subfill
-        method !update_filled()
-        {
-            my Quantity $filled = 0.0;
-            $filled += [+] %.subfills.values;
-            $!filled = $filled;
-        }
+        %!subfills{$acquisition_price} = $subfill;
+        self!update_filled;
+        self!update_open;
     }
 
-    # make buckets containing amounts needing to be filled in Entity.wallet,
-    # indexed by posting UUID, %(PostingUUID => Bucket)
+    # calculate bucket capacity less filled
+    method !update_open()
+    {
+        $!open = $.capacity - $.filled;
+    }
+
+    # update $.filled, gets called after every subfill
+    method !update_filled()
+    {
+        my Quantity $filled = 0.0;
+        $filled += [+] %.subfills.values;
+        $!filled = $filled;
+    }
+}
+
+sub gen_buckets(
+    Hash[Hash[Hash[Rat:D,UUID:D],Rat:D],AcctName:D]
+        :%total_quantity_debited! is readonly
+) returns Hash[Bucket,UUID]
+{
     my Bucket %buckets{UUID};
 
     # (from data structure of %total_quantity_debited)
@@ -756,6 +751,14 @@ sub gen_instructions(
         }
     }
 
+    %buckets;
+}
+
+sub fill_buckets(
+    Bucket :%buckets! is rw,
+    Hash[Quantity:D,Quantity:D] :%total_quantity_expended! is readonly
+)
+{
     my Quantity $remaining_total_quantity_expended =
         %total_quantity_expended.keys[0];
 
@@ -847,11 +850,12 @@ sub gen_instructions(
         # error: total quantity expended failed to be reassigned in full
         die "Sorry, expected remaining total quantity expended to be zero";
     }
+}
 
+sub buckets2instructions(Bucket :%buckets) returns Hash[Array[Instruction],UUID]
+{
     # store lists of instructions indexed by causal posting UUID
     my Array[Instruction] %instructions{UUID};
-
-    # convert %buckets to instructions
 
     # foreach %(PostingUUID => Bucket) pair
     for %buckets.kv -> $posting_uuid, $bucket
@@ -1018,6 +1022,25 @@ sub gen_instructions(
     }
 
     %instructions;
+}
+
+# return instructions for incising realized capital gains / losses
+# indexed by causal posting_uuid (NEW/MOD | AcctName | QuantityToDebit | XE)
+sub gen_instructions(
+    Hash[Hash[Hash[Rat:D,UUID:D],Rat:D],AcctName:D]
+        :%total_quantity_debited! is readonly,
+    Hash[Quantity:D,Quantity:D] :%total_quantity_expended! is readonly
+) returns Hash[Array[Instruction:D],UUID:D]
+{
+    # make buckets containing amounts needing to be filled in Entity.wallet,
+    # indexed by posting UUID, %(PostingUUID => Bucket)
+    my Bucket %buckets{UUID} = gen_buckets();
+
+    # fill buckets based on total quantity expended
+    fill_buckets(:%buckets, :%total_quantity_expended);
+
+    # convert %buckets to instructions
+    my Array[Instruction] %instructions{UUID} = buckets2instructions(:%buckets);
 }
 
 # given entry, return instantiated transaction
