@@ -5,17 +5,17 @@ use UUID;
 unit class Nightscape::Entity::Wallet;
 
 # append-only list of balance changesets, indexed by asset code
-has Array[Nightscape::Entity::Wallet::Changeset] %.balance{AssetCode};
+has Array[Nightscape::Entity::Wallet::Changeset:D] %.balance{AssetCode:D};
 
 # subwallet, indexed by name
-has Nightscape::Entity::Wallet %.subwallet{VarName};
+has Nightscape::Entity::Wallet:D %.subwallet{VarName:D};
 
 # clone balance and subwallets with explicit instantiation and deepmap
 method clone() returns Nightscape::Entity::Wallet:D
 {
-    my Array[Nightscape::Entity::Wallet::Changeset] %balance{AssetCode} =
+    my Array[Nightscape::Entity::Wallet::Changeset:D] %balance{AssetCode:D} =
         self.clone_balance;
-    my Nightscape::Entity::Wallet %subwallet{VarName} =
+    my Nightscape::Entity::Wallet:D %subwallet{VarName:D} =
         %.subwallet.deepmap(*.clone);
     my Nightscape::Entity::Wallet $wallet .= new(:%balance, :%subwallet);
     $wallet;
@@ -25,7 +25,7 @@ method clone() returns Nightscape::Entity::Wallet:D
 method clone_balance(
 ) returns Hash[Array[Nightscape::Entity::Wallet::Changeset:D],AssetCode:D]
 {
-    my Array[Nightscape::Entity::Wallet::Changeset] %balance{AssetCode};
+    my Array[Nightscape::Entity::Wallet::Changeset:D] %balance{AssetCode:D};
     for %.balance.keys -> $asset_code
     {
         for %.balance{$asset_code}.list -> $changeset
@@ -55,7 +55,7 @@ method get_balance(
     my Rat @deltas;
 
     # does this wallet have a balance for asset code?
-    if %.balance{$asset_code}
+    if try {%.balance{$asset_code}}
     {
         # calculate balance (sum changeset balance deltas)
         for %.balance{$asset_code}.list -> $changeset
@@ -126,7 +126,7 @@ method get_balance(
     if $recursive
     {
         # is there a subwallet?
-        if %.subwallet
+        if try {defined(%.subwallet)}
         {
             # the :base_currency parameter must always be passed to
             # Wallet.get_balance
@@ -150,7 +150,7 @@ method get_balance(
 # list all assets handled
 method ls_assets() returns Array[AssetCode:D]
 {
-    my AssetCode @assets_handled = %.balance.keys;
+    my AssetCode:D @assets_handled = %.balance.keys;
 }
 
 # list UUIDs handled, indexed by asset code (default: entry UUID)
@@ -159,10 +159,10 @@ method ls_assets_with_uuids(
 ) returns Hash[Array[UUID:D],AssetCode:D]
 {
     # store UUIDs handled, indexed by asset code
-    my Array[UUID] %uuids_handled_by_asset_code{AssetCode};
+    my Array[UUID:D] %uuids_handled_by_asset_code{AssetCode:D};
 
     # list all assets handled
-    my AssetCode @assets_handled = self.ls_assets;
+    my AssetCode:D @assets_handled = self.ls_assets;
 
     # for each asset code handled
     for @assets_handled -> $asset_code
@@ -228,12 +228,12 @@ method ls_uuids(Bool :$posting) returns Array[UUID:D]
     my AssetCode @assets_handled = self.ls_assets;
 
     # store UUIDs handled
-    my UUID @uuids_handled;
+    my UUID:D @uuids_handled;
 
     # fetch UUIDs handled
     for @assets_handled -> $asset_code
     {
-        push @uuids_handled, self.ls_uuids_by_asset(:$asset_code, :$posting);
+        push @uuids_handled, |self.ls_uuids_by_asset(:$asset_code, :$posting);
     }
 
     @uuids_handled;
@@ -243,10 +243,10 @@ method ls_uuids(Bool :$posting) returns Array[UUID:D]
 method ls_uuids_by_asset(
     AssetCode:D :$asset_code!,
     Bool :$posting
-) returns Array[UUID]
+) returns Array[UUID:D]
 {
     # store UUIDs handled
-    my UUID @uuids_handled;
+    my UUID:D @uuids_handled;
 
     # fetch UUIDs handled
     for %.balance{$asset_code} -> @changesets
@@ -521,7 +521,7 @@ multi method tree(%tree) returns Array[Array[VarName:D]]
 
     sub grind(%tree, Str :$carry = "") returns Array[AcctName:D]
     {
-        my AcctName @acct_names;
+        my AcctName:D @acct_names;
         for %tree.keys -> $toplevel
         {
             my AcctName $acct_name = $carry ~ $toplevel ~ ':';
@@ -529,7 +529,7 @@ multi method tree(%tree) returns Array[Array[VarName:D]]
             {
                 push @acct_names,
                     $acct_name,
-                    grind(
+                    |grind(
                         %tree{$toplevel},
                         :carry($acct_name)
                     );
@@ -549,12 +549,12 @@ multi method tree(%tree) returns Array[Array[VarName:D]]
     @acct_names .= map({ substr($_, 0, *-1) });
 
     # convert each nested wallet path string to type: Array[VarName]
-    my Array[VarName] @tree;
+    my Array[VarName:D] @tree;
     for @acct_names -> $acct_name
     {
         # coerce to type: Array
-        my VarName @acct_path = Array($acct_name.split(':'));
-        push @tree, $@acct_path;
+        my VarName:D @acct_path = Array($acct_name.split(':'));
+        push @tree, @acct_path;
     }
 
     # return sorted tree

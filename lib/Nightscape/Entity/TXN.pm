@@ -26,9 +26,9 @@ method get_drift(
         @.mod_wallet
 ) returns Hash[Hash[Rat:D,AcctName:D],Rat:D]
 {
-    my Hash[Rat,AcctName] %drift{Rat};
-    my Rat $drift;
-    my Rat %raw_value_by_acct_name{AcctName};
+    my Hash[Rat:D,AcctName:D] %drift{Rat:D};
+    my Rat:D $drift = 0.0;
+    my Rat:D %raw_value_by_acct_name{AcctName:D};
 
     # Assets + Expenses = Income + Liabilities + Equity
     my Int %multiplier{Silo} =

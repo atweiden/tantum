@@ -28,7 +28,7 @@ has Quantity $.xe_asset_quantity;
 # get AcctName
 method get_acct_name() returns AcctName:D
 {
-    my VarName @path = ~$.silo, @.subwallet;
+    my VarName @path = ~$.silo, |@.subwallet;
     my AcctName $acct_name = @path.join(':');
 }
 

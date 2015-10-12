@@ -25,18 +25,15 @@ has Nightscape::Config::Entity %.entities{VarName} is rw;
 # filter asset price data from unvalidated %toml config
 method detoml_assets(%toml) returns Hash[Any,AssetCode]
 {
-    # store [Aa]ssets toml header (case insensitive)
+    # find [Aa]ssets toml header (case insensitive)
     my VarName $assets_header;
-
-    # match is stored in special perlvar 「$/」, orig.Str Stringifies
-    # the original matching text for case insensitivity
-    %toml.map({ $assets_header = $/.orig.Str if $_.keys ~~ /:i ^assets/; });
+    $assets_header = %toml.keys.grep(/:i ^assets/)[0];
 
     # store assets found
     my %assets_found{AssetCode};
 
     # assign assets data (under case insensitive [Aa]ssets toml header)
-    %assets_found = %(%toml{$assets_header}) if $assets_header;
+    %assets_found = %toml{$assets_header} if $assets_header;
 
     %assets_found;
 }
@@ -121,9 +118,7 @@ method gen_pricesheet(:%prices!) returns Hash[Hash[Price,Date],AssetCode]
 
         # gather date-price pairs from price-file if it exists
         my Str $price_file;
-        $date_price_pairs.keys.grep({
-            /'price-file'/
-        }).map({
+        $date_price_pairs.keys.grep(/'price-file'/).map({
             $price_file = $date_price_pairs{$_}
         });
 
@@ -134,7 +129,7 @@ method gen_pricesheet(:%prices!) returns Hash[Hash[Price,Date],AssetCode]
             # it $.price_dir
             if $price_file.IO.is-relative
             {
-                $price_file = $.price_dir, "/", $price_file;
+                $price_file = $.price_dir ~ "/" ~ $price_file;
             }
 
             # does price file exist?
@@ -227,7 +222,7 @@ method resolve_base_currency(VarName:D $entity) returns AssetCode:D
     my AssetCode $base_currency;
 
     # do entity's settings specify base currency?
-    if %.entities{$entity}.base_currency
+    if try {%.entities{$entity}.base_currency}
     {
         # use entity's configured base currency
         $base_currency = %.entities{$entity}.base_currency;
@@ -339,7 +334,7 @@ method resolve_price(
     AssetCode:D :$base!,
     Date:D :$date!,
     VarName :$entity_name
-) returns Price:D
+) returns Price
 {
     my Price $price_asset;
     my Price $price_entity;

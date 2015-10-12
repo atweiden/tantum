@@ -44,20 +44,16 @@ method acct2wllt(
 ) returns Hash[Nightscape::Entity::Wallet:D,Silo:D]
 {
     # make copy of %wallet for incising realized capital gains / losses
-    my Nightscape::Entity::Wallet %wllt{Silo} = clone_wallet(:%wallet);
-    %wllt = self!incise_capital_gains_and_losses(
-        :%acct,
-        :%holdings,
-        :%wallet,
-        :%wllt
-    );
+    my Nightscape::Entity::Wallet:D %wllt{Silo:D} = clone_wallet(:%wallet);
+    self!incise_capital_gains_and_losses(:%acct, :%holdings, :%wallet, :%wllt);
+    %wllt;
 }
 
 sub clone_wallet(
     Nightscape::Entity::Wallet:D :%wallet! is readonly
 ) returns Hash[Nightscape::Entity::Wallet:D,Silo:D]
 {
-    my Nightscape::Entity::Wallet %wllt{Silo};
+    my Nightscape::Entity::Wallet:D %wllt{Silo:D};
     for %wallet.kv -> $silo, $wallet
     {
         %wllt{::($silo)} = $wallet.clone;
@@ -71,7 +67,7 @@ method !incise_capital_gains_and_losses(
     Nightscape::Entity::Holding:D :%holdings! is readonly,
     Nightscape::Entity::Wallet:D :%wallet! is readonly,
     Nightscape::Entity::Wallet:D :%wllt!
-) returns Hash[Nightscape::Entity::Wallet:D,Silo:D]
+)
 {
     # for each asset code in holdings
     for %holdings.kv -> $asset_code, $holdings
@@ -474,8 +470,8 @@ method gen_acct(
     Nightscape::Entity::Wallet:D :%wallet! is readonly
 ) returns Hash[Nightscape::Entity::COA::Acct:D,AcctName:D]
 {
-    my Array[VarName] @tree = self.tree(:%wallet);
-    my Nightscape::Entity::COA::Acct %acct{AcctName} = self.tree2acct(
+    my Array[VarName:D] @tree = self.tree(:%wallet);
+    my Nightscape::Entity::COA::Acct:D %acct{AcctName:D} = self.tree2acct(
         :@tree,
         :%wallet
     );
@@ -544,9 +540,9 @@ class Bucket
 sub gen_buckets(
     Hash[Hash[Hash[Rat:D,UUID:D],Rat:D],AcctName:D]
         :%total_quantity_debited! is readonly
-) returns Hash[Bucket,UUID]
+) returns Hash[Bucket:D,UUID:D]
 {
-    my Bucket %buckets{UUID};
+    my Bucket:D %buckets{UUID:D};
 
     # (from data structure of %total_quantity_debited)
     # total quantity debited in targets, separately and in total
@@ -755,7 +751,7 @@ sub gen_buckets(
 }
 
 sub fill_buckets(
-    Bucket :%buckets! is rw,
+    Bucket:D :%buckets!,
     Hash[Quantity:D,Quantity:D] :%total_quantity_expended! is readonly
 )
 {
@@ -852,10 +848,12 @@ sub fill_buckets(
     }
 }
 
-sub buckets2instructions(Bucket :%buckets) returns Hash[Array[Instruction],UUID]
+sub buckets2instructions(
+    Bucket:D :%buckets
+) returns Hash[Array[Instruction:D],UUID:D]
 {
     # store lists of instructions indexed by causal posting UUID
-    my Array[Instruction] %instructions{UUID};
+    my Array[Instruction:D] %instructions{UUID:D};
 
     # foreach %(PostingUUID => Bucket) pair
     for %buckets.kv -> $posting_uuid, $bucket
@@ -1034,13 +1032,15 @@ sub gen_instructions(
 {
     # make buckets containing amounts needing to be filled in Entity.wallet,
     # indexed by posting UUID, %(PostingUUID => Bucket)
-    my Bucket %buckets{UUID} = gen_buckets();
+    my Bucket:D %buckets{UUID:D} = gen_buckets();
 
     # fill buckets based on total quantity expended
     fill_buckets(:%buckets, :%total_quantity_expended);
 
     # convert %buckets to instructions
-    my Array[Instruction] %instructions{UUID} = buckets2instructions(:%buckets);
+    my Array[Instruction:D] %instructions{UUID:D} = buckets2instructions(
+        :%buckets
+    );
 }
 
 # given entry, return instantiated transaction
@@ -1231,7 +1231,7 @@ method get_eqbal(
               !! self.ls_assets_handled(:%wallet);
 
     # store total sum Rat balance indexed by Silo
-    my Rat %balance{Silo};
+    my Rat:D %balance{Silo:D};
 
     # sum wallet balances and store in %balance
     sub fill_balance(AssetCode:D $asset_code)
@@ -1531,13 +1531,13 @@ multi method ls_assets_handled(
 ) returns Array[AssetCode:D]
 {
     # store assets handled by entity
-    my AssetCode @assets_handled;
+    my AssetCode:D @assets_handled;
 
     # for all accts
     for %acct.kv -> $acct_name, $acct
     {
         # record assets handled in this acct
-        push @assets_handled, $acct.assets_handled;
+        push @assets_handled, |$acct.assets_handled;
     }
 
     @assets_handled .= unique;
@@ -1551,7 +1551,7 @@ multi method ls_assets_handled(
     my Nightscape::Entity::COA::Acct %acct{AcctName} = self.gen_acct(:%wallet);
 
     # store assets handled by entity
-    my AssetCode @assets_handled = self.ls_assets_handled(:%acct);
+    my AssetCode:D @assets_handled = self.ls_assets_handled(:%acct);
 }
 
 multi method ls_txn(UUID:D :$entry_uuid!) returns Nightscape::Entity::TXN:D
@@ -1809,7 +1809,7 @@ method tree(
 ) returns Array[Array[VarName:D]]
 {
     # store wallet tree
-    my Array[VarName] @tree;
+    my Array[VarName:D] @tree;
 
     # was $silo arg specified?
     if defined $silo
@@ -1824,14 +1824,14 @@ method tree(
 
         # insert root Silo wallet
         {
-            my VarName @root_silo_wallet = ~$silo;
-            @tree.unshift: $@root_silo_wallet;
+            my VarName:D @root_silo_wallet = ~$silo;
+            @tree.unshift: @root_silo_wallet;
         }
     }
     else
     {
         # assume all Silos were requested
-        push @tree, self.tree(:%wallet, :silo(::($_)), @subwallet)
+        push @tree, |self.tree(:%wallet, :silo(::($_)), @subwallet)
             for Silo.enums.keys;
     }
 
@@ -1846,7 +1846,7 @@ method tree2acct(
 ) returns Hash[Nightscape::Entity::COA::Acct:D,AcctName:D]
 {
     # store accts indexed by acct name
-    my Nightscape::Entity::COA::Acct %acct{AcctName};
+    my Nightscape::Entity::COA::Acct:D %acct{AcctName:D};
 
     # for every acct
     for @tree -> @path
@@ -1862,19 +1862,19 @@ method tree2acct(
             in_wallet($wallet, @path[1..*]).ls_assets;
 
         # store entry uuids handled, indexed by asset code
-        my Array[UUID] %entry_uuids_by_asset{AssetCode} =
+        my Array[UUID:D] %entry_uuids_by_asset{AssetCode:D} =
             in_wallet($wallet, @path[1..*]).ls_assets_with_uuids;
 
         # store posting uuids handled, indexed by asset code
-        my Array[UUID] %posting_uuids_by_asset{AssetCode} =
+        my Array[UUID:D] %posting_uuids_by_asset{AssetCode:D} =
             in_wallet($wallet, @path[1..*]).ls_assets_with_uuids(:posting);
 
         # store all entry uuids handled
-        my UUID @entry_uuids_handled =
+        my UUID:D @entry_uuids_handled =
             in_wallet($wallet, @path[1..*]).ls_uuids;
 
         # store all posting uuids handled
-        my UUID @posting_uuids_handled =
+        my UUID:D @posting_uuids_handled =
             in_wallet($wallet, @path[1..*]).ls_uuids(:posting);
 
         # instantiate acct

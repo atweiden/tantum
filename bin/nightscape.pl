@@ -166,10 +166,10 @@ sub MAIN(
         my %toml;
         try
         {
-            use TOML;
+            use Config::TOML;
             my Str $toml_text = slurp $CONF.config_file
                 or die "Sorry, couldn't read config file: ", $CONF.config_file;
-            %toml = %(from-toml $toml_text);
+            %toml = from-toml $toml_text;
             CATCH
             {
                 say "Sorry, couldn't parse TOML syntax in config file: ",
@@ -178,18 +178,10 @@ sub MAIN(
         }
 
         # set base currency
-        my $base_currency_found = %toml<base-currency>;
-        if $base_currency_found
-        {
-            $CONF.base_currency = %toml<base-currency>;
-        }
+        $CONF.base_currency = %toml<base-currency> if %toml<base-currency>;
 
         # set base costing method
-        my $base_costing_found = %toml<base-costing>;
-        if $base_costing_found
-        {
-            $CONF.base_costing = %toml<base-costing>;
-        }
+        $CONF.base_costing = %toml<base-costing> if %toml<base-costing>;
 
         # populate asset settings
         my %assets_found = Nightscape::Config.detoml_assets(%toml);

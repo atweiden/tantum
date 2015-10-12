@@ -79,7 +79,7 @@ method account($/)
     my VarName $entity = $<entity>.Str;
 
     # subaccount
-    my VarName @subaccount = $<account_sub>.list».Str // Nil;
+    my VarName @subaccount = @<account_sub>».Str // Nil;
 
     # make account
     make Nightscape::Entry::Posting::Account.new(
@@ -127,7 +127,7 @@ method amount($/)
 
     # exchange rate
     my Nightscape::Entry::Posting::Amount::XE $exchange_rate;
-    $exchange_rate = $<exchange_rate>».made.pairs[0].value if $<exchange_rate>;
+    $exchange_rate = $<exchange_rate>.made if $<exchange_rate>;
 
     # make amount
     make Nightscape::Entry::Posting::Amount.new(
@@ -146,11 +146,11 @@ method posting($/)
 
     # account
     my Nightscape::Entry::Posting::Account $account =
-        $<account>».made.pairs[0].value;
+        $<account>.made;
 
     # amount
     my Nightscape::Entry::Posting::Amount $amount =
-        $<amount>».made.pairs[0].value;
+        $<amount>.made;
 
     # dec / inc
     my DecInc $decinc = Nightscape::Types.mkdecinc: $amount.minus_sign.Bool;
@@ -168,7 +168,7 @@ method posting($/)
 method entry($/)
 {
     # header
-    my Nightscape::Entry::Header $header = $<header>».made.pairs[0].value;
+    my Nightscape::Entry::Header $header = $<header>.made;
 
     # postings
     my Nightscape::Entry::Posting @postings = @<posting>».made.list.values;

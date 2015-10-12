@@ -10,6 +10,8 @@ has UUID $.uuid;
 # date, price, quantity
 has Date $.date;
 has Price $.price;
+
+# TODO: rework quantity in style of Changeset
 has Quantity $.quantity;
 
 # for each expenditure, causal entry's UUID and associated quantity expended
@@ -17,7 +19,7 @@ has Nightscape::Entity::Holding::Basis::Depletion %.depletions{UUID};
 
 # decrease units held in this basis lot
 method deplete(
-    Quantity:D :$quantity! where * > 0,
+    GreaterThanZero:D :$quantity!,
     UUID:D :$uuid!,
     Date:D :$acquisition_date!,
     Price:D :$acquisition_price!,

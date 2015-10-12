@@ -150,6 +150,16 @@ method expend(
             else
             {
                 # no gains or losses to report
+                push %!taxes{$uuid}, Nightscape::Entity::Holding::Taxes.new(
+                    :$uuid,
+                    :$acquisition_date,
+                    :acquisition_price($basis.price),
+                    :$acquisition_price_asset_code,
+                    :avco_at_expenditure($.avco),
+                    :$date_of_expenditure,
+                    :quantity_expended($qty),
+                    :quantity_expended_asset_code($.asset_code)
+                );
             }
         }
     }

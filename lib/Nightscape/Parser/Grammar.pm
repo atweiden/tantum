@@ -124,9 +124,7 @@ token account_sub
 
 token account
 {
-    <silo>
-    ':' <entity=.account_sub>
-    [ ':' <account_sub> ]*
+    <silo> ':' <entity=.account_sub> [ ':' <account_sub> ]*
 }
 
 token minus_sign
@@ -171,12 +169,12 @@ token amount
 
 token posting
 {
-    <account> ** 1 \h+ <amount> ** 1 [\h+ <eol_comment=.comment>]?
+    <account> \h+ <amount> [\h+ <eol_comment=.comment>]?
 }
 
 token entry
 {
-    [ ^^ <header> $$ \n ] ** 1
+    ^^ <header> $$ \n
     [
         ^^ \h ** 2..*
         [

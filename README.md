@@ -14,8 +14,8 @@ work in [ledger.py](https://github.com/mafm/ledger.py), e.g.:
 ```
 
 
-Illustrated Use Case
---------------------
+Illustrated Use Cases
+---------------------
 
 #### Asset dispositions
 
@@ -51,16 +51,6 @@ which acquisition price(s), and in turn calculating any realized capital
 gains or losses.
 
 
-Installation
-------------
-
-#### Dependencies
-
-- Rakudo Perl 6
-- [TOML](https://github.com/Mouq/toml-pm6)
-- [UUID](https://github.com/retupmoca/P6-UUID)
-
-
 Usage
 -----
 
@@ -84,6 +74,16 @@ Run all tests:
 ```bash
 $ prove [-v] -e perl6 t/
 ```
+
+
+Installation
+------------
+
+#### Dependencies
+
+- Rakudo Perl 6
+- [Config::TOML](https://github.com/atweiden/config-toml)
+- [UUID](https://github.com/retupmoca/P6-UUID)
 
 
 Licensing

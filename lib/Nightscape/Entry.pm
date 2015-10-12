@@ -123,7 +123,7 @@ method ls_asset_codes(
     Nightscape::Entry::Posting:D :@postings is readonly = @.postings
 ) returns Array[AssetCode:D]
 {
-    my AssetCode @asset_codes;
+    my AssetCode:D @asset_codes;
     for @postings -> $posting
     {
         push @asset_codes, $_ for $posting.amount.asset_code;
@@ -136,7 +136,7 @@ multi method ls_postings(
     Nightscape::Entry:D :@entries! is readonly
 ) returns Array[Nightscape::Entry::Posting:D]
 {
-    my Nightscape::Entry::Posting @postings;
+    my Nightscape::Entry::Posting:D @postings;
     for @entries -> $entry
     {
         push @postings, $_ for $entry.postings;
