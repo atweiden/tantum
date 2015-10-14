@@ -7,7 +7,7 @@ unit class Nightscape::Entity::Holding::Taxes;
 has UUID $.uuid;
 
 # acquisition date of funds expended
-has Date $.acquisition_date;
+has DateTime $.acquisition_date;
 
 # acquisition price of funds expended
 has Price $.acquisition_price;
@@ -19,7 +19,7 @@ has AssetCode $.acquisition_price_asset_code;
 has Price $.avco_at_expenditure;
 
 # date of expenditure
-has Date $.date_of_expenditure;
+has DateTime $.date_of_expenditure;
 
 # capital gains
 has Quantity $.capital_gains = 0.0;

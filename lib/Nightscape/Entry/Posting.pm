@@ -23,7 +23,7 @@ has DecInc $.decinc;
 # XE class based on price data from config file
 #
 # if suitable exchange_rate not found anywhere, exit with an error
-method get_value(Date:D :$date!, Int :$id!) returns Quantity:D
+method get_value(DateTime:D :$date!, Int :$id!) returns Quantity:D
 {
     # entity
     my VarName $posting_entity = $.account.entity;

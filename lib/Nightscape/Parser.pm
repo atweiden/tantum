@@ -23,7 +23,8 @@ sub resolve_includes(Str:D $journal_orig) returns Str:D
             $line,
             :actions(Nightscape::Parser::Actions),
             :rule<include_line>
-        ) ?? resolve_includes($/.made) !! $line;
+        ) ?? resolve_includes($/.made) ~ "\n" !! $line ~ "\n";
+        # necessary to append newlines
     }
     $journal;
 }

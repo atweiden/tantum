@@ -3,9 +3,35 @@ use lib 'lib';
 use Test;
 use Nightscape::Parser::Grammar;
 
-plan 3;
+plan 4;
 
 # date grammar tests {{{
+
+subtest
+{
+    my Str @iso_dates =
+        Q{2014-01-01},
+        Q{2014-01-01T08:48:00Z},
+        Q{2014-01-01T08:48:00-07:00},
+        Q{2014-01-01T08:48:00.99999-07:00};
+
+    sub is_valid_iso_date(Str:D $iso_date) returns Bool:D
+    {
+        Nightscape::Parser::Grammar.parse($iso_date, :rule<iso_date>).so;
+    }
+
+    ok(
+        @iso_dates.grep({is_valid_iso_date($_)}).elems == @iso_dates.elems,
+        q:to/EOF/
+        ♪ [Grammar.parse($iso_date, :rule<iso_date>)] - 1 of 8
+        ┏━━━━━━━━━━━━━┓
+        ┃             ┃  ∙ ISO dates validate successfully, as expected.
+        ┃   Success   ┃
+        ┃             ┃
+        ┗━━━━━━━━━━━━━┛
+        EOF
+    );
+}
 
 # end date grammar tests }}}
 # metainfo grammar tests {{{
@@ -34,7 +60,7 @@ subtest
     ok(
         @metainfo.grep({is_valid_metainfo($_)}).elems == @metainfo.elems,
         q:to/EOF/
-        ♪ [Grammar.parse($metainfo, :rule<metainfo>)] - 1 of 7
+        ♪ [Grammar.parse($metainfo, :rule<metainfo>)] - 2 of 8
         ┏━━━━━━━━━━━━━┓
         ┃             ┃  ∙ Metainfo validates successfully, as expected.
         ┃   Success   ┃
@@ -71,7 +97,7 @@ subtest
         @descriptions.grep({is_valid_description($_)}).elems ==
             @descriptions.elems,
         q:to/EOF/
-        ♪ [Grammar.parse($description, :rule<description>)] - 2 of 7
+        ♪ [Grammar.parse($description, :rule<description>)] - 3 of 8
         ┏━━━━━━━━━━━━━┓
         ┃             ┃  ∙ Descriptions validates successfully, as expected.
         ┃   Success   ┃
@@ -119,7 +145,7 @@ subtest
         Nightscape::Parser::Grammar.parse(@headers[0], :rule<header>).WHAT,
         Match,
         q:to/EOF/
-        ♪ [Grammar.parse($header, :rule<header>)] - 3 of 7
+        ♪ [Grammar.parse($header, :rule<header>)] - 4 of 8
         ┏━━━━━━━━━━━━━┓
         ┃             ┃  ∙ Header validates successfully, as expected.
         ┃   Success   ┃
@@ -132,7 +158,7 @@ subtest
         Nightscape::Parser::Grammar.parse(@headers[1], :rule<header>).WHAT,
         Match,
         q:to/EOF/
-        ♪ [Grammar.parse($header, :rule<header>)] - 4 of 7
+        ♪ [Grammar.parse($header, :rule<header>)] - 5 of 8
         ┏━━━━━━━━━━━━━┓
         ┃             ┃  ∙ Header validates successfully, as expected.
         ┃   Success   ┃
@@ -145,7 +171,7 @@ subtest
         Nightscape::Parser::Grammar.parse(@headers[2], :rule<header>).WHAT,
         Match,
         q:to/EOF/
-        ♪ [Grammar.parse($header, :rule<header>)] - 5 of 7
+        ♪ [Grammar.parse($header, :rule<header>)] - 6 of 8
         ┏━━━━━━━━━━━━━┓
         ┃             ┃  ∙ Header validates successfully, as expected.
         ┃   Success   ┃
@@ -158,7 +184,7 @@ subtest
         Nightscape::Parser::Grammar.parse(@headers[3], :rule<header>).WHAT,
         Match,
         q:to/EOF/
-        ♪ [Grammar.parse($header, :rule<header>)] - 6 of 7
+        ♪ [Grammar.parse($header, :rule<header>)] - 7 of 8
         ┏━━━━━━━━━━━━━┓
         ┃             ┃  ∙ Header validates successfully, as expected.
         ┃   Success   ┃
@@ -171,7 +197,7 @@ subtest
         Nightscape::Parser::Grammar.parse($header_multiline, :rule<header>).WHAT,
         Match,
         q:to/EOF/
-        ♪ [Grammar.parse($header, :rule<header>)] - 7 of 7
+        ♪ [Grammar.parse($header, :rule<header>)] - 8 of 8
         ┏━━━━━━━━━━━━━┓
         ┃             ┃  ∙ Multiline header validates successfully, as
         ┃   Success   ┃    expected.

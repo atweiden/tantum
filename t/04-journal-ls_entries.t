@@ -22,7 +22,7 @@ else
     # date 2014-01-03, and that the returned entry's date is 2014-01-03
     my Nightscape::Entry @entries_by_date = Nightscape.ls_entries(
         :@entries,
-        :date(Date.new("2014-01-03"))
+        :date(DateTime.new(:year(2014), :month(1), :day(3)))
     );
     is(
         @entries_by_date.elems,
@@ -30,7 +30,7 @@ else
         q:to/EOF/
         ♪ [ls_entries] - 1 of 12
         ┏━━━━━━━━━━━━━┓
-        ┃             ┃  ∙ Passed argument of :date(Date.new("2014-01-03"))
+        ┃             ┃  ∙ Passed argument of :date(DateTime.new(...))
         ┃   Success   ┃    returns 1 entry, as expected.
         ┃             ┃
         ┗━━━━━━━━━━━━━┛
@@ -38,13 +38,13 @@ else
     );
     is(
         @entries_by_date[0].header.date,
-        Date.new("2014-01-03"),
+        DateTime.new(:year(2014), :month(1), :day(3)),
         q:to/EOF/
         ♪ [ls_entries] - 2 of 12
         ┏━━━━━━━━━━━━━┓
-        ┃             ┃  ∙ Passed argument of :date(Date.new("2014-01-03"))
+        ┃             ┃  ∙ Passed argument of :date(DateTime.new(...))
         ┃   Success   ┃    returns entries with entry header date of
-        ┃             ┃    Date.new("2014-01-03"), as expected.
+        ┃             ┃    DateTime.new(...), as expected.
         ┗━━━━━━━━━━━━━┛
         EOF
     );
@@ -109,7 +109,7 @@ else
     # date 2011-01-01, and that the returned entry's date is 2011-01-01
     my Nightscape::Entry @entries_by_date = Nightscape.ls_entries(
         :entries(@entries_inc),
-        :date(Date.new("2011-01-01"))
+        :date(DateTime.new(:year(2011), :month(1), :day(1)))
     );
     is(
         @entries_by_date.elems,
@@ -117,7 +117,7 @@ else
         q:to/EOF/
         ♪ [ls_entries w/ includes] - 5 of 12
         ┏━━━━━━━━━━━━━┓
-        ┃             ┃  ∙ Passed argument of :date(Date.new("2011-01-01"))
+        ┃             ┃  ∙ Passed argument of :date(DateTime.new(...))
         ┃   Success   ┃    returns 1 entry, as expected.
         ┃             ┃
         ┗━━━━━━━━━━━━━┛
@@ -125,13 +125,13 @@ else
     );
     is(
         @entries_by_date[0].header.date,
-        Date.new("2011-01-01"),
+        DateTime.new(:year(2011), :month(1), :day(1)),
         q:to/EOF/
         ♪ [ls_entries w/ includes] - 6 of 12
         ┏━━━━━━━━━━━━━┓
-        ┃             ┃  ∙ Passed argument of :date(Date.new("2011-01-01"))
+        ┃             ┃  ∙ Passed argument of :date(DateTime.new(...))
         ┃   Success   ┃    returns entries with entry header date of
-        ┃             ┃    Date.new("2011-01-01"), as expected.
+        ┃             ┃    DateTime.new(...), as expected.
         ┗━━━━━━━━━━━━━┛
         EOF
     );
@@ -142,7 +142,7 @@ else
     # date 2012-01-01, and that the returned entry's date is 2012-01-01
     my Nightscape::Entry @entries_by_date = Nightscape.ls_entries(
         :entries(@entries_inc),
-        :date(Date.new("2012-01-01"))
+        :date(DateTime.new(:year(2012), :month(1), :day(1)))
     );
     is(
         @entries_by_date.elems,
@@ -150,7 +150,7 @@ else
         q:to/EOF/
         ♪ [ls_entries w/ includes] - 7 of 12
         ┏━━━━━━━━━━━━━┓
-        ┃             ┃  ∙ Passed argument of :date(Date.new("2012-01-01"))
+        ┃             ┃  ∙ Passed argument of :date(DateTime.new(...))
         ┃   Success   ┃    returns 1 entry, as expected.
         ┃             ┃
         ┗━━━━━━━━━━━━━┛
@@ -158,13 +158,13 @@ else
     );
     is(
         @entries_by_date[0].header.date,
-        Date.new("2012-01-01"),
+        DateTime.new(:year(2012), :month(1), :day(1)),
         q:to/EOF/
         ♪ [ls_entries w/ includes] - 8 of 12
         ┏━━━━━━━━━━━━━┓
-        ┃             ┃  ∙ Passed argument of :date(Date.new("2012-01-01"))
+        ┃             ┃  ∙ Passed argument of :date(DateTime.new(...))
         ┃   Success   ┃    returns entries with entry header date of
-        ┃             ┃    Date.new("2012-01-01"), as expected.
+        ┃             ┃    DateTime.new(...), as expected.
         ┗━━━━━━━━━━━━━┛
         EOF
     );
@@ -175,7 +175,7 @@ else
     # date 2013-01-01, and that the returned entry's date is 2013-01-01
     my Nightscape::Entry @entries_by_date = Nightscape.ls_entries(
         :entries(@entries_inc),
-        :date(Date.new("2013-01-01"))
+        :date(DateTime.new(:year(2013), :month(1), :day(1)))
     );
     is(
         @entries_by_date.elems,
@@ -183,7 +183,7 @@ else
         q:to/EOF/
         ♪ [ls_entries w/ includes] - 9 of 12
         ┏━━━━━━━━━━━━━┓
-        ┃             ┃  ∙ Passed argument of :date(Date.new("2013-01-01"))
+        ┃             ┃  ∙ Passed argument of :date(DateTime.new(...))
         ┃   Success   ┃    returns 1 entry, as expected.
         ┃             ┃
         ┗━━━━━━━━━━━━━┛
@@ -191,13 +191,13 @@ else
     );
     is(
         @entries_by_date[0].header.date,
-        Date.new("2013-01-01"),
+        DateTime.new(:year(2013), :month(1), :day(1)),
         q:to/EOF/
         ♪ [ls_entries w/ includes] - 10 of 12
         ┏━━━━━━━━━━━━━┓
-        ┃             ┃  ∙ Passed argument of :date(Date.new("2013-01-01"))
+        ┃             ┃  ∙ Passed argument of :date(DateTime.new(...))
         ┃   Success   ┃    returns entries with entry header date of
-        ┃             ┃    Date.new("2013-01-01"), as expected.
+        ┃             ┃    DateTime.new(...), as expected.
         ┗━━━━━━━━━━━━━┛
         EOF
     );
@@ -208,7 +208,7 @@ else
     # date 2014-01-01, and that the returned entry's date is 2014-01-01
     my Nightscape::Entry @entries_by_date = Nightscape.ls_entries(
         :entries(@entries_inc),
-        :date(Date.new("2014-01-01"))
+        :date(DateTime.new(:year(2014), :month(1), :day(1)))
     );
     is(
         @entries_by_date.elems,
@@ -216,7 +216,7 @@ else
         q:to/EOF/
         ♪ [ls_entries w/ includes] - 11 of 12
         ┏━━━━━━━━━━━━━┓
-        ┃             ┃  ∙ Passed argument of :date(Date.new("2014-01-01"))
+        ┃             ┃  ∙ Passed argument of :date(DateTime.new(...))
         ┃   Success   ┃    returns 1 entry, as expected.
         ┃             ┃
         ┗━━━━━━━━━━━━━┛
@@ -224,13 +224,13 @@ else
     );
     is(
         @entries_by_date[0].header.date,
-        Date.new("2014-01-01"),
+        DateTime.new(:year(2014), :month(1), :day(1)),
         q:to/EOF/
         ♪ [ls_entries w/ includes] - 12 of 12
         ┏━━━━━━━━━━━━━┓
-        ┃             ┃  ∙ Passed argument of :date(Date.new("2014-01-01"))
+        ┃             ┃  ∙ Passed argument of :date(DateTime.new(...))
         ┃   Success   ┃    returns entries with entry header date of
-        ┃             ┃    Date.new("2014-01-01"), as expected.
+        ┃             ┃    DateTime.new(...), as expected.
         ┗━━━━━━━━━━━━━┛
         EOF
     );

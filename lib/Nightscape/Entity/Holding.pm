@@ -20,7 +20,7 @@ has Array[Nightscape::Entity::Holding::Taxes] %.taxes{UUID};
 # increase entity's holdings
 method acquire(
     UUID:D :$uuid!,
-    Date:D :$date!,
+    DateTime:D :$date!,
     Price:D :$price!,
     Quantity:D :$quantity! where * > 0
 )
@@ -41,7 +41,7 @@ method acquire(
 method expend(
     AssetCode:D :$asset_code!,
     UUID:D :$uuid!,
-    Date:D :$date!,
+    DateTime:D :$date!,
     Costing:D :$costing!,
     Price:D :$price!,
     AssetCode:D :$acquisition_price_asset_code!,
@@ -83,10 +83,10 @@ method expend(
             my Nightscape::Entity::Holding::Basis $basis := @!basis[$i];
 
             # acquisition date
-            my Date $acquisition_date = $basis.date;
+            my DateTime $acquisition_date = $basis.date;
 
             # date of expenditure
-            my Date $date_of_expenditure = $date;
+            my DateTime $date_of_expenditure = $date;
 
             # try decreasing units by quantity
             $basis.deplete(

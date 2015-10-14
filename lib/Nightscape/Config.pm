@@ -48,7 +48,7 @@ method detoml_entities(%toml) returns Hash[Any,VarName]
     %toml.map({
         if my Match $parsed_section = Nightscape::Parser::Grammar.parse(
             $_.keys,
-            :rule<account_sub>
+            :rule<var_name>
         )
         {
             push @entities_found, $parsed_section.orig.Str
@@ -71,7 +71,7 @@ method detoml_entities(%toml) returns Hash[Any,VarName]
 }
 
 # return pricesheet from unvalidated <Assets>{$asset_code}<Prices> config
-method gen_pricesheet(:%prices!) returns Hash[Hash[Price,Date],AssetCode]
+method gen_pricesheet(:%prices!) returns Hash[Hash[Price,DateTime],AssetCode]
 {
     # incoming: {
     #               :USD(
@@ -90,31 +90,39 @@ method gen_pricesheet(:%prices!) returns Hash[Hash[Price,Date],AssetCode]
     #
     # outgoing: {
     #               :USD(
-    #                   Date.new("2014-01-01") => 876.54,
-    #                   Date.new("2014-01-02") => 765.43,
-    #                   Date.new("2014-01-03") => 654.32,    # from price-file
-    #                   Date.new("2014-01-04") => 543.21     # from price-file
+    #                   DateTime.new(...) => 876.54,
+    #                   DateTime.new(...) => 765.43,
+    #                   DateTime.new(...) => 654.32,    # from price-file
+    #                   DateTime.new(...) => 543.21     # from price-file
     #               ),
     #               :EUR(
-    #                   Date.new("2014-01-01") => 500.00,
-    #                   Date.new("2014-01-02") => 400.00,
-    #                   Date.new("2014-01-03") => 300.00,    # from price-file
-    #                   Date.new("2014-01-04") => 200.00     # from price-file
+    #                   DateTime.new(...) => 500.00,
+    #                   DateTime.new(...) => 400.00,
+    #                   DateTime.new(...) => 300.00,    # from price-file
+    #                   DateTime.new(...) => 200.00     # from price-file
     #               )
     #           }<>
+    use Nightscape::Parser::Grammar;
 
-    my Hash[Price,Date] %pricesheet{AssetCode};
+    my Hash[Price,DateTime] %pricesheet{AssetCode};
     for %prices.kv -> $asset_code, $date_price_pairs
     {
-        my Price %dates_and_prices{Date};
-        my Price %dates_and_prices_from_file{Date};
+        my Price %dates_and_prices{DateTime};
+        my Price %dates_and_prices_from_file{DateTime};
 
         # gather date-price pairs from toplevel Currencies config section
-        $date_price_pairs.keys.grep({
-            Date.new($_) ~~ Date
-        }).map({
-            %dates_and_prices{Date.new($_)} = $date_price_pairs{Date.new($_)}
-        });
+        #
+        # build DateTimes from TOML config containing potentially mixed
+        # YYYY-MM-DD keys and RFC3339 timestamp keys
+        for $date_price_pairs.keys -> $key
+        {
+            # convert valid YYYY-MM-DD dates to DateTime
+            if Nightscape::Parser::Grammar.parse($key, :rule<full_date>)
+            {
+                my %dt = <year month day> Z=> map +*, $key.split('-');
+                %dates_and_prices{DateTime.new(|%dt)} = $date_price_pairs{$key};
+            }
+        };
 
         # gather date-price pairs from price-file if it exists
         my Str $price_file;
@@ -144,7 +152,8 @@ method gen_pricesheet(:%prices!) returns Hash[Hash[Price,Date],AssetCode]
         # merge %dates_and_prices_from_file with %dates_and_prices,
         # with values from %dates_and_prices keys overwriting
         # values from equivalent %dates_and_prices_from_file keys
-        my Price %xe{Date} = (%dates_and_prices_from_file, %dates_and_prices);
+        my Price %xe{DateTime} =
+            (%dates_and_prices_from_file, %dates_and_prices);
         %pricesheet{$asset_code} = %xe;
     }
     %pricesheet;
@@ -161,7 +170,7 @@ multi method gen_settings(
     $costing = ::($asset_data<costing>) if $asset_data<costing>;
 
     # asset prices
-    my Hash[Price,Date] %prices{AssetCode};
+    my Hash[Price,DateTime] %prices{AssetCode};
     %prices = self.gen_pricesheet(:prices($asset_data<Prices>))
         if $asset_data<Prices>;
 
@@ -210,8 +219,9 @@ multi method gen_settings(
     );
 }
 
+
 # return date-price hash by resolving price-file config option (NYI)
-sub read_price_file(Str:D :$price_file!) returns Hash[Price,Date]
+sub read_price_file(Str:D :$price_file!) returns Hash[Price,DateTime]
 {
     say "Reading price file: $price_file…";
 }
@@ -332,7 +342,7 @@ method resolve_costing(
 method resolve_price(
     AssetCode:D :$aux!,
     AssetCode:D :$base!,
-    Date:D :$date!,
+    DateTime:D :$date!,
     VarName :$entity_name
 ) returns Price
 {

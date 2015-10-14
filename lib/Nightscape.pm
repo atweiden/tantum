@@ -45,7 +45,7 @@ multi method ls_entries(
     if my Match $parsed = Nightscape::Parser.parse($journal)
     {
         # entries, unsorted, with included transaction journals
-        my Nightscape::Entry @entries = $parsed.made;
+        my Nightscape::Entry @entries = $parsed.made.grep(Nightscape::Entry);
 
         # entries, sorted by date ascending then by importance descending
         @entries = @entries.sort({
@@ -65,7 +65,7 @@ multi method ls_entries(
 # filter entries
 multi method ls_entries(
     Nightscape::Entry:D :@entries is readonly = @.entries,
-    Date :$date,
+    DateTime :$date,
     Regex :$description,
     Regex :$entity,
     Int :$id,
@@ -86,7 +86,7 @@ multi method ls_entries(
 # list entries by date
 multi method _ls_entries(
     Nightscape::Entry:D :@entries! is readonly,
-    Date:D :$date!
+    DateTime:D :$date!
 ) returns Array[Nightscape::Entry]
 {
     my Nightscape::Entry @e = @entries.grep({ .header.date ~~ $date });

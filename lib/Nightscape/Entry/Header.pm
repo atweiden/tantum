@@ -5,7 +5,7 @@ unit class Nightscape::Entry::Header;
 
 has Int $.id;
 has UUID $.uuid;
-has Date $.date;
+has DateTime $.date;
 has Str $.description;
 has Int $.important;
 has VarName @.tags;

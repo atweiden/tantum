@@ -15,7 +15,7 @@ has AssetFlow $.asset_flow;
 has Costing $.costing;
 
 # date of acquisition / expenditure
-has Date $.date;
+has DateTime $.date;
 
 # acquisition price / expend price
 has Price $.price;

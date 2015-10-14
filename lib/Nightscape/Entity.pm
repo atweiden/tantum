@@ -1158,7 +1158,7 @@ method gen_txn(
         );
 
         # prepare cost basis data
-        my Date $date = $entry.header.date;
+        my DateTime $date = $entry.header.date;
         my Price $price = @p[0].amount.exchange_rate.asset_quantity;
         my AssetCode $acquisition_price_asset_code =
             @p[0].amount.exchange_rate.asset_code;
@@ -1639,7 +1639,7 @@ method !mod_holdings(
     AssetCode:D :$asset_code!,
     AssetFlow:D :$asset_flow!,
     Costing:D :$costing!,
-    Date:D :$date!,
+    DateTime:D :$date!,
     Price:D :$price!,
     AssetCode:D :$acquisition_price_asset_code!,
     Quantity:D :$quantity!
@@ -1753,7 +1753,7 @@ method transact(Nightscape::Entity::TXN:D $transaction is readonly)
         {
             my AssetFlow $asset_flow = $mod_holding.asset_flow;
             my Costing $costing = $mod_holding.costing;
-            my Date $date = $mod_holding.date;
+            my DateTime $date = $mod_holding.date;
             my Price $price = $mod_holding.price;
             my AssetCode $acquisition_price_asset_code =
                 $mod_holding.acquisition_price_asset_code;

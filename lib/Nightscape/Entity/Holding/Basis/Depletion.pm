@@ -10,7 +10,7 @@ has Quantity $.quantity;
 has UUID $.uuid;
 
 # date of acquisition of holding being depleted
-has Date $.acquisition_date;
+has DateTime $.acquisition_date;
 
 # acquisition price of holding being depleted
 has Price $.acquisition_price;
@@ -22,6 +22,6 @@ has AssetCode $.acquisition_price_asset_code;
 has Price $.avco_at_expenditure;
 
 # date of expenditure
-has Date $.date_of_expenditure;
+has DateTime $.date_of_expenditure;
 
 # vim: ft=perl6

@@ -619,7 +619,7 @@ method posting_line:content ($/)
 
 method postings($/)
 {
-    make @<posting_line>.made;
+    make @<posting_line>».made.grep(Nightscape::Entry::Posting);
 }
 
 # end posting grammar-actions }}}
@@ -673,7 +673,7 @@ method entry($/)
     my Nightscape::Entry::Header $header = $<header>.made;
 
     # postings
-    my Nightscape::Entry::Posting @postings = @<postings>».made;
+    my Nightscape::Entry::Posting @postings = $<postings>.made;
 
     # verify entry is limited to one entity
     my VarName @entities;

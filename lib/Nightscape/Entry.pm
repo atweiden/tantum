@@ -26,7 +26,7 @@ method is_balanced() returns Bool:D
     my Array[Quantity] %xe_verify{AssetCode};
 
     # entry date
-    my Date $date = $.header.date;
+    my DateTime $date = $.header.date;
 
     # entry id
     my Int $id = $.header.id;

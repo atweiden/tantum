@@ -9,6 +9,6 @@ has AssetCode $.asset_code;
 has Costing $.costing;
 
 # price data
-has Hash[Price,Date] %.prices{AssetCode};
+has Hash[Price,DateTime] %.prices{AssetCode};
 
 # vim: ft=perl6

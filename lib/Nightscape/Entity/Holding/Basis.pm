@@ -8,7 +8,7 @@ unit class Nightscape::Entity::Holding::Basis;
 has UUID $.uuid;
 
 # date, price, quantity
-has Date $.date;
+has DateTime $.date;
 has Price $.price;
 
 # TODO: rework quantity in style of Changeset
@@ -21,11 +21,11 @@ has Nightscape::Entity::Holding::Basis::Depletion %.depletions{UUID};
 method deplete(
     GreaterThanZero:D :$quantity!,
     UUID:D :$uuid!,
-    Date:D :$acquisition_date!,
+    DateTime:D :$acquisition_date!,
     Price:D :$acquisition_price!,
     AssetCode:D :$acquisition_price_asset_code!,
     Price:D :$avco_at_expenditure!,
-    Date:D :$date_of_expenditure!
+    DateTime:D :$date_of_expenditure!
 )
 {
     # check for sufficient unit quantity of asset in holdings
