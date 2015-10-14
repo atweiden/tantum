@@ -7,7 +7,7 @@ Overview
 Nightscape uses [TOML](https://github.com/toml-lang/toml)
 for config files.
 
-The default config file is `$HOME/.config/nightscape/config.toml`.
+The default config file is `$HOME/.nightscape/config.toml`.
 
 
 Base Currency
@@ -42,9 +42,16 @@ businesses along with a personal entity in the same config file.
 [Foo]
 ```
 
-Entity names must adhere to Nightscape syntax guidelines. Alphanumeric
-characters only. No whitespace, and no special characters besides dashes
-(`-`) and underscores (`_`).
+Entity names must adhere to TOML syntax guidelines. Bare names follow
+TOML bare key rules, in that unquoted names can only use alphanumeric
+characters, dashes (`-`) and underscores (`_`). No whitespace and no
+special characters are allowed in bare names.
+
+Quoted names can contain special characters and spaces.
+
+```toml
+["12Fish Advertising"]
+```
 
 Optionally, each entity can include a `base-currency` directive. The
 value of `base-currency` is a user-defined currency code or asset code,
@@ -86,8 +93,9 @@ Each subaccount inherits its base currency from its parent entity.
 Optionally, each subaccount can include an `open` directive.
 
 ```toml
-[AcmeCo:Bankwest:Cheque]
-open = "2014-01-01 .. *" # AcmeCo opens Bankwest Cheque account on Jan 1, 2014 and never closes it
+[AcmeCo.Bankwest.Cheque]
+# AcmeCo opens Bankwest Cheque account on Jan 1, 2014 and never closes it
+open = "2014-01-01 .. *"
 ```
 
 Nightscape will check to ensure each subaccount with an `open` directive
@@ -100,10 +108,12 @@ date range, Nightscape will check to ensure the subaccount’s given
 
 ```toml
 [AcmeCo]
-open = "2014-01-01 .. *" # AcmeCo opens on Jan 1, 2014 and never closes
+# AcmeCo opens on Jan 1, 2014 and never closes
+open = "2014-01-01 .. *"
 
 [AcmeCo.Bankwest.Cheque]
-open = "2022-01-01 .. *" # valid, falls within 2014-01-01 and inf
+# valid, falls within 2014-01-01 and inf
+open = "2022-01-01 .. *"
 ```
 
 ```toml
@@ -111,7 +121,8 @@ open = "2022-01-01 .. *" # valid, falls within 2014-01-01 and inf
 open = "2014-01-01 .. *"
 
 [Personal.Walmart.GiftCard]
-open = "2012-01-01 .. 2013-03-04" # invalid, occurs before entity opened on 2014-01-01
+# invalid, occurs before entity opened on 2014-01-01
+open = "2012-01-01 .. 2013-03-04"
 ```
 
 
@@ -138,18 +149,20 @@ price-file = "/path/to/csv"
 "2014-01-05" = 940.0972
 "2014-01-06" = 951.3865
 "2014-01-07" = 810.5833
+2014-01-08T00:00:00Z = 859.9485 # RFC3339 timestamps are ok
 ```
 
-There are two possible options to set in each `Assets` group.
+There are three possible options to set in each `Assets` group.
 
 Setting    | Value
 ---        | ---
 price-file | Path to file containing a list of date-price pairs in the format TBD (must be in double quotes)
-ISO date (must be in double quotes) | Price on ISO 8601 date
+ISO date (must be in double quotes) | Price on date
+RFC3339 timestamp | Price on date
 
-ISO date (manual) price entries in each `Assets` config section override
-price data from the listed price file if both are competing to provide
-data for the same date.
+Manual date-price entries in each `Assets` config section override price
+data from the listed price file if both are competing to provide data
+for the same date.
 
 Price data given in the transaction journal (with `@` syntax) will
 override any conflicting price data listed in the config file.
