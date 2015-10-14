@@ -57,7 +57,7 @@ token string_basic_char:tab
 
 token string_basic_char:escape_sequence
 {
-    # backslash followed by a valid TOML escape code, or error
+    # backslash followed by a valid (TOML) escape code, or error
     \\
     [
         <escape>
@@ -66,7 +66,7 @@ token string_basic_char:escape_sequence
 
         .
         {
-            say "Sorry, found bad TOML escape sequence 「$/」";
+            say "Sorry, found bad string escape sequence 「$/」";
             exit;
         }
     ]
@@ -145,8 +145,8 @@ token string_basic_multiline_char:newline
 
 token string_basic_multiline_char:escape_sequence
 {
-    # backslash followed by either a valid TOML escape code or linebreak,
-    # else error
+    # backslash followed by either a valid (TOML) escape code or
+    # linebreak, else error
     \\
     [
         [
@@ -157,7 +157,7 @@ token string_basic_multiline_char:escape_sequence
 
         .
         {
-            say "Sorry, found bad TOML escape sequence 「$/」";
+            say "Sorry, found bad string escape sequence 「$/」";
             exit;
         }
     ]
