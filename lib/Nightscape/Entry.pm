@@ -7,7 +7,6 @@ unit class Nightscape::Entry;
 
 has Nightscape::Entry::Header $.header;
 has Nightscape::Entry::Posting @.postings;
-has Str @.posting_comments;
 
 # check if entry is balanced
 method is_balanced() returns Bool:D

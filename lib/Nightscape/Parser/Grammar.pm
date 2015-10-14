@@ -1,65 +1,441 @@
 use v6;
 unit grammar Nightscape::Parser::Grammar;
 
-token ws
-{
-    # When parsing file formats where some whitespace (for example
-    # vertical whitespace) is significant, it is advisable to
-    # override ws:
-    <!ww>    # only match when not within a word
-    \h*      # only match horizontal whitespace
-}
+# disposable grammar {{{
 
-token blank_line
-{
-    ^^ \h* $$ \n
-}
+proto token gap {*}
+token gap:spacer { \s }
+token gap:comment { <.comment> \n }
+
+# end disposable grammar }}}
+# comment grammar {{{
 
 token comment
 {
-    '#' \N*
+    '#' <comment_text>
 }
 
-token year
+token comment_text
+{
+    \N*
+}
+
+# end comment grammar }}}
+# string grammar {{{
+
+proto token string {*}
+token string:basic { <string_basic> }
+token string:basic_multi { <string_basic_multiline> }
+token string:literal { <string_literal> }
+token string:literal_multi { <string_literal_multiline> }
+
+# --- string basic grammar {{{
+
+token string_basic
+{
+    '"' <string_basic_text>? '"'
+}
+
+token string_basic_text
+{
+    <string_basic_char>+
+}
+
+proto token string_basic_char {*}
+
+token string_basic_char:common
+{
+    # anything but linebreaks, double-quotes, backslashes and control
+    # characters (U+0000 to U+001F)
+    <+[\N] -[\" \\] -[\x00..\x1F]>
+}
+
+token string_basic_char:tab
+{
+    \t
+}
+
+token string_basic_char:escape_sequence
+{
+    # backslash followed by a valid TOML escape code, or error
+    \\
+    [
+        <escape>
+
+        ||
+
+        .
+        {
+            say "Sorry, found bad TOML escape sequence 「$/」";
+            exit;
+        }
+    ]
+}
+
+# For convenience, some popular characters have a compact escape sequence.
+#
+# \b         - backspace       (U+0008)
+# \t         - tab             (U+0009)
+# \n         - linefeed        (U+000A)
+# \f         - form feed       (U+000C)
+# \r         - carriage return (U+000D)
+# \"         - quote           (U+0022)
+# \\         - backslash       (U+005C)
+# \uXXXX     - unicode         (U+XXXX)
+# \UXXXXXXXX - unicode         (U+XXXXXXXX)
+proto token escape {*}
+token escape:sym<b> { <sym> }
+token escape:sym<t> { <sym> }
+token escape:sym<n> { <sym> }
+token escape:sym<f> { <sym> }
+token escape:sym<r> { <sym> }
+token escape:sym<quote> { \" }
+token escape:sym<backslash> { \\ }
+token escape:sym<u> { <sym> <hex> ** 4 }
+token escape:sym<U> { <sym> <hex> ** 8 }
+
+token hex
+{
+    <[0..9A..F]>
+}
+
+token string_basic_multiline
+{
+    <string_basic_multiline_delimiter>
+    <string_basic_multiline_leading_newline>?
+    <string_basic_multiline_text>?
+    <string_basic_multiline_delimiter>
+}
+
+token string_basic_multiline_delimiter
+{
+    '"""'
+}
+
+token string_basic_multiline_leading_newline
+{
+    # A newline immediately following the opening delimiter will be
+    # trimmed.
+    \n
+}
+
+token string_basic_multiline_text
+{
+    <string_basic_multiline_char>+
+}
+
+proto token string_basic_multiline_char {*}
+
+token string_basic_multiline_char:common
+{
+    # anything but delimiters ("""), backslashes and control characters
+    # (U+0000 to U+001F)
+    <-string_basic_multiline_delimiter -[\\] -[\x00..\x1F]>
+}
+
+token string_basic_multiline_char:tab
+{
+    \t
+}
+
+token string_basic_multiline_char:newline
+{
+    \n+
+}
+
+token string_basic_multiline_char:escape_sequence
+{
+    # backslash followed by either a valid TOML escape code or linebreak,
+    # else error
+    \\
+    [
+        [
+            <escape> | $$ <ws_remover>
+        ]
+
+        ||
+
+        .
+        {
+            say "Sorry, found bad TOML escape sequence 「$/」";
+            exit;
+        }
+    ]
+}
+
+token ws_remover
+{
+    # For writing long strings without introducing extraneous whitespace,
+    # end a line with a \. The \ will be trimmed along with all whitespace
+    # (including newlines) up to the next non-whitespace character or
+    # closing delimiter.
+    \n+\s*
+}
+
+# --- end string basic grammar }}}
+# --- string literal grammar {{{
+
+token string_literal
+{
+    \' <string_literal_text>? \'
+}
+
+token string_literal_text
+{
+    <string_literal_char>+
+}
+
+proto token string_literal_char {*}
+
+token string_literal_char:common
+{
+    # anything but linebreaks and single quotes
+    # Since there is no escaping, there is no way to write a single
+    # quote inside a literal string enclosed by single quotes.
+    <+[\N] -[\']>
+}
+
+token string_literal_char:backslash
+{
+    \\
+}
+
+token string_literal_multiline
+{
+    <string_literal_multiline_delimiter>
+    <string_literal_multiline_leading_newline>?
+    <string_literal_multiline_text>?
+    <string_literal_multiline_delimiter>
+}
+
+token string_literal_multiline_delimiter
+{
+    \'\'\'
+}
+
+token string_literal_multiline_leading_newline
+{
+    # A newline immediately following the opening delimiter will be
+    # trimmed.
+    \n
+}
+
+token string_literal_multiline_text
+{
+    <string_literal_multiline_char>+
+}
+
+proto token string_literal_multiline_char {*}
+
+token string_literal_multiline_char:common
+{
+    # anything but delimiters (''') and backslashes
+    <-string_literal_multiline_delimiter -[\\]>
+}
+
+token string_literal_multiline_char:backslash
+{
+    \\
+}
+
+# --- end string literal grammar }}}
+
+# end string grammar }}}
+# number grammar {{{
+
+proto token plus_or_minus {*}
+token plus_or_minus:sym<+> { <sym> }
+token plus_or_minus:sym<-> { <sym> }
+
+token integer
+{
+    <plus_or_minus>? <integer_unsigned>
+}
+
+token integer_unsigned
+{
+    <whole_number>
+}
+
+token whole_number
+{
+    0
+
+    |
+
+    # Leading zeros are not allowed.
+    <[1..9]> [ '_'? <.digits> ]?
+}
+
+token digits
+{
+    \d+
+
+    |
+
+    # For large numbers, you may use underscores to enhance
+    # readability. Each underscore must be surrounded by at least
+    # one digit.
+    \d+ '_' <.digits>
+}
+
+token float
+{
+    <plus_or_minus>? <float_unsigned>
+}
+
+token float_unsigned
+{
+    <integer_part=.integer_unsigned> '.' <fractional_part=.digits>
+}
+
+# end number grammar }}}
+# datetime grammar {{{
+
+proto token iso_date {*}
+
+# YYYY-MM-DD
+token iso_date:full_date
+{
+    <full_date>
+}
+
+# RFC 3339 timestamp: http://tools.ietf.org/html/rfc3339
+token iso_date:date_time
+{
+    <date_time>
+}
+
+token date_fullyear
 {
     \d ** 4
 }
 
-token month
+token date_month
 {
-    0 <[1..9]> || 1 <[0..2]>
+    0 <[1..9]> | 1 <[0..2]>
 }
 
-token day
+token date_mday
 {
-    <[0..2]> \d || 3 <[0..1]>
+    0 <[1..9]> | <[1..2]> \d | 3 <[0..1]>
 }
 
-token iso_date
+token time_hour
 {
-    <year> '-' <month> '-' <day>
+    <[0..1]> \d | 2 <[0..3]>
 }
 
-token var_char
+token time_minute
 {
-    <:Letter>
-    || <:Number>
-    || <[_-]>
+    <[0..5]> \d
 }
 
-token acct_name
+token time_second
 {
-    [<var_char> || ':']+
+    # The grammar element time-second may have the value "60" at the end
+    # of months in which a leap second occurs.
+    <[0..5]> \d | 60
 }
 
-token var_name
+token time_secfrac
 {
-    <var_char>+
+    '.' \d+
 }
 
-token tag
+token time_numoffset
 {
-    '@' <var_name>
+    <plus_or_minus> <time_hour> ':' <time_minute>
+}
+
+token time_offset
+{
+    <[Zz]> | <time_numoffset>
+}
+
+token partial_time
+{
+    <time_hour> ':' <time_minute> ':' <time_second> <time_secfrac>?
+}
+
+token full_date
+{
+    <date_fullyear> '-' <date_month> '-' <date_mday>
+}
+
+token full_time
+{
+    <partial_time> <time_offset>
+}
+
+token date_time
+{
+    <full_date> <[Tt]> <full_time>
+}
+
+# end datetime grammar }}}
+# variable name grammar {{{
+
+proto token var_name {*}
+
+token var_name:bare
+{
+    <+alnum +[-]>+
+}
+
+# under TOML rules, only double quoted variable names are allowed
+token var_name:quoted
+{
+    <var_name_string_basic>
+}
+
+# quoted variable names must contain chars inside double quotes
+token var_name_string_basic
+{
+    '"' <string_basic_text> '"'
+}
+
+token var_name_string_literal
+{
+    \' <string_literal_text> \'
+}
+
+# end variable grammar }}}
+# reserved words grammar {{{
+
+my Str @reserved_words = qw<assets base-costing base-currency>;
+
+token reserved
+{
+    :i @reserved_words
+}
+
+# end reserved words grammar }}}
+# header grammar {{{
+
+regex header
+{
+    ^^ \h* <iso_date> <.gap>+ [ <metainfo> <.gap>+ ]?
+    [ <description> <.gap>+ [ <metainfo> <.gap>+ ]? ]?
+}
+
+token description
+{
+    <string>
+}
+
+token metainfo
+{
+    <meta> [ <.gap>+ <meta> ]*
+}
+
+proto token meta {*}
+token meta:important { <important> }
+token meta:tag { <tag> }
+
+token important
+{
+    <exclamation_mark>+
 }
 
 token exclamation_mark
@@ -67,74 +443,96 @@ token exclamation_mark
     '!'
 }
 
-token important
+token tag
 {
-    <exclamation_mark>+
+    '@' <var_name>
 }
 
-token description
+# end header grammar }}}
+# posting grammar {{{
+
+token postings
 {
-    # double quoted string
-    '"'
-    <-["\\]>*
-    [ \\ . <-["\\]>* ]*
-    '"'
-
-    ||
-
-    # single quoted string
-    '\''
-    <-[\'\\]>*
-    [ \\ . <-[\'\\]>* ]*
-    '\''
+    <posting_line>+
 }
 
-token header
+proto token posting_line {*}
+
+token posting_line:comment
 {
-    <iso_date>
-    [ \h+ <description> ]?
-    [ \h+ [ <tag> || <important> ] ]*
-    \h* <eol_comment=.comment>?
+    <.comment_line>
 }
 
-token silo
+token posting_line:content
 {
-    [ :i
-       Asset[s]?
-    || Expense[s]?
-    || Income || Revenue[s]?
-    || Liabilit[y|ies]
-    || Equit[y|ies]
-    ]
+    ^^ \h* <posting> \h* <.comment>? $$ \n
 }
 
-token reserved
+token posting
 {
-    [ :i
-       assets
-       || 'base-costing'
-       || 'base-currency'
-    ]
+    <account> \h+ <amount>
 }
 
-token account_sub
-{
-    <var_char>+
-}
+# --- posting account grammar {{{
 
 token account
 {
-    <silo> ':' <entity=.account_sub> [ ':' <account_sub> ]*
+    # silo and entity are required, subaccounts are optional
+    <silo> <account_delimiter> <entity=.var_name>
+    [ <account_delimiter> <account_sub=.acct_name> ]?
 }
 
-token minus_sign
+proto token silo {*}
+
+token silo:assets
 {
-    '-'
+    :i asset[s]?
 }
 
-token asset_symbol
+token silo:expenses
 {
-    \D+
+    :i expense[s]?
+}
+
+token silo:income
+{
+    :i income | revenue[s]?
+}
+
+token silo:liabilities
+{
+    :i liabilit[y|ies]
+}
+
+token silo:equity
+{
+    :i equit[y|ies]
+}
+
+# accounts can be separated by a colon (:) or period (.)
+proto token account_delimiter {*}
+token account_delimiter:sym<:> { <sym> }
+token account_delimiter:sym<.> { <sym> }
+
+token acct_name
+{
+    <var_name> [ <account_delimiter> <var_name> ]*
+}
+
+# --- end posting account grammar }}}
+# --- posting amount grammar {{{
+
+token amount
+{
+    # -$100.00 USD
+    <plus_or_minus>? <asset_symbol>? <asset_quantity> \h+ <asset_code>
+        [\h+ <exchange_rate>]?
+
+    |
+
+    # USD -$100.00
+    <asset_code> \h+ <plus_or_minus>? <asset_symbol>? <asset_quantity>
+        [\h+ <exchange_rate>]?
 }
 
 token asset_code
@@ -142,64 +540,94 @@ token asset_code
     <:Letter>+
 }
 
-token asset_quantity
+# e.g. http://www.xe.com/symbols.php
+token asset_symbol
 {
-    \d+ [ '.' \d+ ]?
-    || '.' \d+
+    # any char excluding digits, plus signs, whitespace or unicode
+    # punctuation less periods and slashes (some currencies use these)
+    #
+    # unicode punctuation is any character from the Unicode General
+    # Category "Punctuation":
+    # https://www.fileformat.info/info/unicode/category/index.htm
+    <+[\D] -[+] -[\s] -punct +[./]>+
 }
+
+proto token asset_quantity {*}
+token asset_quantity:float { <float_unsigned> }
+token asset_quantity:integer { <integer_unsigned> }
 
 token exchange_rate
 {
-    '@' \h+
-    [
-        <asset_symbol>? \h* <asset_quantity> \h+ <asset_code>    # @ $830.024 USD
-        || <asset_code> \h+ <asset_quantity>                     # @ USD 830.024
-    ]
+    '@' \h+ <xe>
 }
 
-token amount
+# negative xe not allowed
+token xe
 {
-    <minus_sign>? <asset_symbol>? \h* <asset_quantity>
-        \h+ <asset_code> [\h+ <exchange_rate>]?              # -$100.00 USD
-    || <asset_symbol>? \h* <minus_sign>? <asset_quantity>
-            \h+ <asset_code> [\h+ <exchange_rate>]?          # $-100.00 USD
-    || <asset_code> \h+ <minus_sign>? <asset_quantity>
-        [\h+ <exchange_rate>]?                               # USD -100.00
+    # @ $830.024 USD
+    <asset_symbol>? <asset_quantity> \h+ <asset_code>
+
+    |
+
+    # @ USD $830.024
+    <asset_code> \h+ <asset_symbol>? <asset_quantity>
 }
 
-token posting
-{
-    <account> \h+ <amount> [\h+ <eol_comment=.comment>]?
-}
+# --- end posting amount grammar }}}
 
-token entry
+# end posting grammar }}}
+# include grammar {{{
+
+token include_line
 {
-    ^^ <header> $$ \n
-    [
-        ^^ \h ** 2..*
-        [
-            <posting> || <posting_comment=.comment>
-        ]
-        $$ \n
-    ]+
+    ^^ \h* <include> \h* <.comment>? $$ \n
 }
 
 token include
 {
-    ^^ include \h+ <filename=.description> \h* $$ \n
+    include \h+ <filename>
+}
+
+proto token filename {*}
+token filename:basic { <var_name_string_basic> }
+token filename:literal { <var_name_string_literal> }
+
+# end include grammar }}}
+# journal grammar {{{
+
+token TOP
+{
+    <journal>
 }
 
 token journal
 {
-    <blank_line>                               # blank lines
-    || ^^ \h* <comment_line=.comment> $$ \n    # comment lines
-    || <entry>                                 # journal entries
-    || <include>                               # includes
+    <segment>*
 }
 
-token TOP
+proto token segment {*}
+token segment:blank { <.blank_line> }
+token segment:comment { <.comment_line> }
+token segment:entry { <entry> }
+token segment:include { <include_line> }
+
+token blank_line
 {
-    <journal>*
+    ^^ \h* $$ \n
 }
 
-# vim: ft=perl6
+token comment_line
+{
+    ^^ \h* <.comment> $$ \n
+}
+
+regex entry
+{
+    <header>
+    <.gap>*
+    <postings>
+}
+
+# end journal grammar }}}
+
+# vim: ft=perl6 fdm=marker fdl=0

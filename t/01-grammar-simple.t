@@ -5,7 +5,7 @@ use Nightscape::Parser::Grammar;
 
 plan 2;
 
-my $content = q:to/EOTX/;
+my Str $content = q:to/EOTX/;
 # this is a preceding comment
 # this is a second preceding comment
 2014-01-01 "I started the year with $1000 in Bankwest cheque account" @TAG1 @TAG2 # EODESC COMMENT
@@ -53,7 +53,6 @@ EOTX
 
 my $content_with_includes = q:to/EOTX/;
 include 'includes/foocorp'
-
 2014-01-01 "I started the year with $1000 in Bankwest cheque account" @TAG1 @TAG2 # EODESC COMMENT
   Assets:Personal:Bankwest:Cheque    $1000.00 USD
   Equity:Personal                    $1000.00 USD # EOL COMMENT

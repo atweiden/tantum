@@ -37,18 +37,15 @@ multi method ls_entries(
 ) returns Array[Nightscape::Entry]
 {
     use Nightscape::Parser;
-    if my Match $parsed = Nightscape::Parser.parse(slurp($file))
+
+    # resolve include directives in transaction journal on disk
+    my Str:D $journal = Nightscape::Parser.preprocess($file);
+
+    # parse preprocessed transaction journal
+    if my Match $parsed = Nightscape::Parser.parse($journal)
     {
-        my Nightscape::Entry @entries;
-        my Nightscape::Entry @entries_included;
-
-        # parse entries from included transaction journals
-        push @entries_included, |self.ls_entries(:file($_.filename))
-            for $parsed.made.grep(Nightscape::Parser::Include);
-
         # entries, unsorted, with included transaction journals
-        push @entries, $_ for $parsed.made.grep(Nightscape::Entry);
-        push @entries, $_ for @entries_included;
+        my Nightscape::Entry @entries = $parsed.made;
 
         # entries, sorted by date ascending then by importance descending
         @entries = @entries.sort({
