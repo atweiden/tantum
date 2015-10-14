@@ -34,7 +34,7 @@ subtest
     ok(
         @metainfo.grep({is_valid_metainfo($_)}).elems == @metainfo.elems,
         q:to/EOF/
-        ♪ [Grammar.parse($metainfo, :rule<metainfo>)] - 1 of X
+        ♪ [Grammar.parse($metainfo, :rule<metainfo>)] - 1 of 7
         ┏━━━━━━━━━━━━━┓
         ┃             ┃  ∙ Metainfo validates successfully, as expected.
         ┃   Success   ┃
@@ -71,7 +71,7 @@ subtest
         @descriptions.grep({is_valid_description($_)}).elems ==
             @descriptions.elems,
         q:to/EOF/
-        ♪ [Grammar.parse($description, :rule<description>)] - 1 of X
+        ♪ [Grammar.parse($description, :rule<description>)] - 2 of 7
         ┏━━━━━━━━━━━━━┓
         ┃             ┃  ∙ Descriptions validates successfully, as expected.
         ┃   Success   ┃
@@ -88,13 +88,14 @@ subtest
 {
     my Str @headers;
 
-    push @headers, Q{2014-01-01 "I started with $1000" ! @TAG1 @TAG2 # COMMENT};
+    push @headers,
+        qq{2014-01-01 "I started with 1000 USD" ! @TAG1 @TAG2 # COMMENT\n};
 
-    push @headers, Q{2014-01-02 "I paid Exxon Mobile $10"};
+    push @headers, qq{2014-01-02 "I paid Exxon Mobile 10 USD"\n};
 
-    push @headers, Q{2014-01-02};
+    push @headers, qq{2014-01-02\n};
 
-    push @headers, Q{2014-01-03 "I bought ฿0.80000000 BTC for $800#@*!\\%$"};
+    push @headers, qq{2014-01-03 "I bought ฿0.80000000 BTC for 800 USD#@*!%"\n};
 
     my Str $header_multiline = Q:to/EOF/;
     2014-05-09# comment
@@ -113,29 +114,71 @@ subtest
     #comment
     !!!# comment here
     EOF
-    push @headers, $header_multiline;
 
-    say '[DEBUG] ', Nightscape::Parser::Grammar.parse(
-        $header_multiline,
-        :rule<header>
-    );
-
-    sub is_valid_header(Str:D $header) returns Bool:D
-    {
-        Nightscape::Parser::Grammar.parse($header, :rule<header>).so;
-    }
-
-    ok(
-        @headers.grep({is_valid_header($_)}).elems == @headers.elems,
+    is(
+        Nightscape::Parser::Grammar.parse(@headers[0], :rule<header>).WHAT,
+        Match,
         q:to/EOF/
-        ♪ [Grammar.parse($header, :rule<header>)] - 1 of X
+        ♪ [Grammar.parse($header, :rule<header>)] - 3 of 7
         ┏━━━━━━━━━━━━━┓
-        ┃             ┃  ∙ Headers validate successfully, as expected.
+        ┃             ┃  ∙ Header validates successfully, as expected.
         ┃   Success   ┃
         ┃             ┃
         ┗━━━━━━━━━━━━━┛
         EOF
     );
+
+    is(
+        Nightscape::Parser::Grammar.parse(@headers[1], :rule<header>).WHAT,
+        Match,
+        q:to/EOF/
+        ♪ [Grammar.parse($header, :rule<header>)] - 4 of 7
+        ┏━━━━━━━━━━━━━┓
+        ┃             ┃  ∙ Header validates successfully, as expected.
+        ┃   Success   ┃
+        ┃             ┃
+        ┗━━━━━━━━━━━━━┛
+        EOF
+    );
+
+    is(
+        Nightscape::Parser::Grammar.parse(@headers[2], :rule<header>).WHAT,
+        Match,
+        q:to/EOF/
+        ♪ [Grammar.parse($header, :rule<header>)] - 5 of 7
+        ┏━━━━━━━━━━━━━┓
+        ┃             ┃  ∙ Header validates successfully, as expected.
+        ┃   Success   ┃
+        ┃             ┃
+        ┗━━━━━━━━━━━━━┛
+        EOF
+    );
+
+    is(
+        Nightscape::Parser::Grammar.parse(@headers[3], :rule<header>).WHAT,
+        Match,
+        q:to/EOF/
+        ♪ [Grammar.parse($header, :rule<header>)] - 6 of 7
+        ┏━━━━━━━━━━━━━┓
+        ┃             ┃  ∙ Header validates successfully, as expected.
+        ┃   Success   ┃
+        ┃             ┃
+        ┗━━━━━━━━━━━━━┛
+        EOF
+    );
+
+    is(
+        Nightscape::Parser::Grammar.parse($header_multiline, :rule<header>).WHAT,
+        Match,
+        q:to/EOF/
+        ♪ [Grammar.parse($header, :rule<header>)] - 7 of 7
+        ┏━━━━━━━━━━━━━┓
+        ┃             ┃  ∙ Multiline header validates successfully, as
+        ┃   Success   ┃    expected.
+        ┃             ┃
+        ┗━━━━━━━━━━━━━┛
+        EOF
+    )
 }
 
 # end header grammar tests }}}
