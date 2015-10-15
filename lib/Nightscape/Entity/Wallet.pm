@@ -519,12 +519,12 @@ multi method tree(%tree) returns Array[Array[VarName:D]]
     #     ["BitBroker"]
     #
 
-    sub grind(%tree, Str :$carry = "") returns Array[AcctName:D]
+    sub grind(%tree, Str :$carry = "") returns Array
     {
-        my AcctName:D @acct_names;
+        my @acct_names;
         for %tree.keys -> $toplevel
         {
-            my AcctName $acct_name = $carry ~ $toplevel ~ ':';
+            my $acct_name = $carry ~ $toplevel ~ ':';
             if %tree{$toplevel} ~~ Hash
             {
                 push @acct_names,
@@ -543,7 +543,7 @@ multi method tree(%tree) returns Array[Array[VarName:D]]
     }
 
     # grind hash into strings
-    my AcctName @acct_names = grind(%tree);
+    my @acct_names = grind(%tree);
 
     # trim trailing ':'
     @acct_names .= map({ substr($_, 0, *-1) });

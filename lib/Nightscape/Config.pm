@@ -350,7 +350,12 @@ method resolve_price(
     my Price $price_entity;
 
     # pricing for aux asset in terms of base on date
-    $price_asset = try {%.assets{$aux}.prices{$base}{$date}};
+    $price_asset = try {%.assets{$aux}.prices{$base}\
+        .grep({ .keys[0].year ~~ $date.year })\
+        .grep({ .keys[0].month ~~ $date.month })\
+        .grep({ .keys[0].day ~~ $date.day })\
+        .values[0].value
+    }; # %.assets{$aux}.prices{$base}{$date} fails nom 2015-10-14
 
     # entity-specific pricing for aux asset in terms of base on date
     if $entity_name

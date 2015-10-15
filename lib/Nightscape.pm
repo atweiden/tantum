@@ -89,7 +89,7 @@ multi method _ls_entries(
     DateTime:D :$date!
 ) returns Array[Nightscape::Entry]
 {
-    my Nightscape::Entry @e = @entries.grep({ .header.date ~~ $date });
+    my Nightscape::Entry @e = @entries.grep({ .header.date ~~ ~$date });
 }
 
 # list entries by entity

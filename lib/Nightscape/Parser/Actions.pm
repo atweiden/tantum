@@ -5,7 +5,7 @@ use UUID;
 unit class Nightscape::Parser::Actions;
 
 # increments on each newly found transaction journal entry (0+)
-my Int $entry_number = 0;
+has Int $.entry_number = 0;
 
 # created first in Entry::Header, referenced by Entry::Posting (parent-child)
 my UUID $entry_uuid;
@@ -418,7 +418,7 @@ method description($/)
 method header($/)
 {
     # entry id
-    my Int $id = $entry_number;
+    my Int $id = $.entry_number;
 
     # entry uuid
     my UUID $uuid = UUID.new;
@@ -491,21 +491,19 @@ method silo:equity ($/)
 
 method account($/)
 {
+    my %account;
+
     # silo (assets, expenses, income, liabilities, equity)
-    my Silo $silo = $<silo>.made;
+    %account<silo> = $<silo>.made;
 
     # entity
-    my VarName $entity = $<entity>.made;
+    %account<entity> = $<entity>.made;
 
     # subaccount
-    my VarName @subaccount = @<account_sub>».made // Nil;
+    %account<subaccount> = $<account_sub>.made if $<account_sub>;
 
     # make account
-    make Nightscape::Entry::Posting::Account.new(
-        :$silo,
-        :$entity,
-        :@subaccount
-    );
+    make Nightscape::Entry::Posting::Account.new(|%account);
 }
 
 # --- end posting account grammar-actions }}}
@@ -692,7 +690,7 @@ method entry($/)
     make Nightscape::Entry.new(:$header, :@postings);
 
     # increment entry id number
-    $entry_number++;
+    $!entry_number++;
 }
 
 method segment:entry ($/)

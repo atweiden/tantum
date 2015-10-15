@@ -1781,7 +1781,8 @@ method transact(Nightscape::Entity::TXN:D $transaction is readonly)
         my DecInc $decinc = $mod_wallet.decinc;
         my Quantity $quantity = $mod_wallet.quantity;
         my Silo $silo = $mod_wallet.silo;
-        my VarName @subwallet = $mod_wallet.subwallet;
+        my VarName @subwallet;
+        @subwallet = $mod_wallet.subwallet if $mod_wallet.subwallet;
         my AssetCode $xe_asset_code;
         $xe_asset_code = try {$mod_wallet.xe_asset_code};
         my Quantity $xe_asset_quantity;
