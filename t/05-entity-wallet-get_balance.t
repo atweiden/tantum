@@ -19,7 +19,8 @@ our $CONF = Nightscape::Config.new(:$config_file);
         use Config::TOML;
         my Str $toml_text = slurp $CONF.config_file
             or die "Sorry, couldn't read config file: ", $CONF.config_file;
-        %toml = from-toml $toml_text;
+        # assume UTC when local offset unspecified in TOML dates
+        %toml = from-toml($toml_text, :date-local-offset(0));
         CATCH
         {
             say "Sorry, couldn't parse TOML syntax in config file: ",

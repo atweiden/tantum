@@ -9,23 +9,23 @@ plan 4;
 
 subtest
 {
-    my Str @iso_dates =
+    my Str @dates =
         Q{2014-01-01},
         Q{2014-01-01T08:48:00Z},
         Q{2014-01-01T08:48:00-07:00},
         Q{2014-01-01T08:48:00.99999-07:00};
 
-    sub is_valid_iso_date(Str:D $iso_date) returns Bool:D
+    sub is_valid_date(Str:D $date) returns Bool:D
     {
-        Nightscape::Parser::Grammar.parse($iso_date, :rule<iso_date>).so;
+        Nightscape::Parser::Grammar.parse($date, :rule<date>).so;
     }
 
     ok(
-        @iso_dates.grep({is_valid_iso_date($_)}).elems == @iso_dates.elems,
+        @dates.grep({is_valid_date($_)}).elems == @dates.elems,
         q:to/EOF/
-        ♪ [Grammar.parse($iso_date, :rule<iso_date>)] - 1 of 8
+        ♪ [Grammar.parse($date, :rule<date>)] - 1 of 8
         ┏━━━━━━━━━━━━━┓
-        ┃             ┃  ∙ ISO dates validate successfully, as expected.
+        ┃             ┃  ∙ Dates validate successfully, as expected.
         ┃   Success   ┃
         ┃             ┃
         ┗━━━━━━━━━━━━━┛

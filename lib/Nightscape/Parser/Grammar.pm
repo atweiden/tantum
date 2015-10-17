@@ -292,18 +292,24 @@ token float_unsigned
 # end number grammar }}}
 # datetime grammar {{{
 
-proto token iso_date {*}
-
-# YYYY-MM-DD
-token iso_date:full_date
-{
-    <full_date>
-}
+proto token date {*}
 
 # RFC 3339 timestamp: http://tools.ietf.org/html/rfc3339
-token iso_date:date_time
+token date:date_time
 {
     <date_time>
+}
+
+# RFC 3339 timestamp (omit local offset)
+token date:date_time_omit_local_offset
+{
+    <date_time_omit_local_offset>
+}
+
+# YYYY-MM-DD
+token date:full_date
+{
+    <full_date>
 }
 
 token date_fullyear
@@ -373,6 +379,11 @@ token date_time
     <full_date> <[Tt]> <full_time>
 }
 
+token date_time_omit_local_offset
+{
+    <full_date> <[Tt]> <partial_time>
+}
+
 # end datetime grammar }}}
 # variable name grammar {{{
 
@@ -383,7 +394,7 @@ token var_name:bare
     <+alnum +[-]>+
 }
 
-# under TOML rules, only double quoted variable names are allowed
+# only double quoted variable names are allowed
 token var_name:quoted
 {
     <var_name_string_basic>
@@ -415,7 +426,7 @@ token reserved
 
 regex header
 {
-    ^^ \h* <iso_date> <.gap>+ [ <metainfo> <.gap>+ ]?
+    ^^ \h* <date> <.gap>+ [ <metainfo> <.gap>+ ]?
     [ <description> <.gap>+ [ <metainfo> <.gap>+ ]? ]?
 }
 

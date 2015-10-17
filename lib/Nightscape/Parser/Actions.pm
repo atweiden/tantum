@@ -4,6 +4,10 @@ use Nightscape::Types;
 use UUID;
 unit class Nightscape::Parser::Actions;
 
+# DateTime offset for when the local offset is omitted in dates. if
+# not passed as a parameter during instantiation, use UTC
+has Int $.date_local_offset = 0;
+
 # increments on each newly found transaction journal entry (0+)
 has Int $.entry_number = 0;
 
@@ -307,6 +311,46 @@ method full_time($/)
     );
 }
 
+method date_time_omit_local_offset($/)
+{
+    my %fmt;
+    %fmt<formatter> =
+        {
+            # adapted from rakudo/src/core/Temporal.pm
+            # needed in place of passing a True :$subseconds arg to
+            # the rakudo DateTime default-formatter subroutine
+            # for DateTimes with defined time_secfrac
+            my $o = .offset;
+            $o %% 60
+                or warn "DateTime subseconds formatter: offset $o not
+                         divisible by 60.";
+            my $year = sprintf(
+                (0 <= .year <= 9999 ?? '%04d' !! '%+05d'),
+                .year
+            );
+            sprintf '%s-%02d-%02dT%02d:%02d:%s%s',
+                $year, .month, .day, .hour, .minute,
+                .second.fmt('%09.6f'),
+                do $o
+                    ?? sprintf '%s%02d:%02d',
+                        $o < 0 ?? '-' !! '+',
+                        ($o.abs / 60 / 60).floor,
+                        ($o.abs / 60 % 60).floor
+                    !! 'Z';
+        } if $<partial_time>.made<subseconds>;
+
+    make DateTime.new(
+        :year(Int($<full_date>.made<year>)),
+        :month(Int($<full_date>.made<month>)),
+        :day(Int($<full_date>.made<day>)),
+        :hour(Int($<partial_time>.made<hour>)),
+        :minute(Int($<partial_time>.made<minute>)),
+        :second(Rat($<partial_time>.made<second>)),
+        :timezone($.date_local_offset),
+        |%fmt
+    );
+}
+
 method date_time($/)
 {
     my %fmt;
@@ -347,12 +391,17 @@ method date_time($/)
     );
 }
 
-method iso_date:full_date ($/)
+method date:full_date ($/)
 {
-    make DateTime.new(|$<full_date>.made);
+    make DateTime.new(|$<full_date>.made, :timezone($.date_local_offset));
 }
 
-method iso_date:date_time ($/)
+method date:date_time_omit_local_offset ($/)
+{
+    make $<date_time_omit_local_offset>.made;
+}
+
+method date:date_time ($/)
 {
     make $<date_time>.made;
 }
@@ -425,7 +474,7 @@ method header($/)
     $entry_uuid = $uuid;
 
     # entry date
-    my DateTime $date = $<iso_date>.made;
+    my DateTime $date = $<date>.made;
 
     # entry description
     my Str $description;

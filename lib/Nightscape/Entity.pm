@@ -1121,7 +1121,7 @@ method gen_txn(
         (@postings_assets_silo (-) @postings_assets_silo_base_currency).keys;
 
     # find unique aux asset codes
-    my VarName @aux_asset_codes = Nightscape::Entry.ls_asset_codes(
+    my AssetCode @aux_asset_codes = Nightscape::Entry.ls_asset_codes(
         :postings(@postings_remainder)
     );
 

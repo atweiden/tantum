@@ -32,8 +32,13 @@ Entries
 Dates
 -----
 
-- Must be valid RFC3339 `full-year`s (YYYY-MM-DD) or `date-time`
-  timestamps (YYYY-MM-DDtHH:MM:SSz or YYYY-MM-DDtHH:MM:SS+01:00)
+Dates can come in three different forms:
+
+1. [RFC 3339](http://tools.ietf.org/html/rfc3339) timestamps
+   (`YYYY-MM-ddThh:mm:ss.ffff+zz`)
+2. RFC 3339 timestamps with the local offset omitted
+   (`YYYY-MM-ddThh:mm:ss.ffff`)
+3. Standard calendar dates (`YYYY-MM-dd`)
 
 #### Unacceptable (invalid full-year)
 
@@ -52,19 +57,20 @@ Missing `[Tt]`:
 2015-01-01 00:00:00Z
 ```
 
-Missing `[Zz]` / timezone offset:
-
-```
-2015-01-01T00:00:00
-```
-
 #### Acceptable
 
 ```
+# YYYY-MM-DD
 2015-01-01
+
+# RFC3339 timestamp
 2015-01-01T00:00:00Z
 2015-01-01t00:00:00z
 2015-01-01T00:00:00-07:00
+
+# RFC3339 timestamp with local offset omitted
+2015-01-01T07:32:00
+2015-01-01T00:32:00.999999
 ```
 
 

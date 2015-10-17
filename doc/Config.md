@@ -156,9 +156,11 @@ There are three possible options to set in each `Assets` group.
 
 Setting    | Value
 ---        | ---
-price-file | Path to file containing a list of date-price pairs in the format TBD (must be in double quotes)
-ISO date (must be in double quotes) | Price on date
-RFC3339 timestamp | Price on date
+price-file | Path to file containing list of date-price pairs in the format TBD (must be in double quotes)
+date       | Price on date
+
+Dates must be valid standard calendar dates (YYYY-MM-DD), RFC 3339
+timestamps or RFC 3339 timestamps with local offset omitted.
 
 Manual date-price entries in each `Assets` config section override price
 data from the listed price file if both are competing to provide data
