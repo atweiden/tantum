@@ -43,8 +43,8 @@ EOTX
 {
     my $match = Nightscape::Parser::Grammar.parse($content);
     is(
-        $match.WHAT.perl,
-        'Match',
+        $match.WHAT,
+        Match,
         q:to/EOF/
         ♪ [Nightscape::Parser::Grammar.parse($content)] - 1 of 1
         ┏━━━━━━━━━━━━━┓
