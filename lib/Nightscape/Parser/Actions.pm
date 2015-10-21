@@ -8,15 +8,6 @@ unit class Nightscape::Parser::Actions;
 # not passed as a parameter during instantiation, use UTC
 has Int $.date_local_offset = 0;
 
-# current EntryID
-has EntryID $!entry_id;
-
-# increments on each entry (0+)
-has Int $!entry_number = 0;
-
-# increments on each posting (0+), resets after each entry
-has Int $!posting_number = 0;
-
 # string grammar-actions {{{
 
 # --- string basic grammar-actions {{{
@@ -469,12 +460,6 @@ method description($/)
 
 method header($/)
 {
-    # EntryID
-    my Int $number = $!entry_number;
-    my xxHash $xxhash = xxHash32($/.Str);
-    my EntryID $id .= new(:$number, :$xxhash);
-    $!entry_id = $id;
-
     # entry date
     my DateTime $date = $<date>.made;
 
@@ -494,14 +479,8 @@ method header($/)
         push @tags, |@metainfo.grep({ .keys ~~ 'tag' })».values.flat.unique;
     }
 
-    # make entry header
-    make Nightscape::Entry::Header.new(
-        :$id,
-        :$date,
-        :$description,
-        :$important,
-        :@tags
-    );
+    # make entry header container
+    make %(:$date, :$description, :$important, :@tags);
 }
 
 # end header grammar-actions }}}
@@ -617,8 +596,8 @@ method amount($/)
     my Quantity $asset_quantity = $<asset_quantity>.made;
 
     # minus sign
-    my Str $minus_sign;
-    $minus_sign = $<plus_or_minus>.made if $<plus_or_minus>.made ~~ '-';
+    my Str $plus_or_minus;
+    $plus_or_minus = $<plus_or_minus>.made if $<plus_or_minus>;
 
     # exchange rate
     my Nightscape::Entry::Posting::Amount::XE $exchange_rate;
@@ -629,7 +608,7 @@ method amount($/)
         :$asset_code,
         :$asset_quantity,
         :$asset_symbol,
-        :$minus_sign,
+        :$plus_or_minus,
         :$exchange_rate
     );
 }
@@ -638,11 +617,6 @@ method amount($/)
 
 method posting($/)
 {
-    # PostingID
-    my Int $number = $!posting_number++;
-    my xxHash $xxhash = xxHash32($/.Str);
-    my PostingID $id .= new(:$!entry_id, :$number, :$xxhash);
-
     # account
     my Nightscape::Entry::Posting::Account $account = $<account>.made;
 
@@ -650,15 +624,13 @@ method posting($/)
     my Nightscape::Entry::Posting::Amount $amount = $<amount>.made;
 
     # dec / inc
-    my DecInc $decinc = Nightscape::Types.mkdecinc: $amount.minus_sign.Bool;
+    my DecInc $decinc = mkdecinc($amount.plus_or_minus);
 
-    # make posting
-    make Nightscape::Entry::Posting.new(
-        :$id,
-        :$account,
-        :$amount,
-        :$decinc
-    );
+    # xxHash of transaction journal posting text
+    my xxHash $xxhash = xxHash32($/.Str);
+
+    # make posting container
+    make %(:$account, :$amount, :$decinc, :$xxhash);
 }
 
 method posting_line:content ($/)
@@ -668,7 +640,7 @@ method posting_line:content ($/)
 
 method postings($/)
 {
-    make @<posting_line>».made.grep(Nightscape::Entry::Posting);
+    make @<posting_line>».made.grep(Hash);
 }
 
 # end posting grammar-actions }}}
@@ -718,33 +690,36 @@ method include_line($/)
 
 method entry($/)
 {
-    # header
-    my Nightscape::Entry::Header $header = $<header>.made;
+    # header container
+    my %header = $<header>.made;
 
-    # postings
-    my Nightscape::Entry::Posting @postings = $<postings>.made;
+    # posting containers
+    my @postings = $<postings>.made;
 
     # verify entry is limited to one entity
-    my VarName @entities;
-    push @entities, $_.account.entity for @postings;
-
-    # is the number of elements sharing the same entity name not equal
-    # to the total number of entity names seen?
-    unless @entities.grep(@entities[0]).elems == @entities.elems
     {
-        # error: invalid use of more than one entity per journal entry
-        die "Sorry, only one entity per journal entry allowed, but found: ",
-            @entities.perl, " in entry with header: ", $header.perl;
+        my VarName @entities;
+        push @entities, $_<account>.entity for @postings;
+
+        # is the number of elements sharing the same entity name not equal
+        # to the total number of entity names seen?
+        unless @entities.grep(@entities[0]).elems == @entities.elems
+        {
+            # error: invalid use of more than one entity per journal entry
+            die qq:to/EOF/
+            Sorry, only one entity per journal entry allowed, but found
+            {@entities.elems} entities in entry:
+
+            「{$/.Str}」
+            EOF
+        }
     }
 
-    # reset posting number (all postings in this entry have been found)
-    $!posting_number = 0;
+    # xxHash of transaction journal entry text
+    my xxHash $xxhash = xxHash32($/.Str);
 
-    # increment entry number
-    $!entry_number++;
-
-    # make entry
-    make Nightscape::Entry.new(:$header, :@postings);
+    # make entry container
+    make %(:%header, :@postings, :$xxhash);
 }
 
 method segment:entry ($/)
@@ -754,7 +729,54 @@ method segment:entry ($/)
 
 method journal($/)
 {
-    make @<segment>».made;
+    my @entry_containers = @<segment>».made.grep(Hash);
+
+    # increments on each entry (0+)
+    my Int $entry_number = 0;
+
+    # instantiate entries
+    my Nightscape::Entry @entries;
+    for @entry_containers -> $entry
+    {
+        # instantiate EntryID
+        my EntryID $entry_id .= new(
+            :number($entry_number++),
+            :xxhash($entry<xxhash>)
+        );
+
+        # instantiate entry header
+        my Nightscape::Entry::Header $header .= new(
+            |$entry<header>,
+            :id($entry_id)
+        );
+
+        # increments on each posting (0+), resets after each entry
+        my Int $posting_number = 0;
+
+        # instantiate entry postings
+        my Nightscape::Entry::Posting @postings;
+        for $entry<postings> -> @posting_containers
+        {
+            for @posting_containers -> %posting
+            {
+                # instantiate PostingID
+                my PostingID $posting_id .= new(
+                    :$entry_id,
+                    :number($posting_number++),
+                    :xxhash(%posting<xxhash>)
+                );
+
+                push @postings, Nightscape::Entry::Posting.new(
+                    |%posting,
+                    :id($posting_id)
+                );
+            }
+        }
+
+        push @entries, Nightscape::Entry.new(:$header, :@postings);
+    }
+
+    make @entries;
 }
 
 method TOP($/)

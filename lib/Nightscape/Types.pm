@@ -77,7 +77,7 @@ multi sub infix:<==>(PostingID:D $a, PostingID:D $b) is export returns Bool:D
         $a.number == $b.number && $a.xxhash == $b.xxhash;
 }
 
-method mkasset_flow(Rat:D $d) returns AssetFlow:D
+sub mkasset_flow(Rat:D $d) is export returns AssetFlow:D
 {
     if $d > 0
     {
@@ -93,16 +93,9 @@ method mkasset_flow(Rat:D $d) returns AssetFlow:D
     }
 }
 
-method mkdecinc(Bool:D $minus_sign) returns DecInc:D
+sub mkdecinc(Str $plus_or_minus) is export returns DecInc:D
 {
-    if $minus_sign
-    {
-        DEC;
-    }
-    else
-    {
-        INC;
-    }
+    $plus_or_minus ~~ '-' ?? DEC !! INC;
 }
 
 # vim: ft=perl6

@@ -1144,7 +1144,7 @@ method gen_txn(
         my Rat $d = $incs - $decs;
 
         # asset flow: acquire / expend
-        my AssetFlow $asset_flow = Nightscape::Types.mkasset_flow($d);
+        my AssetFlow $asset_flow = mkasset_flow($d);
 
         # asset quantity
         my Quantity $quantity = $d.abs;
