@@ -2,11 +2,9 @@ use v6;
 use Nightscape::Entry::Posting::Account;
 use Nightscape::Entry::Posting::Amount;
 use Nightscape::Types;
-use UUID;
 unit class Nightscape::Entry::Posting;
 
-has UUID $.entry_uuid;
-has UUID $.posting_uuid;
+has PostingID $.id;
 has Nightscape::Entry::Posting::Account $.account;
 has Nightscape::Entry::Posting::Amount $.amount;
 has DecInc $.decinc;
@@ -23,7 +21,7 @@ has DecInc $.decinc;
 # XE class based on price data from config file
 #
 # if suitable exchange_rate not found anywhere, exit with an error
-method get_value(DateTime:D :$date!, Int :$id!) returns Quantity:D
+method get_value(DateTime:D :$date!, EntryID :$id!) returns Quantity:D
 {
     # entity
     my VarName $posting_entity = $.account.entity;
@@ -71,7 +69,7 @@ method get_value(DateTime:D :$date!, Int :$id!) returns Quantity:D
                 To debug, verify that the entity has been configured with
                 the correct base-currency. Then verify the transaction
                 journal gives a matching base-currency code for entry
-                number $id.
+                {$id.canonical}.
                 EOF
                 die $help_text_faulty_exchange_rate.trim;
             }
@@ -111,9 +109,9 @@ method get_value(DateTime:D :$date!, Int :$id!) returns Quantity:D
 
                 「$posting_entity_base_currency/$posting_asset_code」
 
-            on 「$date」 was entered accurately for entry number
-            $id. Verify that the entity of entry number
-            $id has been configured with the correct
+            on 「$date」 was entered accurately for entry
+            {$id.canonical}. Verify that the entity of entry number
+            {$id.canonical} has been configured with the correct
             base-currency.
             EOF
             die $help_text_faulty_exchange_rate_in_config_file.trim;

@@ -2,7 +2,6 @@ use v6;
 use Nightscape::Entry::Header;
 use Nightscape::Entry::Posting;
 use Nightscape::Types;
-use UUID;
 unit class Nightscape::Entry;
 
 has Nightscape::Entry::Header $.header;
@@ -28,8 +27,8 @@ method is_balanced() returns Bool:D
     # entry date
     my DateTime $date = $.header.date;
 
-    # entry id
-    my Int $id = $.header.id;
+    # EntryID
+    my EntryID $id = $.header.id;
 
     # adjust running total for each posting in entry
     # keep tally of exchange rates per asset code seen
@@ -87,7 +86,7 @@ method is_balanced() returns Bool:D
                 # error: exchange rate mismatch detected
                 die qq:to/EOF/;
                 Sorry, exchange rate for asset 「$asset_code」 does
-                not remain consistent in entry id 「$id」.
+                not remain consistent in entry id 「{$id.canonical}」.
 
                 To debug, verify transaction journal entry contains
                 consistent exchange rate. If exchange rate sourced
@@ -148,13 +147,13 @@ multi method ls_postings(
     Nightscape::Entry::Posting:D :@postings is readonly = @.postings,
     Regex :$asset_code,
     Silo :$silo,
-    UUID :$posting_uuid
+    PostingID :$posting_id
 ) returns Array[Nightscape::Entry::Posting]
 {
     my Nightscape::Entry::Posting @p = @postings;
     @p = self._ls_postings(:postings(@p), :$asset_code) if defined $asset_code;
     @p = self._ls_postings(:postings(@p), :$silo) if defined $silo;
-    @p = self._ls_postings(:postings(@p), :$posting_uuid) if $posting_uuid;
+    @p = self._ls_postings(:postings(@p), :$posting_id) if $posting_id;
     @p;
 }
 
@@ -180,14 +179,14 @@ multi method _ls_postings(
     });
 }
 
-# list postings by uuid
+# list postings by PostingID
 multi method _ls_postings(
     Nightscape::Entry::Posting:D :@postings! is readonly,
-    UUID:D :$posting_uuid!
+    PostingID:D :$posting_id!
 ) returns Array[Nightscape::Entry::Posting]
 {
     my Nightscape::Entry::Posting @p = @postings.grep({
-        .posting_uuid ~~ $posting_uuid
+        .posting_id == $posting_id
     });
 }
 

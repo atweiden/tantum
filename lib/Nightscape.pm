@@ -68,7 +68,7 @@ multi method ls_entries(
     DateTime :$date,
     Regex :$description,
     Regex :$entity,
-    Int :$id,
+    EntryID :$entry_id,
     Int :$important,
     Regex :$tag
 ) returns Array[Nightscape::Entry]
@@ -77,7 +77,7 @@ multi method ls_entries(
     @e = self._ls_entries(:entries(@e), :$date) if $date;
     @e = self._ls_entries(:entries(@e), :$description) if defined $description;
     @e = self._ls_entries(:entries(@e), :$entity) if defined $entity;
-    @e = self._ls_entries(:entries(@e), :$id) if $id;
+    @e = self._ls_entries(:entries(@e), :$entry_id) if $entry_id;
     @e = self._ls_entries(:entries(@e), :$important) if $important;
     @e = self._ls_entries(:entries(@e), :$tag) if defined $tag;
     @e;
@@ -101,6 +101,15 @@ multi method _ls_entries(
     my Nightscape::Entry @e = @entries.grep({
         .postings[0].account.entity ~~ $entity
     });
+}
+
+# list entries by EntryID
+multi method _ls_entries(
+    Nightscape::Entry:D :@entries! is readonly,
+    EntryID:D :$entry_id!
+) returns Array[Nightscape::Entry]
+{
+    my Nightscape::Entry @e = @entries.grep({ .header.id == $entry_id });
 }
 
 # instantiate entity

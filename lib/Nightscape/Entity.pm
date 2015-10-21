@@ -5,7 +5,6 @@ use Nightscape::Entity::TXN;
 use Nightscape::Entity::Wallet;
 use Nightscape::Entry;
 use Nightscape::Types;
-use UUID;
 unit class Nightscape::Entity;
 
 # entity name
@@ -61,7 +60,7 @@ sub clone_wallet(
     %wllt;
 }
 
-# modify %wllt on a per $tax_uuid basis using %instructions
+# modify %wllt on a per $tax_id basis using %instructions
 method !incise_capital_gains_and_losses(
     Nightscape::Entity::COA::Acct:D :%acct! is readonly,
     Nightscape::Entity::Holding:D :%holdings! is readonly,
@@ -78,9 +77,9 @@ method !incise_capital_gains_and_losses(
             :$.entity_name
         );
 
-        # for each entry UUID resulting in realized capital gains / losses for
+        # for each EntryID resulting in realized capital gains / losses for
         # this asset code
-        for $holdings.taxes.kv -> $tax_uuid, @taxes
+        for $holdings.taxes.kv -> $tax_id, @taxes
         {
             # ensure all original quantities expended are quoted in the
             # asset code $asset_code, and that acquisition price is
@@ -88,7 +87,7 @@ method !incise_capital_gains_and_losses(
             self.perform_sanity_check(:$asset_code, :@taxes);
 
             # fetch all accts containing this asset code with changesets created
-            # from entry UUID $tax_uuid
+            # from EntryID $tax_id
             # - associated realized capital gains / losses must have resulted
             #   from the assorted changesets in these wallets
             my Nightscape::Entity::COA::Acct %acct_targets{AcctName} =
@@ -99,16 +98,16 @@ method !incise_capital_gains_and_losses(
             #     TotalQuantityDebited => %(
             #         TargetAcctName => %(
             #             TargetAcctBalanceDelta => %(
-            #                 PostingUUID => PostingUUIDBalanceDelta,
-            #                 PostingUUID => PostingUUIDBalanceDelta,
-            #                 PostingUUID => PostingUUIDBalanceDelta
+            #                 PostingID => PostingIDBalanceDelta,
+            #                 PostingID => PostingIDBalanceDelta,
+            #                 PostingID => PostingIDBalanceDelta
             #             )
             #         ),
             #         TargetAcctName => %(
             #             TargetAcctBalanceDelta => %(
-            #                 PostingUUID => PostingUUIDBalanceDelta,
-            #                 PostingUUID => PostingUUIDBalanceDelta,
-            #                 PostingUUID => PostingUUIDBalanceDelta
+            #                 PostingID => PostingIDBalanceDelta,
+            #                 PostingID => PostingIDBalanceDelta,
+            #                 PostingID => PostingIDBalanceDelta
             #             )
             #         )
             #     )
@@ -117,21 +116,21 @@ method !incise_capital_gains_and_losses(
             #
             # - TotalQuantityDebited is sum of all TargetAcctBalanceDelta
             # - TargetAcctName is COA::Acct.name ("ASSETS:Personal:Bankwest")
-            # - TargetAcctBalanceDelta is sum of all PostingUUIDBalanceDelta
-            # - PostingUUID is UUID of posting in Entry UUID causing
+            # - TargetAcctBalanceDelta is sum of all PostingIDBalanceDelta
+            # - PostingID is ID of posting in EntryID causing
             #   this round of realized capital gains / losses, wrt asset
             #   code $asset_code
             #   - get_total_quantity_debited calls
             #         Wallet.ls_changesets(
             #             asset_code => $asset_code,
-            #             entry_uuid => $tax_uuid
+            #             entry_id => $tax_id
             #         );
-            # - PostingUUIDBalanceDelta is Changeset.balance_delta
-            my Hash[Hash[Hash[Rat,UUID],Rat],AcctName]
+            # - PostingIDBalanceDelta is Changeset.balance_delta
+            my Hash[Hash[Hash[Rat,PostingID],Rat],AcctName]
                 %total_quantity_debited{Quantity} = get_total_quantity_debited(
                         :%acct_targets,
                         :$asset_code,
-                        :entry_uuid($tax_uuid),
+                        :entry_id($tax_id),
                         :%wallet
                     );
 
@@ -146,7 +145,7 @@ method !incise_capital_gains_and_losses(
 
             # fetch instructions for incising realized capital gains / losses
             # NEW/MOD | AcctName | QuantityToDebit | XE
-            my Array[Instruction] %instructions{UUID} = gen_instructions(
+            my Array[Instruction] %instructions{PostingID} = gen_instructions(
                 :%total_quantity_debited,
                 :%total_quantity_expended
             );
@@ -154,7 +153,7 @@ method !incise_capital_gains_and_losses(
             self!mkincision(
                 :$asset_code,
                 :%instructions,
-                :$tax_uuid,
+                :$tax_id,
                 :@taxes,
                 :%wllt
             );
@@ -165,7 +164,7 @@ method !incise_capital_gains_and_losses(
 method !mkincision(
     AssetCode:D :$asset_code!,
     Array[Instruction:D] :%instructions!,
-    UUID:D :$tax_uuid!,
+    EntryID:D :$tax_id!,
     Nightscape::Entity::Holding::Taxes:D :@taxes! is readonly,
     Nightscape::Entity::Wallet:D :%wllt!
 )
@@ -173,10 +172,10 @@ method !mkincision(
     # run another check to make sure, after instructions are
     # applied, the difference in total quantity debited in entity
     # base currency is balanced by the change to NSAutoCapitalGains
-    self.perform_sanity_check(:%instructions, :$tax_uuid, :@taxes);
+    self.perform_sanity_check(:%instructions, :$tax_id, :@taxes);
 
     # apply instructions to balance out NSAutoCapitalGains later
-    for %instructions.kv -> $posting_uuid, @instructions
+    for %instructions.kv -> $posting_id, @instructions
     {
         for @instructions -> $instruction
         {
@@ -187,8 +186,8 @@ method !mkincision(
             in_wallet(%wllt{::(@path[0])}, @path[1..*]).mkchangeset(
                 :$asset_code,
                 :xe_asset_code($.entity_base_currency),
-                :entry_uuid($tax_uuid),
-                :$posting_uuid,
+                :entry_id($tax_id),
+                :$posting_id,
                 :$instruction
             );
         }
@@ -229,7 +228,7 @@ method !mkincision(
         }
 
         # purposefully empty vars, not needed for NSAutoCapitalGains
-        my UUID $posting_uuid;
+        my PostingID $posting_id;
         my AssetCode $xeac;
         my Quantity $xeaq;
 
@@ -239,8 +238,8 @@ method !mkincision(
             "NSAutoCapitalGains",
             $holding_period_name
         ).mkchangeset(
-            :entry_uuid($tax_uuid),
-            :$posting_uuid,
+            :entry_id($tax_id),
+            :$posting_id,
             :asset_code($.entity_base_currency),
             :$decinc,
             :quantity($gains_less_losses.abs),
@@ -277,8 +276,8 @@ multi method perform_sanity_check(
 }
 
 multi method perform_sanity_check(
-    Hash[Hash[Hash[Rat:D,UUID:D],Rat:D],AcctName:D]
-        :%total_quantity_debited!,
+    Hash[Hash[Hash[Rat:D,PostingID:D],Rat:D],AcctName:D]
+        :%total_quantity_debited! is readonly,
     Hash[Quantity:D,Quantity:D] :%total_quantity_expended!,
 )
 {
@@ -287,11 +286,11 @@ multi method perform_sanity_check(
 
     # verify that the sum total quantity being debited from
     # ASSETS wallets == the sum total quantity expended according
-    # to Taxes{$tax_uuid}
+    # to Taxes{$tax_id}
     #
     # was the total quantity debited of asset code $asset_code in target
     # ASSETS wallets different from the total quantity expended
-    # according to Taxes instances generated by entry UUID $tax_uuid?
+    # according to Taxes instances generated by EntryID $tax_id?
     #
     # they should always be equivalent
     unless $total_quantity_debited == $total_quantity_expended
@@ -308,12 +307,12 @@ multi method perform_sanity_check(
 
 multi method perform_sanity_check(
     Array[Instruction:D] :%instructions!,
-    UUID:D :$tax_uuid!,
+    EntryID:D :$tax_id!,
     Nightscape::Entity::Holding::Taxes:D :@taxes! is readonly
 )
 {
     # get original quantity debited value in entity base currency,
-    # of asset code $asset_code in entry uuid $tax_uuid, that is,
+    # of asset code $asset_code in entry id $tax_id, that is,
     # the sum of balance deltas
     #
     # NOTE: it is crucial to only sum the value of postings
@@ -321,12 +320,12 @@ multi method perform_sanity_check(
     my Quantity $original_value_debited =
         [+] (self.get_posting_value(
                 :base_currency($.entity_base_currency),
-                :entry_uuid($tax_uuid),
-                :posting_uuid($_)
+                :entry_id($tax_id),
+                :posting_id($_)
             ) for %instructions.keys);
 
     # get new quantity debited value in entity base currency,
-    # of asset code $asset_code in entry uuid $tax_uuid, from
+    # of asset code $asset_code in EntryID $tax_id, from
     # Instructions
     my Quantity $new_value_debited;
     for %instructions.values -> @instructions
@@ -348,24 +347,24 @@ multi method perform_sanity_check(
             {
                 # find xe by backtracing to causal transaction
                 my Nightscape::Entity::TXN $txn = self.ls_txn(
-                    :posting_uuid($instruction<posting_uuid>)
+                    :posting_id($instruction<posting_id>)
                 );
                 my Nightscape::Entity::TXN::ModWallet @mod_wallets =
                     $txn.mod_wallet.grep({
-                        .posting_uuid ~~ $instruction<posting_uuid>
+                        .posting_id == $instruction<posting_id>
                     });
                 unless @mod_wallets.elems == 1
                 {
                     if @mod_wallets.elems > 1
                     {
                         die "Sorry, found more than one TXN.mod_wallet
-                             with the same posting UUID, which should
+                             with the same PostingID, which should
                              be impossible";
                     }
                     elsif @mod_wallets.elems < 1
                     {
                         die "Sorry, found no matching TXN.mod_wallet
-                             with the same posting UUID";
+                             with requested PostingID";
                     }
                 }
                 my Nightscape::Entity::TXN::ModWallet $mod_wallet =
@@ -431,14 +430,14 @@ multi method perform_sanity_check(
         #
         # - an expenditure had to have happened to instantiate
         #   the Taxes class, creating those capital gains or
-        #   losses with the associated UUID (the 'taxes.keys')
+        #   losses with the associated EntryID (the 'taxes.keys')
         # - if (expend price - basis price) * quantity expended > 0,
         #   only then will a Taxes class be instantiated and
         #   realized capital gains recorded
         # - if (expend price - basis price) * quantity expended < 0,
         #   only then will a Taxes class be instantiated and
         #   realized capital losses recorded
-        # - under no other conditions would the key $tax_uuid exist
+        # - under no other conditions would the key $tax_id exist
         # - each single tax event will necessarily be either
         #   a gain or a loss
         die "Sorry, unexpected absence of capital gains and losses";
@@ -447,22 +446,22 @@ multi method perform_sanity_check(
 
 # grep for wallet paths C<AcctName>s containing Wallet.balance
 # adjustment events only of asset code $asset_code, and caused only
-# by entry UUID $tax_uuid leading to realized capital gains or
-# realized capital losses
+# by EntryID $tax_id leading to realized capital gains or realized
+# capital losses
 # - the changesets are not being returned, just the paths to wallets
 #   containing those changesets (AcctName) and related info (Acct)
 sub resolve_acct_targets(
     Nightscape::Entity::COA::Acct:D :%acct! is readonly,
     AssetCode:D :$asset_code!,
-    UUID:D :$tax_uuid!
+    EntryID:D :$tax_id!
 ) returns Hash[Nightscape::Entity::COA::Acct:D,AcctName:D]
 {
     my Nightscape::Entity::COA::Acct %acct_targets{AcctName} = %acct.grep({
         # only find targets in Silo ASSETS
         .value.path[0] ~~ "ASSETS"
     }).grep({
-        # only find targets with matching asset code and entry UUID
-        .value.entry_uuids_by_asset{$asset_code}.grep($tax_uuid)
+        # only find targets with matching asset code and EntryID
+        .value.entry_ids_by_asset{$asset_code}.grep($tax_id)
     });
 }
 
@@ -499,8 +498,8 @@ class Bucket
     # capacity less filled
     has Quantity $.open = $!capacity - $!filled;
 
-    # causal posting UUID
-    has UUID $.posting_uuid;
+    # causal PostingID
+    has PostingID $.posting_id;
 
     # subfills indexed by acquisition price
     has Quantity %.subfills{Quantity};
@@ -538,11 +537,11 @@ class Bucket
 }
 
 sub gen_buckets(
-    Hash[Hash[Hash[Rat:D,UUID:D],Rat:D],AcctName:D]
-        :%total_quantity_debited! is readonly
-) returns Hash[Bucket:D,UUID:D]
+    Hash[Hash[Hash[Rat:D,PostingID:D],Rat:D],AcctName:D]
+        :%total_quantity_debited! is readonly,
+) returns Hash[Bucket:D,PostingID:D]
 {
-    my Bucket:D %buckets{UUID:D};
+    my Bucket:D %buckets{PostingID:D};
 
     # (from data structure of %total_quantity_debited)
     # total quantity debited in targets, separately and in total
@@ -550,16 +549,16 @@ sub gen_buckets(
     #     TotalQuantityDebited => %(
     #         TargetAcctName => %(
     #             TargetAcctBalanceDelta => %(
-    #                 PostingUUID => PostingUUIDBalanceDelta,
-    #                 PostingUUID => PostingUUIDBalanceDelta,
-    #                 PostingUUID => PostingUUIDBalanceDelta
+    #                 PostingID => PostingIDBalanceDelta,
+    #                 PostingID => PostingIDBalanceDelta,
+    #                 PostingID => PostingIDBalanceDelta
     #             )
     #         ),
     #         TargetAcctName => %(
     #             TargetAcctBalanceDelta => %(
-    #                 PostingUUID => PostingUUIDBalanceDelta,
-    #                 PostingUUID => PostingUUIDBalanceDelta,
-    #                 PostingUUID => PostingUUIDBalanceDelta
+    #                 PostingID => PostingIDBalanceDelta,
+    #                 PostingID => PostingIDBalanceDelta,
+    #                 PostingID => PostingIDBalanceDelta
     #             )
     #         )
     #     )
@@ -578,13 +577,13 @@ sub gen_buckets(
         # TargetAcctBalanceDelta < 0:
         #
         #     TargetAcctBalanceDelta => %(
-        #         PostingUUID => PostingUUIDBalanceDelta,
-        #         PostingUUID => PostingUUIDBalanceDelta,
-        #         PostingUUID => PostingUUIDBalanceDelta
+        #         PostingID => PostingIDBalanceDelta,
+        #         PostingID => PostingIDBalanceDelta,
+        #         PostingID => PostingIDBalanceDelta
         #     )
         #
         for %target_acct_balance_delta.kv ->
-            $target_acct_balance_delta_sum, %balance_delta_by_posting_uuid
+            $target_acct_balance_delta_sum, %balance_delta_by_posting_id
         {
             # store quantity remaining to debit of this TargetAcct
             # (TargetAcctBalanceDelta)
@@ -594,18 +593,17 @@ sub gen_buckets(
             my Quantity $remaining_acct_debit_quantity =
                 $target_acct_balance_delta_sum.abs;
 
-            # instantiate one bucket per posting UUID, only for those postings
-            # with negative balance_delta
+            # instantiate one bucket per PostingID, only for those
+            # postings with negative balance_delta
             #
             # we subdivide only these postings with asset outflows when incising
             # realized capital gains / losses
 
-            # for all %(PostingUUID => PostingUUIDBalanceDelta) pairs
-            # with Changeset.balance_delta less than zero
-            my LessThanZero %bdbpu{UUID} = %balance_delta_by_posting_uuid.grep({
-                .value < 0
-            });
-            for %bdbpu.kv -> $posting_uuid, $balance_delta
+            # for all %(PostingID => PostingIDBalanceDelta) pairs with
+            # Changeset.balance_delta less than zero
+            my LessThanZero %bdbpu{PostingID} =
+                %balance_delta_by_posting_id.grep({ .value < 0 });
+            for %bdbpu.kv -> $posting_id, $balance_delta
             {
                 # store capacity of Bucket
                 my Quantity $capacity;
@@ -619,7 +617,7 @@ sub gen_buckets(
                 my Quantity $unconstrained_capacity;
 
                 # is this acct's remaining quantity debited greater than
-                # or equal to PostingUUID's PostingUUIDBalanceDelta.abs?
+                # or equal to PostingID's PostingIDBalanceDelta.abs?
                 #
                 # to make comparing easier, negate balance delta since
                 # it is known to be < 0
@@ -659,17 +657,17 @@ sub gen_buckets(
                 }
 
                 #
-                # instantiate bucket, indexed by posting UUID with:
+                # instantiate bucket, indexed by PostingID with:
                 #
                 # - capacity (of the amount expended in the acct per the Entry)
                 #   - INCs less DECs to the asset in the original Entry
                 #   - this is what the method Entity.get_total_quantity_debited
                 #     does when it sums the balance delta of all changesets
-                #     particular to an Entry UUID's handling of an asset, one
-                #     with realized capital gains / losses
-                # - posting UUID
-                #   - posting UUID with a Changeset.balance_delta less than
-                #     zero
+                #     particular to an EntryID's handling of an asset,
+                #     one with realized capital gains / losses
+                # - PostingID
+                #   - PostingID with a Changeset.balance_delta less
+                #     than zero
                 #     - if the summed balance_deltas are negative for an asset
                 #       in a particular entry, at least one of the negative
                 #       C<Entry::Posting>s had to be in part responsible for a
@@ -723,12 +721,12 @@ sub gen_buckets(
                 #     # 15 outflow and the 18 outflow are subdivided, or all
                 #     # three
                 #
-                %buckets{$posting_uuid} = Bucket.new(
+                %buckets{$posting_id} = Bucket.new(
                     :acct_name($target_acct_name),
                     :$capacity,
                     :$constrained,
                     :$unconstrained_capacity,
-                    :$posting_uuid
+                    :$posting_id
                 );
 
                 # is there no remaining quantity to debit in acct?
@@ -740,8 +738,8 @@ sub gen_buckets(
                 }
 
                 # default action:
-                # go to next %(PostingUUID => PostingUUIDBalanceDelta)
-                # pair where PostingUUIDBalanceDelta is less than zero,
+                # go to next %(PostingID => PostingIDBalanceDelta)
+                # pair where PostingIDBalanceDelta is less than zero,
                 # as there is still some acct debit quantity remaining
             }
         }
@@ -775,8 +773,8 @@ sub fill_buckets(
             #   but for FIFO/LIFO/AVCO it is arbitrary which wallet
             #   spends which holdings at each price point expended
 
-            # for each %(PostingUUID => Bucket) pair
-            for %buckets.kv -> $posting_uuid, $bucket
+            # for each %(PostingID => Bucket) pair
+            for %buckets.kv -> $posting_id, $bucket
             {
                 # how much capacity in bucket is currently open?
                 my Quantity $open = $bucket.open;
@@ -850,19 +848,19 @@ sub fill_buckets(
 
 sub buckets2instructions(
     Bucket:D :%buckets
-) returns Hash[Array[Instruction:D],UUID:D]
+) returns Hash[Array[Instruction:D],PostingID:D]
 {
-    # store lists of instructions indexed by causal posting UUID
-    my Array[Instruction:D] %instructions{UUID:D};
+    # store lists of instructions indexed by causal PostingID
+    my Array[Instruction:D] %instructions{PostingID:D};
 
-    # foreach %(PostingUUID => Bucket) pair
-    for %buckets.kv -> $posting_uuid, $bucket
+    # foreach %(PostingID => Bucket) pair
+    for %buckets.kv -> $posting_id, $bucket
     {
         # store list of instructions generated from bucket
         my Instruction @instructions;
 
         # store bucket's parent acct name, which is the subject of
-        # PostingUUID
+        # PostingID
         my AcctName $acct_name = $bucket.acct_name;
 
         # was bucket capacity artificially constrained by acct debit
@@ -926,7 +924,7 @@ sub buckets2instructions(
                 my Instruction $instruction = {
                     :$acct_name,
                     :$newmod,
-                    :$posting_uuid,
+                    :$posting_id,
                     :$quantity_to_debit,
                     :$xe
                 };
@@ -941,7 +939,7 @@ sub buckets2instructions(
                 my Instruction $instruction = {
                     :$acct_name,
                     :$newmod,
-                    :$posting_uuid,
+                    :$posting_id,
                     :$quantity_to_debit,
                     :$xe
                 };
@@ -959,7 +957,7 @@ sub buckets2instructions(
                 my Instruction $instruction = {
                     :$acct_name,
                     :$newmod,
-                    :$posting_uuid,
+                    :$posting_id,
                     :$quantity_to_debit,
                     :$xe
                 };
@@ -974,7 +972,7 @@ sub buckets2instructions(
                 my Instruction $instruction = {
                     :$acct_name,
                     :$newmod,
-                    :$posting_uuid,
+                    :$posting_id,
                     :$quantity_to_debit,
                     :$xe
                 };
@@ -992,7 +990,7 @@ sub buckets2instructions(
                 my Instruction $instruction = {
                     :$acct_name,
                     :$newmod,
-                    :$posting_uuid,
+                    :$posting_id,
                     :$quantity_to_debit,
                     :$xe
                 };
@@ -1008,7 +1006,7 @@ sub buckets2instructions(
                 my Instruction $instruction = {
                     :$acct_name,
                     :$newmod,
-                    :$posting_uuid,
+                    :$posting_id,
                     :$quantity_to_debit,
                     :$xe
                 };
@@ -1016,29 +1014,29 @@ sub buckets2instructions(
             }
         }
 
-        push %instructions{$posting_uuid}, @instructions;
+        push %instructions{$posting_id}, @instructions;
     }
 
     %instructions;
 }
 
 # return instructions for incising realized capital gains / losses
-# indexed by causal posting_uuid (NEW/MOD | AcctName | QuantityToDebit | XE)
+# indexed by causal posting_id (NEW/MOD | AcctName | QuantityToDebit | XE)
 sub gen_instructions(
-    Hash[Hash[Hash[Rat:D,UUID:D],Rat:D],AcctName:D]
+    Hash[Hash[Hash[Rat:D,PostingID:D],Rat:D],AcctName:D]
         :%total_quantity_debited! is readonly,
     Hash[Quantity:D,Quantity:D] :%total_quantity_expended! is readonly
-) returns Hash[Array[Instruction:D],UUID:D]
+) returns Hash[Array[Instruction:D],PostingID:D]
 {
-    # make buckets containing amounts needing to be filled in Entity.wallet,
-    # indexed by posting UUID, %(PostingUUID => Bucket)
-    my Bucket:D %buckets{UUID:D} = gen_buckets();
+    # make buckets containing amounts needing to be filled in
+    # Entity.wallet, indexed by PostingID, %(PostingID => Bucket)
+    my Bucket:D %buckets{PostingID:D} = gen_buckets();
 
     # fill buckets based on total quantity expended
     fill_buckets(:%buckets, :%total_quantity_expended);
 
     # convert %buckets to instructions
-    my Array[Instruction:D] %instructions{UUID:D} = buckets2instructions(
+    my Array[Instruction:D] %instructions{PostingID:D} = buckets2instructions(
         :%buckets
     );
 }
@@ -1059,8 +1057,8 @@ method gen_txn(
         EOF
     }
 
-    # source entry uuid
-    my UUID $uuid = $entry.header.uuid;
+    # source EntryID
+    my EntryID $entry_id = $entry.header.id;
 
     # transaction data storage
     my Nightscape::Entity::TXN::ModHolding %mod_holdings{AssetCode};
@@ -1070,7 +1068,7 @@ method gen_txn(
     for $entry.postings -> $posting
     {
         # from Nightscape::Entry::Posting
-        my UUID $posting_uuid = $posting.posting_uuid;
+        my PostingID $posting_id = $posting.id;
         my Nightscape::Entry::Posting::Account $account = $posting.account;
         my Nightscape::Entry::Posting::Amount $amount = $posting.amount;
         my DecInc $decinc = $posting.decinc;
@@ -1092,8 +1090,8 @@ method gen_txn(
         # build mod_wallet
         push @mod_wallet, Nightscape::Entity::TXN::ModWallet.new(
             :entity($.entity_name),
-            :entry_uuid($uuid),
-            :$posting_uuid,
+            :$entry_id,
+            :$posting_id,
             :$asset_code,
             :$decinc,
             :$quantity,
@@ -1180,7 +1178,7 @@ method gen_txn(
     # build transaction
     Nightscape::Entity::TXN.new(
         :entity($.entity_name),
-        :$uuid,
+        :$entry_id,
         :%mod_holdings,
         :@mod_wallet
     );
@@ -1256,13 +1254,13 @@ method get_eqbal(
 
 method get_posting_value(
     AssetCode:D :$base_currency!,
-    UUID:D :$entry_uuid!,
-    UUID:D :$posting_uuid!
+    EntryID:D :$entry_id!,
+    PostingID:D :$posting_id!
 ) returns Quantity:D
 {
     my Quantity $posting_value;
-    my Nightscape::Entity::TXN $txn = self.ls_txn(:$entry_uuid);
-    $txn.mod_wallet.grep({ .posting_uuid ~~ $posting_uuid }).map({
+    my Nightscape::Entity::TXN $txn = self.ls_txn(:$entry_id);
+    $txn.mod_wallet.grep({ .posting_id == $posting_id }).map({
         unless .xe_asset_code ~~ $base_currency
         {
             die "Sorry, unexpected xe_asset_code";
@@ -1277,9 +1275,9 @@ method get_posting_value(
 sub get_total_quantity_debited(
     Nightscape::Entity::COA::Acct:D :%acct_targets! is readonly,
     AssetCode:D :$asset_code!,
-    UUID:D :$entry_uuid!,
+    EntryID:D :$entry_id!,
     Nightscape::Entity::Wallet:D :%wallet! is readonly
-) returns Hash[Hash[Hash[Hash[Rat:D,UUID:D],Rat:D],AcctName:D],Quantity:D]
+) returns Hash[Hash[Hash[Hash[Rat:D,PostingID:D],Rat:D],AcctName:D],Quantity:D]
 {
     # store subtotal quantity debited
     my Quantity $subtotal_quantity_debited;
@@ -1287,22 +1285,22 @@ sub get_total_quantity_debited(
     # store subtotal quantity credited
     my Quantity $subtotal_quantity_credited;
 
-    # store Changeset.balance_delta indexed by posting UUID, indexed
-    # by subtotal quantity debited in the acct (the sum of balance deltas
+    # store Changeset.balance_delta indexed by PostingID, indexed by
+    # subtotal quantity debited in the acct (the sum of balance deltas
     # one per posting), indexed by acct name:
     #
     #     TargetAcctName => %(
     #         TargetAcctBalanceDelta => %(
-    #             PostingUUID => PostingUUIDBalanceDelta,
-    #             PostingUUID => PostingUUIDBalanceDelta,
-    #             PostingUUID => PostingUUIDBalanceDelta
+    #             PostingID => PostingIDBalanceDelta,
+    #             PostingID => PostingIDBalanceDelta,
+    #             PostingID => PostingIDBalanceDelta
     #         )
     #     ),
     #     TargetAcctName => %(
     #         TargetAcctBalanceDelta => %(
-    #             PostingUUID => PostingUUIDBalanceDelta,
-    #             PostingUUID => PostingUUIDBalanceDelta,
-    #             PostingUUID => PostingUUIDBalanceDelta
+    #             PostingID => PostingIDBalanceDelta,
+    #             PostingID => PostingIDBalanceDelta,
+    #             PostingID => PostingIDBalanceDelta
     #         )
     #     )
     #
@@ -1310,17 +1308,17 @@ sub get_total_quantity_debited(
     #
     #  $total_quantity_debited = [+] (.TargetAcctBalanceDelta for TargetAcctName)
     #
-    my Hash[Hash[Rat,UUID],Rat] %total_balance_delta_per_acct{AcctName};
+    my Hash[Hash[Rat,PostingID],Rat] %total_balance_delta_per_acct{AcctName};
 
     # for each target acct
     for %acct_targets.kv -> $acct_name, $acct
     {
         # get all those changesets in acct affecting only asset code
-        # $asset_code, and sharing entry's UUID $entry_uuid
+        # $asset_code, and sharing EntryID $entry_id
         my Nightscape::Entity::Wallet::Changeset @changesets =
             in_wallet(%wallet{::($acct.path[0])}, $acct.path[1..*]).ls_changesets(
                 :$asset_code,
-                :$entry_uuid
+                :$entry_id
             );
 
         # were there no matching changesets found?
@@ -1330,36 +1328,36 @@ sub get_total_quantity_debited(
             die "Sorry, expected at least one changeset, but none were found";
         }
 
-        # stores each changeset's debit quantity, indexed by posting UUID
+        # stores each changeset's debit quantity, indexed by PostingID
         #
         #     %(
-        #         PostingUUID => PostingUUIDBalanceDelta,
-        #         PostingUUID => PostingUUIDBalanceDelta,
-        #         PostingUUID => PostingUUIDBalanceDelta
+        #         PostingID => PostingIDBalanceDelta,
+        #         PostingID => PostingIDBalanceDelta,
+        #         PostingID => PostingIDBalanceDelta
         #     )
         #
-        my Rat %balance_delta_by_posting_uuid{UUID};
+        my Rat %balance_delta_by_posting_id{PostingID};
 
         # for all those changesets in acct affecting only asset code $asset_code,
-        # and sharing entry's UUID $entry_uuid
+        # and sharing EntryID $entry_id
         for @changesets -> $changeset
         {
-            # causal posting's uuid, for precise changeset lookups
-            my UUID $posting_uuid = $changeset.posting_uuid;
+            # causal PostingID, for precise changeset lookups
+            my PostingID $posting_id = $changeset.posting_id;
 
             # causal posting's balance adjustment, for summing
-            my Rat $posting_uuid_balance_delta = $changeset.balance_delta;
+            my Rat $posting_id_balance_delta = $changeset.balance_delta;
 
-            # changeset's debit quantity, indexed by posting UUID
-            %balance_delta_by_posting_uuid{$posting_uuid} =
-                $posting_uuid_balance_delta;
+            # changeset's debit quantity, indexed by PostingID
+            %balance_delta_by_posting_id{$posting_id} =
+                $posting_id_balance_delta;
         }
 
         # sum posting balance deltas, should be less than zero,
         # representing net expenditure/outflow of asset from silo
         # ASSETS wallet
         my Rat $target_acct_balance_delta_sum =
-            [+] %balance_delta_by_posting_uuid.values;
+            [+] %balance_delta_by_posting_id.values;
 
         # store this target acct's debits to asset
         my Quantity $target_acct_debit_quantity = 0.0;
@@ -1404,11 +1402,11 @@ sub get_total_quantity_debited(
         # the intuitive version doesn't work
         #     %total_balance_delta_per_acct{$acct.name} =
         #         $target_acct_balance_delta_sum =>
-        #             $%balance_delta_by_posting_uuid;
+        #             $%balance_delta_by_posting_id;
         #
         # helper:
-        my Hash[Rat,UUID] %target_acct_balance_delta{Rat} =
-            $target_acct_balance_delta_sum => $%balance_delta_by_posting_uuid;
+        my Hash[Rat,PostingID] %target_acct_balance_delta{Rat} =
+            $target_acct_balance_delta_sum => $%balance_delta_by_posting_id;
         %total_balance_delta_per_acct{$acct_name} = $%target_acct_balance_delta;
 
         # add subtotal balance delta to total quantity debited / credited
@@ -1425,28 +1423,28 @@ sub get_total_quantity_debited(
     # TotalQuantityDebited => %(
     #     TargetAcctName => %(
     #         TargetAcctBalanceDelta => %(
-    #             PostingUUID => PostingUUIDBalanceDelta,
-    #             PostingUUID => PostingUUIDBalanceDelta,
-    #             PostingUUID => PostingUUIDBalanceDelta
+    #             PostingID => PostingIDBalanceDelta,
+    #             PostingID => PostingIDBalanceDelta,
+    #             PostingID => PostingIDBalanceDelta
     #         )
     #     ),
     #     TargetAcctName => %(
     #         TargetAcctBalanceDelta => %(
-    #             PostingUUID => PostingUUIDBalanceDelta,
-    #             PostingUUID => PostingUUIDBalanceDelta,
-    #             PostingUUID => PostingUUIDBalanceDelta
+    #             PostingID => PostingIDBalanceDelta,
+    #             PostingID => PostingIDBalanceDelta,
+    #             PostingID => PostingIDBalanceDelta
     #         )
     #     )
     # )
     #
-    # TotalQuantityDebited -----------------------------------------------+
-    # TargetAcctName ---------------------+                               |
-    # TargetAcctBalanceDelta ----+        |                               |
-    # PostingUUID -----------+   |        |                               |
-    #PostingUUIDBalanceDelta |   |        |                               |
-    #                  |     |   |        |                               |
-    #                  |     |   |        |                               |
-    my Hash[Hash[Hash[Rat,UUID],Rat],AcctName] %total_quantity_debited{Quantity} =
+    # TotalQuantityDebited ----------------------------------------------------+
+    # TargetAcctName -------------------------+                                |
+    # TargetAcctBalanceDelta ---------+       |                                |
+    # PostingID --------------+       |       |                                |
+    # PostingIDBalanceDelta   |       |       |                                |
+    #                  |      |       |       |                                |
+    #                  |      |       |       |                                |
+    my Hash[Hash[Hash[Rat,PostingID],Rat],AcctName] %total_quantity_debited{Quantity} =
         $total_quantity_debited => %total_balance_delta_per_acct;
 }
 
@@ -1469,7 +1467,7 @@ sub get_total_quantity_expended(
         my Quantity $subtotal_quantity_expended = $tax_event.quantity_expended;
         $total_quantity_expended += $subtotal_quantity_expended;
 
-        # store acquisition price / avco for this tax uuid
+        # store acquisition price / avco for this tax id
         my Quantity $xe_asset_quantity;
 
         # AVCO costing method?
@@ -1554,10 +1552,10 @@ multi method ls_assets_handled(
     my AssetCode:D @assets_handled = self.ls_assets_handled(:%acct);
 }
 
-multi method ls_txn(UUID:D :$entry_uuid!) returns Nightscape::Entity::TXN:D
+multi method ls_txn(EntryID:D :$entry_id!) returns Nightscape::Entity::TXN:D
 {
     my Nightscape::Entity::TXN @txn = @.transactions.grep({
-        .uuid ~~ $entry_uuid
+        .entry_id == $entry_id
     });
     unless @txn.elems == 1
     {
@@ -1573,10 +1571,10 @@ multi method ls_txn(UUID:D :$entry_uuid!) returns Nightscape::Entity::TXN:D
     my Nightscape::Entity::TXN $txn = @txn[0];
 }
 
-multi method ls_txn(UUID:D :$posting_uuid!) returns Nightscape::Entity::TXN:D
+multi method ls_txn(PostingID:D :$posting_id!) returns Nightscape::Entity::TXN:D
 {
     my Nightscape::Entity::TXN @txn = @.transactions.grep({
-        .mod_wallet».posting_uuid.grep($posting_uuid)
+        .mod_wallet».posting_id.grep($posting_id)
     });
     unless @txn.elems == 1
     {
@@ -1635,7 +1633,7 @@ method mktxn(Nightscape::Entry:D $entry is readonly)
 
 # acquire/expend the applicable holdings
 method !mod_holdings(
-    UUID:D :$uuid!,
+    EntryID:D :$entry_id!,
     AssetCode:D :$asset_code!,
     AssetFlow:D :$asset_flow!,
     Costing:D :$costing!,
@@ -1658,7 +1656,7 @@ method !mod_holdings(
 
         # acquire asset
         %!holdings{$asset_code}.acquire(
-            :$uuid,
+            :$entry_id,
             :$date,
             :$price,
             :$acquisition_price_asset_code,
@@ -1691,7 +1689,7 @@ method !mod_holdings(
 
         # expend asset
         %!holdings{$asset_code}.expend(
-            :$uuid,
+            :$entry_id,
             :$date,
             :$asset_code,
             :$costing,
@@ -1709,8 +1707,8 @@ method !mod_holdings(
 
 # dec/inc the applicable wallet balance
 method !mod_wallet(
-    UUID:D :$entry_uuid!,
-    UUID:D :$posting_uuid!,
+    EntryID:D :$entry_id!,
+    PostingID:D :$posting_id!,
     AssetCode:D :$asset_code!,
     DecInc:D :$decinc!,
     Quantity:D :$quantity!,
@@ -1728,8 +1726,8 @@ method !mod_wallet(
 
     # dec/inc wallet balance (potential side effect from in_wallet)
     in_wallet(%!wallet{$silo}, @subwallet).mkchangeset(
-        :$entry_uuid,
-        :$posting_uuid,
+        :$entry_id,
+        :$posting_id,
         :$asset_code,
         :$decinc,
         :$quantity,
@@ -1741,8 +1739,8 @@ method !mod_wallet(
 # execute transaction
 method transact(Nightscape::Entity::TXN:D $transaction is readonly)
 {
-    # uuid from causal transaction journal entry
-    my UUID $uuid = $transaction.uuid;
+    # causal transaction journal EntryID
+    my EntryID $entry_id = $transaction.entry_id;
 
     # mod holdings (only needed for entries dealing in aux assets)
     my Nightscape::Entity::TXN::ModHolding %mod_holdings{AssetCode} =
@@ -1760,7 +1758,7 @@ method transact(Nightscape::Entity::TXN:D $transaction is readonly)
             my Quantity $quantity = $mod_holding.quantity;
 
             self!mod_holdings(
-                :$uuid,
+                :$entry_id,
                 :$asset_code,
                 :$asset_flow,
                 :$costing,
@@ -1776,7 +1774,7 @@ method transact(Nightscape::Entity::TXN:D $transaction is readonly)
     my Nightscape::Entity::TXN::ModWallet @mod_wallet = $transaction.mod_wallet;
     for @mod_wallet -> $mod_wallet
     {
-        my UUID $posting_uuid = $mod_wallet.posting_uuid;
+        my PostingID $posting_id = $mod_wallet.posting_id;
         my AssetCode $asset_code = $mod_wallet.asset_code;
         my DecInc $decinc = $mod_wallet.decinc;
         my Quantity $quantity = $mod_wallet.quantity;
@@ -1789,8 +1787,8 @@ method transact(Nightscape::Entity::TXN:D $transaction is readonly)
         $xe_asset_quantity = try {$mod_wallet.xe_asset_quantity};
 
         self!mod_wallet(
-            :entry_uuid($uuid),
-            :$posting_uuid,
+            :$entry_id,
+            :$posting_id,
             :$asset_code,
             :$decinc,
             :$quantity,
@@ -1862,31 +1860,31 @@ method tree2acct(
         my AssetCode @assets_handled =
             in_wallet($wallet, @path[1..*]).ls_assets;
 
-        # store entry uuids handled, indexed by asset code
-        my Array[UUID:D] %entry_uuids_by_asset{AssetCode:D} =
-            in_wallet($wallet, @path[1..*]).ls_assets_with_uuids;
+        # store EntryIDs handled, indexed by asset code
+        my Array[EntryID:D] %entry_ids_by_asset{AssetCode:D} =
+            in_wallet($wallet, @path[1..*]).ls_assets_with_ids;
 
-        # store posting uuids handled, indexed by asset code
-        my Array[UUID:D] %posting_uuids_by_asset{AssetCode:D} =
-            in_wallet($wallet, @path[1..*]).ls_assets_with_uuids(:posting);
+        # store PostingIDs handled, indexed by asset code
+        my Array[PostingID:D] %posting_ids_by_asset{AssetCode:D} =
+            in_wallet($wallet, @path[1..*]).ls_assets_with_ids(:posting);
 
-        # store all entry uuids handled
-        my UUID:D @entry_uuids_handled =
-            in_wallet($wallet, @path[1..*]).ls_uuids;
+        # store all EntryIDs handled
+        my EntryID:D @entry_ids_handled =
+            in_wallet($wallet, @path[1..*]).ls_ids;
 
-        # store all posting uuids handled
-        my UUID:D @posting_uuids_handled =
-            in_wallet($wallet, @path[1..*]).ls_uuids(:posting);
+        # store all PostingIDs handled
+        my PostingID:D @posting_ids_handled =
+            in_wallet($wallet, @path[1..*]).ls_ids(:posting);
 
         # instantiate acct
         %acct{$name} = Nightscape::Entity::COA::Acct.new(
             :$name,
             :@path,
             :@assets_handled,
-            :%entry_uuids_by_asset,
-            :@entry_uuids_handled,
-            :%posting_uuids_by_asset,
-            :@posting_uuids_handled
+            :%entry_ids_by_asset,
+            :@entry_ids_handled,
+            :%posting_ids_by_asset,
+            :@posting_ids_handled
         );
     }
 
@@ -1899,7 +1897,7 @@ method tree2acct(
 # --------------------
 #
 # - there is a list of realized capital gains / losses from each
-#   entry UUID
+#   EntryID
 # - list is needed because a larger expenditure in the transaction
 #   journal can deplete multiple asset (holding) basis lots, which
 #   were acquired under unique exchange rates
@@ -1928,7 +1926,7 @@ method tree2acct(
 #       ASSETS:Personal:BitBrokerC           -18 BTC @ 0.3 USD
 #
 #     # asset sale in transaction journal entry
-#     # this transaction journal entry's UUID ~~ $tax_uuid
+#     # this transaction journal EntryID == $tax_id
 #     2012-10-26 "I sold 48 BTC at a price of $10.00 USD/BTC"
 #       ASSETS:Personal:Bankwest:Cheque       480 USD
 #       ASSETS:Personal:ColdStorage:Bread    -24 BTC @ 10 USD

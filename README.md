@@ -83,7 +83,7 @@ Installation
 
 - Rakudo Perl 6
 - [Config::TOML](https://github.com/atweiden/config-toml)
-- [UUID](https://github.com/retupmoca/P6-UUID)
+- [Digest::xxHash](https://github.com/atweiden/digest-xxhash)
 
 
 Licensing

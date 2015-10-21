@@ -1,7 +1,6 @@
 use v6;
 use Nightscape::Entity::Wallet::Changeset;
 use Nightscape::Types;
-use UUID;
 unit class Nightscape::Entity::Wallet;
 
 # append-only list of balance changesets, indexed by asset code
@@ -34,8 +33,8 @@ method clone_balance(
                 Nightscape::Entity::Wallet::Changeset.new(
                     :balance_delta($changeset.balance_delta),
                     :balance_delta_asset_code($changeset.balance_delta_asset_code),
-                    :entry_uuid($changeset.entry_uuid),
-                    :posting_uuid($changeset.posting_uuid),
+                    :entry_id($changeset.entry_id),
+                    :posting_id($changeset.posting_id),
                     :xe_asset_code($changeset.xe_asset_code),
                     :xe_asset_quantity($changeset.xe_asset_quantity)
                 )
@@ -153,13 +152,11 @@ method ls_assets() returns Array[AssetCode:D]
     my AssetCode:D @assets_handled = %.balance.keys;
 }
 
-# list UUIDs handled, indexed by asset code (default: entry UUID)
-method ls_assets_with_uuids(
-    Bool :$posting
-) returns Hash[Array[UUID:D],AssetCode:D]
+# list EntryIDs handled, indexed by asset code
+multi method ls_assets_with_ids() returns Hash[Array[EntryID:D],AssetCode:D]
 {
-    # store UUIDs handled, indexed by asset code
-    my Array[UUID:D] %uuids_handled_by_asset_code{AssetCode:D};
+    # store EntryIDs handled, indexed by asset code
+    my Array[EntryID:D] %entry_ids_handled_by_asset_code{AssetCode:D};
 
     # list all assets handled
     my AssetCode:D @assets_handled = self.ls_assets;
@@ -167,105 +164,153 @@ method ls_assets_with_uuids(
     # for each asset code handled
     for @assets_handled -> $asset_code
     {
-        # was :posting arg passed?
-        if $posting
-        {
-            # get posting UUIDs handled by asset code
-            %uuids_handled_by_asset_code{$asset_code} = self.ls_uuids_by_asset(
-                :$asset_code,
-                :posting
-            );
-        }
-        else
-        {
-            # get entry UUIDs handled by asset code
-            %uuids_handled_by_asset_code{$asset_code} = self.ls_uuids_by_asset(
-                :$asset_code
-            );
-        }
+        # get EntryIDs handled by asset code
+        %entry_ids_handled_by_asset_code{$asset_code} = self.ls_ids_by_asset(
+            :$asset_code
+        );
     }
 
-    %uuids_handled_by_asset_code;
+    %entry_ids_handled_by_asset_code;
+}
+
+# list PostingIDs handled, indexed by asset code
+multi method ls_assets_with_ids(
+    Bool:D :$posting! where *.so
+) returns Hash[Array[PostingID:D],AssetCode:D]
+{
+    # store PostingIDs handled, indexed by asset code
+    my Array[PostingID:D] %posting_ids_handled_by_asset_code{AssetCode:D};
+
+    # list all assets handled
+    my AssetCode:D @assets_handled = self.ls_assets;
+
+    # for each asset code handled
+    for @assets_handled -> $asset_code
+    {
+        # get PostingIDs handled by asset code
+        %posting_ids_handled_by_asset_code{$asset_code} =
+            self.ls_ids_by_asset(:$asset_code, :posting);
+    }
+
+    %posting_ids_handled_by_asset_code;
 }
 
 # list changesets
 method ls_changesets(
     AssetCode:D :$asset_code!,
-    UUID :$entry_uuid,
-    UUID :$posting_uuid
+    EntryID :$entry_id,
+    PostingID :$posting_id
 ) returns Array[Nightscape::Entity::Wallet::Changeset]
 {
     my Nightscape::Entity::Wallet::Changeset @c = %.balance{$asset_code}.list;
-    @c = self._ls_changesets(:changesets(@c), :$entry_uuid) if $entry_uuid;
-    @c = self._ls_changesets(:changesets(@c), :$posting_uuid) if $posting_uuid;
+    @c = self._ls_changesets(:changesets(@c), :$entry_id) if $entry_id;
+    @c = self._ls_changesets(:changesets(@c), :$posting_id) if $posting_id;
     @c;
 }
 
 multi method _ls_changesets(
     Nightscape::Entity::Wallet::Changeset:D :@changesets! is readonly,
-    UUID:D :$entry_uuid!
+    EntryID:D :$entry_id!
 ) returns Array[Nightscape::Entity::Wallet::Changeset]
 {
     my Nightscape::Entity::Wallet::Changeset @c = @changesets.grep({
-        .entry_uuid ~~ $entry_uuid
+        .entry_id == $entry_id
     });
 }
 
 multi method _ls_changesets(
     Nightscape::Entity::Wallet::Changeset:D :@changesets! is readonly,
-    UUID:D :$posting_uuid!
+    PostingID:D :$posting_id!
 ) returns Array[Nightscape::Entity::Wallet::Changeset]
 {
     my Nightscape::Entity::Wallet::Changeset @c = @changesets.grep({
-        .posting_uuid ~~ $posting_uuid
+        .posting_id == $posting_id
     });
 }
 
-# list UUIDs handled, all asset codes (default: entry UUID)
-method ls_uuids(Bool :$posting) returns Array[UUID:D]
+# list EntryIDs handled, all asset codes
+multi method ls_ids() returns Array[EntryID:D]
 {
     # populate assets handled
     my AssetCode @assets_handled = self.ls_assets;
 
-    # store UUIDs handled
-    my UUID:D @uuids_handled;
+    # store EntryIDs handled
+    my EntryID:D @entry_ids_handled;
 
-    # fetch UUIDs handled
+    # fetch EntryIDs handled
     for @assets_handled -> $asset_code
     {
-        push @uuids_handled, |self.ls_uuids_by_asset(:$asset_code, :$posting);
+        push @entry_ids_handled, |self.ls_ids_by_asset(:$asset_code);
     }
 
-    @uuids_handled;
+    @entry_ids_handled;
 }
 
-# list UUIDs handled, single asset code (default: entry UUID)
-method ls_uuids_by_asset(
-    AssetCode:D :$asset_code!,
-    Bool :$posting
-) returns Array[UUID:D]
+# list PostingIDs handled, all asset codes
+multi method ls_ids(Bool:D :$posting! where *.so) returns Array[PostingID:D]
 {
-    # store UUIDs handled
-    my UUID:D @uuids_handled;
+    # populate assets handled
+    my AssetCode @assets_handled = self.ls_assets;
 
-    # fetch UUIDs handled
+    # store PostingIDs handled
+    my PostingID:D @posting_ids_handled;
+
+    # fetch PostingIDs handled
+    for @assets_handled -> $asset_code
+    {
+        push @posting_ids_handled,
+            |self.ls_ids_by_asset(:$asset_code, :$posting);
+    }
+
+    @posting_ids_handled;
+}
+
+# list EntryIDs handled, single asset code
+multi method ls_ids_by_asset(
+    AssetCode:D :$asset_code!,
+    Bool:U :$posting
+) returns Array[EntryID:D]
+{
+    # store EntryIDs handled
+    my EntryID:D @entry_ids_handled;
+
+    # fetch EntryIDs handled
     for %.balance{$asset_code} -> @changesets
     {
         for @changesets -> $changeset
         {
-            # posting UUIDs if posting requested, else entry UUIDs
-            push @uuids_handled,
-                $posting ?? $changeset.posting_uuid !! $changeset.entry_uuid;
+            push @entry_ids_handled, $changeset.entry_id;
         }
     }
 
-    @uuids_handled;
+    @entry_ids_handled;
+}
+
+# list PostingIDs handled, single asset code
+multi method ls_ids_by_asset(
+    AssetCode:D :$asset_code!,
+    Bool:D :$posting! where *.so
+) returns Array[PostingID:D]
+{
+    # store PostingIDs handled
+    my PostingID:D @posting_ids_handled;
+
+    # fetch PostingIDs handled
+    for %.balance{$asset_code} -> @changesets
+    {
+        for @changesets -> $changeset
+        {
+            push @posting_ids_handled, $changeset.posting_id;
+        }
+    }
+
+    @posting_ids_handled;
 }
 
 # record balance update instruction, the final executor (standard mode)
 multi method mkchangeset(
-    UUID:D :$entry_uuid!,
-    UUID :$posting_uuid!,           # is undefined for NSAutoCapitalGains
+    EntryID:D :$entry_id!,
+    PostingID :$posting_id!,           # is undefined for NSAutoCapitalGains
     AssetCode:D :$asset_code!,
     DecInc:D :$decinc!,
     Quantity:D :$quantity!,
@@ -296,8 +341,8 @@ multi method mkchangeset(
     push %!balance{$asset_code}, Nightscape::Entity::Wallet::Changeset.new(
         :$balance_delta,
         :$balance_delta_asset_code,
-        :$entry_uuid,
-        :$posting_uuid,
+        :$entry_id,
+        :$posting_id,
         :$xe_asset_code,
         :$xe_asset_quantity
     );
@@ -305,8 +350,8 @@ multi method mkchangeset(
 
 # record balance update instruction, the final executor (splice mode)
 multi method mkchangeset(
-    UUID:D :$entry_uuid!,
-    UUID:D :$posting_uuid!,
+    EntryID:D :$entry_id!,
+    PostingID:D :$posting_id!,
     AssetCode:D :$asset_code!,
     DecInc:D :$decinc!,
     Quantity:D :$quantity!,
@@ -339,8 +384,8 @@ multi method mkchangeset(
     my Nightscape::Entity::Wallet::Changeset $changeset .= new(
         :$balance_delta,
         :$balance_delta_asset_code,
-        :$entry_uuid,
-        :$posting_uuid,
+        :$entry_id,
+        :$posting_id,
         :$xe_asset_code,
         :$xe_asset_quantity
     );
@@ -349,37 +394,37 @@ multi method mkchangeset(
     %!balance{$asset_code}.splice($index, 0, $changeset);
 }
 
-# modify existing changeset given asset code, entry UUID, posting UUID
-# and instruction:
+# modify existing changeset given asset code, EntryID, PostingID and
+# instruction:
 #
 #     MOD | AcctName | QuantityToDebit | XE
 #
 multi method mkchangeset(
     AssetCode:D :$asset_code!,
     AssetCode:D :$xe_asset_code!,
-    UUID:D :$entry_uuid!,
-    UUID:D :$posting_uuid!, # posting UUID of which to modify
+    EntryID:D :$entry_id!,
+    PostingID:D :$posting_id!, # PostingID of which to modify
     Instruction:D :$instruction! (
         # deconstruct instruction
         AssetsAcctName:D :$acct_name!,
         NewMod:D :$newmod! where * ~~ MOD,
-        UUID:D :posting_uuid($posting_uuid_instr)!,
+        PostingID:D :posting_id($posting_id_instr)!,
         Quantity:D :$quantity_to_debit!,
         Quantity :xe($xe_asset_quantity) # optional in certain cases
     )
 )
 {
-    # ensure Instruction posting UUID matches the causal posting UUID
-    unless $posting_uuid ~~ $posting_uuid_instr
+    # ensure Instruction PostingID matches the causal PostingID
+    unless $posting_id == $posting_id_instr
     {
-        # error: Instruction posting UUID does not match causal posting UUID
-        die "Sorry, Instruction posting UUID does not match causal posting UUID";
+        # error: Instruction PostingID does not match causal PostingID
+        die "Sorry, Instruction PostingID does not match causal PostingID";
     }
 
-    # changesets matching posting uuid under asset code
+    # changesets matching PostingID under asset code
     my Nightscape::Entity::Wallet::Changeset @changesets = self.ls_changesets(
         :$asset_code,
-        :$posting_uuid
+        :$posting_id
     );
 
     # was there not exactly one matching changeset?
@@ -389,13 +434,13 @@ multi method mkchangeset(
         if @changesets.elems < 1
         {
             # error: no matching changeset found
-            die "Sorry, could not find changeset with matching posting UUID";
+            die "Sorry, could not find changeset with matching PostingID";
         }
         # more than one match?
         elsif @changesets.elems > 1
         {
-            # error: more than one changeset found sharing posting UUID
-            die "Sorry, got more than one changeset with same posting UUID";
+            # error: more than one changeset found sharing PostingID
+            die "Sorry, got more than one changeset with same PostingID";
         }
     }
 
@@ -415,30 +460,30 @@ multi method mkchangeset(
     $changeset.mkxeaq(:$xe_asset_quantity, :force) if $xe_asset_quantity;
 }
 
-# create changeset given asset code, entry UUID, posting UUID and instruction:
+# create changeset given asset code, EntryID, PostingID and instruction:
 #
 #     NEW | AcctName | QuantityToDebit | XE
 #
 multi method mkchangeset(
     AssetCode:D :$asset_code!,
     AssetCode:D :$xe_asset_code!,
-    UUID:D :$entry_uuid!,
-    UUID:D :$posting_uuid!, # parent posting UUID, needed for calculating $index
+    EntryID:D :$entry_id!,
+    PostingID:D :$posting_id!, # parent PostingID, needed for calculating $index
     Instruction:D :$instruction! (
         # deconstruct instruction
         AssetsAcctName:D :$acct_name!,
         NewMod:D :$newmod! where * ~~ NEW,
-        UUID:D :posting_uuid($posting_uuid_instr)!,
+        PostingID:D :posting_id($posting_id_instr)!,
         Quantity:D :quantity_to_debit($quantity)!,
         Quantity:D :xe($xe_asset_quantity)! # required for NEW Instructions
     )
 )
 {
-    # ensure Instruction posting UUID matches the causal posting UUID
-    unless $posting_uuid ~~ $posting_uuid_instr
+    # ensure Instruction PostingID matches the causal PostingID
+    unless $posting_id == $posting_id_instr
     {
-        # error: Instruction posting UUID does not match causal posting UUID
-        die "Sorry, Instruction posting UUID does not match causal posting UUID";
+        # error: Instruction PostingID does not match causal PostingID
+        die "Sorry, Instruction PostingID does not match causal PostingID";
     }
 
     # we always need to have an $xe_asset_quantity here because this
@@ -456,19 +501,19 @@ multi method mkchangeset(
     # realized capital gains / losses
     my DecInc $decinc = DEC;
 
-    # target index is after parent posting UUID index
+    # target index is after parent PostingID index
     my Int $index = 1 + %.balance{$asset_code}.first-index({
-        .posting_uuid ~~ $posting_uuid
+        .posting_id == $posting_id
     });
 
-    # create new posting UUID
-    my UUID $new_posting_uuid .= new;
+    # create new PostingID
+    my PostingID $new_posting_id .= new(:$entry_id);
 
-    # splice balance update instruction next to parent posting UUID's
+    # splice balance update instruction next to parent PostingID's
     # location in %.balance{$asset_code} array
     self.mkchangeset(
-        :$entry_uuid,
-        :posting_uuid($new_posting_uuid),
+        :$entry_id,
+        :posting_id($new_posting_id),
         :$asset_code,
         :$decinc,
         :$quantity,

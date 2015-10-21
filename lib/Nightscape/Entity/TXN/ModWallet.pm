@@ -1,16 +1,15 @@
 use v6;
 use Nightscape::Types;
-use UUID;
 unit class Nightscape::Entity::TXN::ModWallet;
 
 # parent entity
 has VarName $.entity;
 
-# causal entry's uuid
-has UUID $.entry_uuid;
+# causal EntryID
+has EntryID $.entry_id;
 
-# causal posting's uuid
-has UUID $.posting_uuid;
+# causal PostingID
+has PostingID $.posting_id;
 
 # account
 has Silo $.silo;

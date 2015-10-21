@@ -1,18 +1,21 @@
 use v6;
+use Digest::xxHash;
 use Nightscape::Entry;
 use Nightscape::Types;
-use UUID;
 unit class Nightscape::Parser::Actions;
 
 # DateTime offset for when the local offset is omitted in dates. if
 # not passed as a parameter during instantiation, use UTC
 has Int $.date_local_offset = 0;
 
-# increments on each newly found transaction journal entry (0+)
-has Int $.entry_number = 0;
+# current EntryID
+has EntryID $!entry_id;
 
-# created first in Entry::Header, referenced by Entry::Posting (parent-child)
-my UUID $entry_uuid;
+# increments on each entry (0+)
+has Int $!entry_number = 0;
+
+# increments on each posting (0+), resets after each entry
+has Int $!posting_number = 0;
 
 # string grammar-actions {{{
 
@@ -466,12 +469,11 @@ method description($/)
 
 method header($/)
 {
-    # entry id
-    my Int $id = $.entry_number;
-
-    # entry uuid
-    my UUID $uuid = UUID.new;
-    $entry_uuid = $uuid;
+    # EntryID
+    my Int $number = $!entry_number;
+    my xxHash $xxhash = xxHash32($/.Str);
+    my EntryID $id .= new(:$number, :$xxhash);
+    $!entry_id = $id;
 
     # entry date
     my DateTime $date = $<date>.made;
@@ -495,7 +497,6 @@ method header($/)
     # make entry header
     make Nightscape::Entry::Header.new(
         :$id,
-        :$uuid,
         :$date,
         :$description,
         :$important,
@@ -637,8 +638,10 @@ method amount($/)
 
 method posting($/)
 {
-    # posting uuid
-    my UUID $posting_uuid = UUID.new;
+    # PostingID
+    my Int $number = $!posting_number++;
+    my xxHash $xxhash = xxHash32($/.Str);
+    my PostingID $id .= new(:$!entry_id, :$number, :$xxhash);
 
     # account
     my Nightscape::Entry::Posting::Account $account = $<account>.made;
@@ -651,8 +654,7 @@ method posting($/)
 
     # make posting
     make Nightscape::Entry::Posting.new(
-        :$entry_uuid,
-        :$posting_uuid,
+        :$id,
         :$account,
         :$amount,
         :$decinc
@@ -735,11 +737,14 @@ method entry($/)
             @entities.perl, " in entry with header: ", $header.perl;
     }
 
+    # reset posting number (all postings in this entry have been found)
+    $!posting_number = 0;
+
+    # increment entry number
+    $!entry_number++;
+
     # make entry
     make Nightscape::Entry.new(:$header, :@postings);
-
-    # increment entry id number
-    $!entry_number++;
 }
 
 method segment:entry ($/)

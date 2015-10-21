@@ -1,10 +1,9 @@
 use v6;
 use Nightscape::Types;
-use UUID;
 unit class Nightscape::Entity::Holding::Taxes;
 
-# causal entry's UUID
-has UUID $.uuid;
+# causal EntryID
+has EntryID $.entry_id;
 
 # acquisition date of funds expended
 has DateTime $.acquisition_date;

@@ -1,13 +1,12 @@
 use v6;
 use Nightscape::Types;
-use UUID;
 unit class Nightscape::Entity::Holding::Basis::Depletion;
 
 # quantity of holding depleted
 has Quantity $.quantity;
 
-# causal entry's UUID of this depletion
-has UUID $.uuid;
+# causal EntryID of this depletion
+has EntryID $.entry_id;
 
 # date of acquisition of holding being depleted
 has DateTime $.acquisition_date;

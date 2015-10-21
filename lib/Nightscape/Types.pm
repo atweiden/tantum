@@ -18,7 +18,7 @@ subset GreaterThanZero of Rat is export where * > 0;
 
 subset Instruction of Hash is export where
 {
-    .keys.sort ~~ <acct_name newmod posting_uuid quantity_to_debit xe>;
+    .keys.sort ~~ <acct_name newmod posting_id quantity_to_debit xe>;
 }
 
 subset LessThanZero of Rat is export where * < 0;
@@ -32,6 +32,8 @@ subset VarName of Str is export where
     Nightscape::Parser::Grammar.parse($_, :rule<var_name>);
 }
 
+subset xxHash of Int is export;
+
 enum AssetFlow is export <ACQUIRE EXPEND STABLE>;
 
 enum Costing is export <AVCO FIFO LIFO>;
@@ -43,6 +45,37 @@ enum HoldingPeriod is export <SHORT_TERM LONG_TERM>;
 enum NewMod is export <NEW MOD>;
 
 enum Silo is export <ASSETS EXPENSES INCOME LIABILITIES EQUITY>;
+
+class EntryID is export
+{
+    has Int $.number;
+    has xxHash $.xxhash;
+    method canonical() returns Str
+    {
+        $.number ~ ':' ~ $.xxhash;
+    }
+}
+
+class PostingID is EntryID is export
+{
+    # parent EntryID
+    has EntryID $.entry_id;
+}
+
+# compare EntryIDs
+multi sub infix:<==>(EntryID:D $a, EntryID:D $b) is export returns Bool:D
+{
+    # entry numbers and xxhashes must be identical
+    $a.number == $b.number && $a.xxhash == $b.xxhash;
+}
+
+# compare PostingIDs
+multi sub infix:<==>(PostingID:D $a, PostingID:D $b) is export returns Bool:D
+{
+    # parent EntryIDs must be identical
+    $a.entry_id == $b.entry_id &&
+        $a.number == $b.number && $a.xxhash == $b.xxhash;
+}
 
 method mkasset_flow(Rat:D $d) returns AssetFlow:D
 {

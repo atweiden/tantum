@@ -2,7 +2,6 @@ use v6;
 use Nightscape::Entity::Holding::Basis;
 use Nightscape::Entity::Holding::Taxes;
 use Nightscape::Types;
-use UUID;
 unit class Nightscape::Entity::Holding;
 
 # asset code
@@ -14,12 +13,12 @@ has Price $.avco;
 # cost basis of units held (date, price, quantity)
 has Nightscape::Entity::Holding::Basis @.basis;
 
-# tax consequences indexed by causal entry's uuid
-has Array[Nightscape::Entity::Holding::Taxes] %.taxes{UUID};
+# tax consequences indexed by causal EntryID
+has Array[Nightscape::Entity::Holding::Taxes] %.taxes{EntryID};
 
 # increase entity's holdings
 method acquire(
-    UUID:D :$uuid!,
+    EntryID:D :$entry_id!,
     DateTime:D :$date!,
     Price:D :$price!,
     Quantity:D :$quantity! where * > 0
@@ -27,7 +26,7 @@ method acquire(
 {
     # add to holdings
     push @!basis, Nightscape::Entity::Holding::Basis.new(
-        :$uuid,
+        :$entry_id,
         :$date,
         :$price,
         :$quantity
@@ -40,7 +39,7 @@ method acquire(
 # decrease entity's holdings via AVCO/FIFO/LIFO inventory costing method
 method expend(
     AssetCode:D :$asset_code!,
-    UUID:D :$uuid!,
+    EntryID:D :$entry_id!,
     DateTime:D :$date!,
     Costing:D :$costing!,
     Price:D :$price!,
@@ -90,7 +89,7 @@ method expend(
 
             # try decreasing units by quantity
             $basis.deplete(
-                :$uuid,
+                :$entry_id,
                 :quantity($qty),
                 :$acquisition_date,
                 :acquisition_price($basis.price),
@@ -119,8 +118,8 @@ method expend(
             {
                 # record capital gains
                 my Quantity $capital_gains = $d.abs;
-                push %!taxes{$uuid}, Nightscape::Entity::Holding::Taxes.new(
-                    :$uuid,
+                push %!taxes{$entry_id}, Nightscape::Entity::Holding::Taxes.new(
+                    :$entry_id,
                     :$acquisition_date,
                     :acquisition_price($basis.price),
                     :$acquisition_price_asset_code,
@@ -135,8 +134,8 @@ method expend(
             {
                 # record capital losses
                 my Quantity $capital_losses = $d.abs;
-                push %!taxes{$uuid}, Nightscape::Entity::Holding::Taxes.new(
-                    :$uuid,
+                push %!taxes{$entry_id}, Nightscape::Entity::Holding::Taxes.new(
+                    :$entry_id,
                     :$acquisition_date,
                     :acquisition_price($basis.price),
                     :$acquisition_price_asset_code,
@@ -150,8 +149,8 @@ method expend(
             else
             {
                 # no gains or losses to report
-                push %!taxes{$uuid}, Nightscape::Entity::Holding::Taxes.new(
-                    :$uuid,
+                push %!taxes{$entry_id}, Nightscape::Entity::Holding::Taxes.new(
+                    :$entry_id,
                     :$acquisition_date,
                     :acquisition_price($basis.price),
                     :$acquisition_price_asset_code,

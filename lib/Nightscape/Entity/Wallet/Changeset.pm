@@ -1,6 +1,5 @@
 use v6;
 use Nightscape::Types;
-use UUID;
 unit class Nightscape::Entity::Wallet::Changeset;
 
 # Δ ± balance
@@ -9,11 +8,11 @@ has Rat $.balance_delta;
 # self-referential asset code of this balance delta
 has AssetCode $.balance_delta_asset_code;
 
-# causal entry's uuid
-has UUID $.entry_uuid;
+# causal EntryID
+has EntryID $.entry_id;
 
-# causal posting's uuid
-has UUID $.posting_uuid;
+# causal PostingID
+has PostingID $.posting_id;
 
 # causal posting's exchange rate asset code, if given
 has AssetCode $.xe_asset_code;

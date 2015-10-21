@@ -4,7 +4,6 @@ use Test;
 use Nightscape;
 use Nightscape::Config;
 use Nightscape::Types;
-use UUID;
 
 plan 2;
 

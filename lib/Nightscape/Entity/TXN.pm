@@ -2,14 +2,13 @@ use v6;
 use Nightscape::Entity::TXN::ModHolding;
 use Nightscape::Entity::TXN::ModWallet;
 use Nightscape::Types;
-use UUID;
 unit class Nightscape::Entity::TXN;
 
 # parent entity
 has VarName $.entity;
 
-# causal entry uuid
-has UUID $.uuid;
+# causal EntryID
+has EntryID $.entry_id;
 
 # transaction drift (error margin)
 has Rat $.drift = self.get_drift.keys[0];
