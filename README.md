@@ -72,7 +72,7 @@ $ pod2man \
 Run all tests:
 
 ```bash
-$ prove [-v] -e perl6 t/
+$ prove [-v] -r -e perl6 t/
 ```
 
 
