@@ -5,6 +5,10 @@ use Nightscape::Types;
 unit class Nightscape::Entry::Posting;
 
 has PostingID $.id;
+
+# causal transaction journal entry posting text
+has Str $.text;
+
 has Nightscape::Entry::Posting::Account $.account;
 has Nightscape::Entry::Posting::Amount $.amount;
 has DecInc $.decinc;
@@ -60,11 +64,16 @@ method get_value(DateTime:D :$date!, EntryID :$id!) returns Quantity:D
                 my AssetCode $xeac = $exchange_rate.asset_code;
                 my Str $help_text_faulty_exchange_rate = qq:to/EOF/;
                 Sorry, exchange rate detected in transaction journal
-                doesn't match the parsed entity's base-currency:
+                posting id 「{$.id.canonical}」 doesn't match the
+                parsed entity's base-currency:
 
                     entity: 「$posting_entity」
                     base-currency: 「$posting_entity_base_currency」
                     exchange rate currency code given in journal: 「$xeac」
+
+                In posting:
+
+                「$.text」
 
                 To debug, verify that the entity has been configured with
                 the correct base-currency. Then verify the transaction
@@ -109,10 +118,13 @@ method get_value(DateTime:D :$date!, EntryID :$id!) returns Quantity:D
 
                 「$posting_entity_base_currency/$posting_asset_code」
 
-            on 「$date」 was entered accurately for entry
-            {$id.canonical}. Verify that the entity of entry number
-            {$id.canonical} has been configured with the correct
-            base-currency.
+            on 「$date」 was entered accurately for entry id
+            {$id.canonical}, in posting id {$.id.canonical}:
+
+            「$.text」
+
+            Verify that the entity of entry number {$id.canonical}
+            has been configured with the correct base-currency.
             EOF
             die $help_text_faulty_exchange_rate_in_config_file.trim;
         }

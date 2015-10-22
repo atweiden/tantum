@@ -109,7 +109,7 @@ multi method _ls_entries(
     EntryID:D :$entry_id!
 ) returns Array[Nightscape::Entry]
 {
-    my Nightscape::Entry @e = @entries.grep({ .header.id == $entry_id });
+    my Nightscape::Entry @e = @entries.grep({ .id == $entry_id });
 }
 
 # instantiate entity

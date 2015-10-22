@@ -1049,16 +1049,15 @@ method gen_txn(
     # verify entry is balanced or exit with an error
     unless $entry.is_balanced
     {
-        my Str $entry_debug = $entry.perl;
         die qq:to/EOF/
         Sorry, cannot gen_txn: entry not balanced
 
-        「$entry_debug」
+        「{$entry.text}」
         EOF
     }
 
     # source EntryID
-    my EntryID $entry_id = $entry.header.id;
+    my EntryID $entry_id = $entry.id;
 
     # transaction data storage
     my Nightscape::Entity::TXN::ModHolding %mod_holdings{AssetCode};
@@ -1671,6 +1670,8 @@ method !mod_holdings(
         {
             die qq:to/EOF/;
             Sorry, no holding exists of asset code 「$asset_code」.
+
+            See entry id 「{$entry_id.canonical}」.
             EOF
         }
 
@@ -1684,6 +1685,8 @@ method !mod_holdings(
 
             Units needed of $asset_code: 「$quantity」
             Units held of $asset_code: 「$quantity_held」
+
+            See entry id 「{$entry_id.canonical}」.
             EOF
         }
 

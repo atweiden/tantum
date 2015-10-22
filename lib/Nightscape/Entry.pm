@@ -4,6 +4,11 @@ use Nightscape::Entry::Posting;
 use Nightscape::Types;
 unit class Nightscape::Entry;
 
+has EntryID $.id;
+
+# causal transaction journal entry text
+has Str $.text;
+
 has Nightscape::Entry::Header $.header;
 has Nightscape::Entry::Posting @.postings;
 
@@ -27,15 +32,12 @@ method is_balanced() returns Bool:D
     # entry date
     my DateTime $date = $.header.date;
 
-    # EntryID
-    my EntryID $id = $.header.id;
-
     # adjust running total for each posting in entry
     # keep tally of exchange rates per asset code seen
     for @.postings -> $posting
     {
         # get value of posting in entity base currency
-        my Quantity $posting_value = $posting.get_value(:$date, :$id);
+        my Quantity $posting_value = $posting.get_value(:$date, :$.id);
 
         # is posting denominated in asset other than entity's base
         # currency?
@@ -86,7 +88,9 @@ method is_balanced() returns Bool:D
                 # error: exchange rate mismatch detected
                 die qq:to/EOF/;
                 Sorry, exchange rate for asset 「$asset_code」 does
-                not remain consistent in entry id 「{$id.canonical}」.
+                not remain consistent in entry id 「{$.id.canonical}」:
+
+                「$.text」
 
                 To debug, verify transaction journal entry contains
                 consistent exchange rate. If exchange rate sourced
@@ -185,9 +189,7 @@ multi method _ls_postings(
     PostingID:D :$posting_id!
 ) returns Array[Nightscape::Entry::Posting]
 {
-    my Nightscape::Entry::Posting @p = @postings.grep({
-        .posting_id == $posting_id
-    });
+    my Nightscape::Entry::Posting @p = @postings.grep({ .id == $posting_id });
 }
 
 # vim: ft=perl6

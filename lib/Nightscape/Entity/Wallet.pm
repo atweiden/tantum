@@ -80,7 +80,7 @@ method get_balance(
                         Sorry, suitable exchange rate was missing for base currency
                         in changeset:
 
-                        「$changeset」
+                        「{$changeset.perl}」
 
                         Changeset defaults to balance delta for asset code: 「$asset_code」
                         Changeset includes exchange rate for asset code: 「$xeac」

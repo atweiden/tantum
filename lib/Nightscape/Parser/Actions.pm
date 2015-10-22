@@ -617,6 +617,8 @@ method amount($/)
 
 method posting($/)
 {
+    my Str $text = $/.Str;
+
     # account
     my Nightscape::Entry::Posting::Account $account = $<account>.made;
 
@@ -627,10 +629,10 @@ method posting($/)
     my DecInc $decinc = mkdecinc($amount.plus_or_minus);
 
     # xxHash of transaction journal posting text
-    my xxHash $xxhash = xxHash32($/.Str);
+    my xxHash $xxhash = xxHash32($text);
 
     # make posting container
-    make %(:$account, :$amount, :$decinc, :$xxhash);
+    make %(:$account, :$amount, :$decinc, :$text, :$xxhash);
 }
 
 method posting_line:content ($/)
@@ -690,6 +692,8 @@ method include_line($/)
 
 method entry($/)
 {
+    my Str $text = $/.Str;
+
     # header container
     my %header = $<header>.made;
 
@@ -710,16 +714,16 @@ method entry($/)
             Sorry, only one entity per journal entry allowed, but found
             {@entities.elems} entities in entry:
 
-            「{$/.Str}」
+            「$text」
             EOF
         }
     }
 
     # xxHash of transaction journal entry text
-    my xxHash $xxhash = xxHash32($/.Str);
+    my xxHash $xxhash = xxHash32($text);
 
     # make entry container
-    make %(:%header, :@postings, :$xxhash);
+    make %(:%header, :@postings, :$text, :$xxhash);
 }
 
 method segment:entry ($/)
@@ -745,10 +749,7 @@ method journal($/)
         );
 
         # instantiate entry header
-        my Nightscape::Entry::Header $header .= new(
-            |$entry<header>,
-            :id($entry_id)
-        );
+        my Nightscape::Entry::Header $header .= new(|$entry<header>);
 
         # increments on each posting (0+), resets after each entry
         my Int $posting_number = 0;
@@ -773,7 +774,12 @@ method journal($/)
             }
         }
 
-        push @entries, Nightscape::Entry.new(:$header, :@postings);
+        push @entries, Nightscape::Entry.new(
+            :id($entry_id),
+            :text($entry<text>),
+            :$header,
+            :@postings
+        );
     }
 
     make @entries;
