@@ -25,7 +25,7 @@ has DecInc $.decinc;
 # XE class based on price data from config file
 #
 # if suitable exchange_rate not found anywhere, exit with an error
-method get_value(DateTime:D :$date!, EntryID :$id!) returns Quantity:D
+method get_value(DateTime:D :$date!, EntryID :$entry_id!) returns Quantity:D
 {
     # entity
     my VarName $posting_entity = $.account.entity;
@@ -77,8 +77,8 @@ method get_value(DateTime:D :$date!, EntryID :$id!) returns Quantity:D
 
                 To debug, verify that the entity has been configured with
                 the correct base-currency. Then verify the transaction
-                journal gives a matching base-currency code for entry
-                {$id.canonical}.
+                journal gives a matching base-currency code for entry id
+                「{$entry_id.canonical}」.
                 EOF
                 die $help_text_faulty_exchange_rate.trim;
             }
@@ -119,11 +119,11 @@ method get_value(DateTime:D :$date!, EntryID :$id!) returns Quantity:D
                 「$posting_entity_base_currency/$posting_asset_code」
 
             on 「$date」 was entered accurately for entry id
-            {$id.canonical}, in posting id {$.id.canonical}:
+            「{$entry_id.canonical}」, in posting id 「{$.id.canonical}」:
 
             「$.text」
 
-            Verify that the entity of entry number {$id.canonical}
+            Verify that the entity of entry number 「{$entry_id.canonical}」
             has been configured with the correct base-currency.
             EOF
             die $help_text_faulty_exchange_rate_in_config_file.trim;

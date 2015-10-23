@@ -37,7 +37,10 @@ method is_balanced() returns Bool:D
     for @.postings -> $posting
     {
         # get value of posting in entity base currency
-        my Quantity $posting_value = $posting.get_value(:$date, :$.id);
+        my Quantity $posting_value = $posting.get_value(
+            :$date,
+            :entry_id($.id)
+        );
 
         # is posting denominated in asset other than entity's base
         # currency?
