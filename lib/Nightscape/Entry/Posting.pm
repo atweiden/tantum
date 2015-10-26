@@ -5,10 +5,6 @@ use Nightscape::Types;
 unit class Nightscape::Entry::Posting;
 
 has PostingID $.id;
-
-# causal transaction journal entry posting text
-has Str $.text;
-
 has Nightscape::Entry::Posting::Account $.account;
 has Nightscape::Entry::Posting::Amount $.amount;
 has DecInc $.decinc;
@@ -73,7 +69,7 @@ method get_value(DateTime:D :$date!, EntryID :$entry_id!) returns Quantity:D
 
                 In posting:
 
-                「$.text」
+                「$.id.text」
 
                 To debug, verify that the entity has been configured with
                 the correct base-currency. Then verify the transaction
@@ -121,7 +117,7 @@ method get_value(DateTime:D :$date!, EntryID :$entry_id!) returns Quantity:D
             on 「$date」 was entered accurately for entry id
             「{$entry_id.canonical}」, in posting id 「{$.id.canonical}」:
 
-            「$.text」
+            「$.id.text」
 
             Verify that the entity of entry number 「{$entry_id.canonical}」
             has been configured with the correct base-currency.

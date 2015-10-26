@@ -5,10 +5,6 @@ use Nightscape::Types;
 unit class Nightscape::Entry;
 
 has EntryID $.id;
-
-# causal transaction journal entry text
-has Str $.text;
-
 has Nightscape::Entry::Header $.header;
 has Nightscape::Entry::Posting @.postings;
 
@@ -93,7 +89,7 @@ method is_balanced() returns Bool:D
                 Sorry, exchange rate for asset 「$asset_code」 does
                 not remain consistent in entry id 「{$.id.canonical}」:
 
-                「$.text」
+                「{$.id.text}」
 
                 To debug, verify transaction journal entry contains
                 consistent exchange rate. If exchange rate sourced

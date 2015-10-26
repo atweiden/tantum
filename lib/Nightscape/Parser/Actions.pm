@@ -740,23 +740,24 @@ method journal($/)
 
     # instantiate entries
     my Nightscape::Entry @entries;
-    for @entry_containers -> $entry
+    for @entry_containers -> %entry
     {
         # instantiate EntryID
         my EntryID $entry_id .= new(
             :number($entry_number++),
-            :xxhash($entry<xxhash>)
+            :xxhash(%entry<xxhash>),
+            :text(%entry<text>)
         );
 
         # instantiate entry header
-        my Nightscape::Entry::Header $header .= new(|$entry<header>);
+        my Nightscape::Entry::Header $header .= new(|%entry<header>);
 
         # increments on each posting (0+), resets after each entry
         my Int $posting_number = 0;
 
         # instantiate entry postings
         my Nightscape::Entry::Posting @postings;
-        for $entry<postings> -> @posting_containers
+        for %entry<postings> -> @posting_containers
         {
             for @posting_containers -> %posting
             {
@@ -764,7 +765,8 @@ method journal($/)
                 my PostingID $posting_id .= new(
                     :$entry_id,
                     :number($posting_number++),
-                    :xxhash(%posting<xxhash>)
+                    :xxhash(%posting<xxhash>),
+                    :text(%posting<text>)
                 );
 
                 push @postings, Nightscape::Entry::Posting.new(
@@ -776,7 +778,6 @@ method journal($/)
 
         push @entries, Nightscape::Entry.new(
             :id($entry_id),
-            :text($entry<text>),
             :$header,
             :@postings
         );

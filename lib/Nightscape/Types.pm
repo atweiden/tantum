@@ -50,6 +50,10 @@ class EntryID is export
 {
     has Int $.number;
     has xxHash $.xxhash;
+
+    # causal text from transaction journal
+    has Str $.text;
+
     method canonical() returns Str
     {
         $.number ~ ':' ~ $.xxhash;
