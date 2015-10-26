@@ -672,13 +672,7 @@ method include($/)
     else
     {
         # exit with an error
-        die qq:to/EOF/;
-        Sorry, could not load transaction journal to include at
-
-            「$filename」
-
-        Transaction journal not found or not readable.
-        EOF
+        die X::Nightscape::Parser::Include.new(:$filename);
     }
 }
 
@@ -710,12 +704,10 @@ method entry($/)
         unless @entities.grep(@entities[0]).elems == @entities.elems
         {
             # error: invalid use of more than one entity per journal entry
-            die qq:to/EOF/
-            Sorry, only one entity per journal entry allowed, but found
-            {@entities.elems} entities in entry:
-
-            「$text」
-            EOF
+            die X::Nightscape::Parser::Entry::MultipleEntities.new(
+                :number_entities(@entities.elems),
+                :entry_text($text)
+            );
         }
     }
 

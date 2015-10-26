@@ -33,10 +33,7 @@ method is_balanced() returns Bool:D
     for @.postings -> $posting
     {
         # get value of posting in entity base currency
-        my Quantity $posting_value = $posting.get_value(
-            :$date,
-            :entry_id($.id)
-        );
+        my Quantity $posting_value = $posting.get_value(:$date);
 
         # is posting denominated in asset other than entity's base
         # currency?
@@ -85,17 +82,16 @@ method is_balanced() returns Bool:D
             unless @exchange_rates.unique.elems == 1
             {
                 # error: exchange rate mismatch detected
-                die qq:to/EOF/;
+                say qq:to/EOF/;
                 Sorry, exchange rate for asset 「$asset_code」 does
-                not remain consistent in entry id 「{$.id.canonical}」:
-
-                「{$.id.text}」
+                not remain consistent in entry id 「{$.id.canonical}」.
 
                 To debug, verify transaction journal entry contains
                 consistent exchange rate. If exchange rate sourced
                 from config, check that configured exchange rate is
                 correct.
                 EOF
+                die X::Nightscape::Entry::XEMismatch.new(:entry_id($.id));
             }
         }
     }

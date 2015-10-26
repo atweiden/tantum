@@ -21,7 +21,7 @@ has DecInc $.decinc;
 # XE class based on price data from config file
 #
 # if suitable exchange_rate not found anywhere, exit with an error
-method get_value(DateTime:D :$date!, EntryID :$entry_id!) returns Quantity:D
+method get_value(DateTime:D :$date!) returns Quantity:D
 {
     # entity
     my VarName $posting_entity = $.account.entity;
@@ -67,16 +67,12 @@ method get_value(DateTime:D :$date!, EntryID :$entry_id!) returns Quantity:D
                     base-currency: 「$posting_entity_base_currency」
                     exchange rate currency code given in journal: 「$xeac」
 
-                In posting:
-
-                「$.id.text」
-
                 To debug, verify that the entity has been configured with
                 the correct base-currency. Then verify the transaction
-                journal gives a matching base-currency code for entry id
-                「{$entry_id.canonical}」.
+                journal gives a matching base-currency code.
                 EOF
-                die $help_text_faulty_exchange_rate.trim;
+                say $help_text_faulty_exchange_rate.trim;
+                die X::Nightscape::Posting::XEBad.new(:posting_id($.id));
             }
         }
         # is an exchange rate given in config?
@@ -114,15 +110,13 @@ method get_value(DateTime:D :$date!, EntryID :$entry_id!) returns Quantity:D
 
                 「$posting_entity_base_currency/$posting_asset_code」
 
-            on 「$date」 was entered accurately for entry id
-            「{$entry_id.canonical}」, in posting id 「{$.id.canonical}」:
+            on 「$date」 was entered accurately.
 
-            「$.id.text」
-
-            Verify that the entity of entry number 「{$entry_id.canonical}」
-            has been configured with the correct base-currency.
+            Verify that the entity of entry has been configured with
+            the correct base-currency.
             EOF
-            die $help_text_faulty_exchange_rate_in_config_file.trim;
+            say $help_text_faulty_exchange_rate_in_config_file.trim;
+            die X::Nightscape::Posting::XEMissing.new(:posting_id($.id));
         }
 
         $posting_value;

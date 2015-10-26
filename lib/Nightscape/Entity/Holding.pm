@@ -50,10 +50,11 @@ method expend(
     # check for sufficient unit quantity of asset in holdings
     unless self.in_stock($quantity)
     {
-        die qq:to/EOF/;
+        say qq:to/EOF/;
         Sorry, cannot expend: found insufficient quantity of asset
         in holdings.
         EOF
+        die X::Nightscape::Entity::Holding::Expend::OutOfStock.new(:$entry_id);
     }
 
     # find array indices of Basis with sufficient units to expend,

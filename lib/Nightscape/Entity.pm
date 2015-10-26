@@ -1049,11 +1049,8 @@ method gen_txn(
     # verify entry is balanced or exit with an error
     unless $entry.is_balanced
     {
-        die qq:to/EOF/
-        Sorry, cannot gen_txn: entry not balanced
-
-        「{$entry.text}」
-        EOF
+        say "Sorry, cannot gen_txn: entry not balanced.";
+        die X::Nightscape::Entry::NotBalanced.new(:entry_id($entry.id));
     }
 
     # source EntryID
@@ -1668,26 +1665,22 @@ method !mod_holdings(
         # if holding does not exist, exit with an error
         unless %.holdings{$asset_code}
         {
-            die qq:to/EOF/;
-            Sorry, no holding exists of asset code 「$asset_code」.
-
-            See entry id 「{$entry_id.canonical}」.
-            EOF
+            say "Sorry, no holding exists of asset code 「$asset_code」.";
+            die X::Nightscape::Entry.new(:$entry_id);
         }
 
         # check for sufficient unit quantity of asset in holdings
         my Quantity $quantity_held = %.holdings{$asset_code}.get_total_quantity;
         unless $quantity_held >= $quantity
         {
-            die qq:to/EOF/;
+            say qq:to/EOF/;
             Sorry, cannot mod_holdings.expend: found insufficient quantity
             of asset 「$asset_code」 in holdings.
 
             Units needed of $asset_code: 「$quantity」
             Units held of $asset_code: 「$quantity_held」
-
-            See entry id 「{$entry_id.canonical}」.
             EOF
+            die X::Nightscape::Entry.new(:$entry_id);
         }
 
         # expend asset

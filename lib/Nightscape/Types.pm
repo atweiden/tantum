@@ -102,4 +102,86 @@ sub mkdecinc(Str $plus_or_minus) is export returns DecInc:D
     $plus_or_minus ~~ '-' ?? DEC !! INC;
 }
 
-# vim: ft=perl6
+class X::Nightscape::Entry is export is Exception
+{
+    has EntryID $.entry_id;
+
+    method message()
+    {
+        say qq:to/EOF/;
+        In entry number {$.entry_id.number}:
+
+        「{$.entry_id.text}」
+        EOF
+    }
+}
+
+class X::Nightscape::Entry::NotBalanced is export is X::Nightscape::Entry {*}
+
+class X::Nightscape::Entry::XEMismatch is export is X::Nightscape::Entry {*}
+
+class X::Nightscape::Posting is export is Exception
+{
+    has PostingID $.posting_id;
+
+    method message()
+    {
+        say qq:to/EOF/;
+        In entry number {$.posting_id.entry_id.number}:
+
+        「{$.posting_id.entry_id.text}」
+
+        In posting number {$.posting_id.number}:
+
+        「{$.posting_id.text}」
+        EOF
+    }
+}
+
+class X::Nightscape::Posting::XEBad is export is X::Nightscape::Posting {*}
+
+class X::Nightscape::Posting::XEMissing is export is X::Nightscape::Posting {*}
+
+class X::Nightscape::Entity::Holding::Expend::OutOfStock is export
+    is X::Nightscape::Entry {*}
+
+# transaction journal parser exceptions {{{
+
+# for Actions.entry verify entry is limited to one entity
+class X::Nightscape::Parser::Entry::MultipleEntities is export is Exception
+{
+    has Str $.entry_text;
+    has Int $.number_entities;
+
+    method message()
+    {
+        say qq:to/EOF/;
+        Sorry, only one entity per journal entry allowed, but found
+        $.number_entities entities.
+
+        In entry:
+
+        「$.entry_text」
+        EOF
+    }
+}
+
+class X::Nightscape::Parser::Include is export is Exception
+{
+    has Str $.filename;
+
+    method message()
+    {
+        say qq:to/EOF/;
+        Sorry, could not load transaction journal to include at
+
+            「$.filename」
+
+        Transaction journal not found or not readable.
+        EOF
+    }
+}
+
+# end transaction journal parsing exceptions }}}
+
+# vim: ft=perl6 fdm=marker fdl=0
