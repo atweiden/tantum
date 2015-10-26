@@ -91,7 +91,7 @@ method !incise_capital_gains_and_losses(
             # - associated realized capital gains / losses must have resulted
             #   from the assorted changesets in these wallets
             my Nightscape::Entity::COA::Acct %acct_targets{AcctName} =
-                resolve_acct_targets();
+                resolve_acct_targets(:%acct, :$asset_code, :$tax_id);
 
             # total quantity debited in targets, separately and in total
             #
