@@ -60,6 +60,15 @@ sub clone_wallet(
     %wllt;
 }
 
+sub contains_capital_gains_losses(
+    Nightscape::Entity::Holding::Taxes:D @taxes
+) returns Bool:D
+{
+    my Rat $capital_gains = [+] @taxes».capital_gains;
+    my Rat $capital_losses = [+] @taxes».capital_losses;
+    $capital_gains or $capital_losses ?? True !! False;
+}
+
 # modify %wllt on a per $tax_id basis using %instructions
 method !incise_capital_gains_and_losses(
     Nightscape::Entity::COA::Acct:D :%acct! is readonly,
@@ -81,6 +90,11 @@ method !incise_capital_gains_and_losses(
         # this asset code
         for $holdings.taxes.kv -> $tax_id, @taxes
         {
+            unless contains_capital_gains_losses(@taxes)
+            {
+                next;
+            }
+
             # ensure all original quantities expended are quoted in the
             # asset code $asset_code, and that acquisition price is
             # quoted in entity's base currency
