@@ -546,9 +546,16 @@ token amount
         [\h+ <exchange_rate>]?
 }
 
-token asset_code
+proto token asset_code {*}
+
+token asset_code:bare
 {
     <:Letter>+
+}
+
+token asset_code:quoted
+{
+    <var_name_string_basic>
 }
 
 # e.g. http://www.xe.com/symbols.php

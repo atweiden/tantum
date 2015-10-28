@@ -34,7 +34,7 @@ subtest
     ok(
         @accounts.grep({is_valid_account($_)}).elems == @accounts.elems,
         q:to/EOF/
-        ♪ [Grammar.parse($account, :rule<account>)] - 1 of 8
+        ♪ [Grammar.parse($account, :rule<account>)] - 1 of 9
         ┏━━━━━━━━━━━━━┓
         ┃             ┃  ∙ Account names validate successfully, as
         ┃   Success   ┃    expected.
@@ -65,7 +65,7 @@ subtest
         @plus_or_minus.grep({is_valid_plus_or_minus($_)}).elems ==
             @plus_or_minus.elems,
         q:to/EOF/
-        ♪ [Grammar.parse($plus_or_minus, :rule<plus_or_minus>)] - 2 of 8
+        ♪ [Grammar.parse($plus_or_minus, :rule<plus_or_minus>)] - 2 of 9
         ┏━━━━━━━━━━━━━┓
         ┃             ┃  ∙ Plus / Minus signs validate successfully, as
         ┃   Success   ┃    expected.
@@ -155,6 +155,11 @@ subtest
         silver_ounce                   => Qw{XAG XAG},
         costa_rican_colon              => Qw{CRC ₡};
 
+    my Str @quoted_asset_codes =
+        Q{"Honda S2000 VIN JHLRE4H73AC092103"},
+        Q{"The House at 178 Blue Kodiak Trail"},
+        Q{"Widget:Bobblehead #88"};
+
     sub is_valid_asset_code(Str:D $asset_code) returns Bool:D
     {
         Nightscape::Parser::Grammar.parse($asset_code, :rule<asset_code>).so;
@@ -172,7 +177,7 @@ subtest
         %asset_code_symbol.grep({is_valid_asset_code(.values[0][0])}).elems ==
             %asset_code_symbol.elems,
         q:to/EOF/
-        ♪ [Grammar.parse($asset_code, :rule<asset_code>)] - 3 of 8
+        ♪ [Grammar.parse($asset_code, :rule<asset_code>)] - 3 of 9
         ┏━━━━━━━━━━━━━┓
         ┃             ┃  ∙ Asset codes validate successfully, as
         ┃   Success   ┃    expected.
@@ -185,9 +190,22 @@ subtest
         %asset_code_symbol.grep({is_valid_asset_symbol(.values[0][1])}).elems ==
             %asset_code_symbol.elems,
         q:to/EOF/
-        ♪ [Grammar.parse($asset_symbol, :rule<asset_symbol>)] - 4 of 8
+        ♪ [Grammar.parse($asset_symbol, :rule<asset_symbol>)] - 4 of 9
         ┏━━━━━━━━━━━━━┓
         ┃             ┃  ∙ Asset symbols validate successfully, as
+        ┃   Success   ┃    expected.
+        ┃             ┃
+        ┗━━━━━━━━━━━━━┛
+        EOF
+    );
+
+    ok(
+        @quoted_asset_codes.grep({is_valid_asset_code($_)}).elems ==
+            @quoted_asset_codes.elems,
+        q:to/EOF/
+        ♪ [Grammar.parse($asset_code, :rule<asset_code>)] - 5 of 9
+        ┏━━━━━━━━━━━━━┓
+        ┃             ┃  ∙ Quoted asset codes validate successfully, as
         ┃   Success   ┃    expected.
         ┃             ┃
         ┗━━━━━━━━━━━━━┛
@@ -218,7 +236,7 @@ subtest
         @asset_quantities.grep({is_valid_asset_quantity($_)}).elems ==
             @asset_quantities.elems,
         q:to/EOF/
-        ♪ [Grammar.parse($asset_quantity, :rule<asset_quantity>)] - 5 of 8
+        ♪ [Grammar.parse($asset_quantity, :rule<asset_quantity>)] - 6 of 9
         ┏━━━━━━━━━━━━━┓
         ┃             ┃  ∙ Asset quantities validate successfully, as
         ┃   Success   ┃    expected.
@@ -295,7 +313,7 @@ subtest
         @exchange_rates.grep({is_valid_exchange_rate($_)}).elems ==
             @exchange_rates.elems,
         q:to/EOF/
-        ♪ [Grammar.parse($exchange_rate, :rule<exchange_rate>)] - 6 of 8
+        ♪ [Grammar.parse($exchange_rate, :rule<exchange_rate>)] - 7 of 9
         ┏━━━━━━━━━━━━━┓
         ┃             ┃  ∙ Exchange rates validate successfully, as
         ┃   Success   ┃    expected.
@@ -356,7 +374,7 @@ subtest
     ok(
         @amounts.grep({is_valid_amount($_)}).elems == @amounts.elems,
         q:to/EOF/
-        ♪ [Grammar.parse($amount, :rule<amount>)] - 7 of 8
+        ♪ [Grammar.parse($amount, :rule<amount>)] - 8 of 9
         ┏━━━━━━━━━━━━━┓
         ┃             ┃  ∙ Amounts validate successfully, as expected.
         ┃   Success   ┃
@@ -386,7 +404,7 @@ subtest
     ok(
         @postings.grep({is_valid_posting($_)}).elems == @postings.elems,
         q:to/EOF/
-        ♪ [Grammar.parse($amount, :rule<amount>)] - 8 of 8
+        ♪ [Grammar.parse($amount, :rule<amount>)] - 9 of 9
         ┏━━━━━━━━━━━━━┓
         ┃             ┃  ∙ Amounts validate successfully, as expected.
         ┃   Success   ┃

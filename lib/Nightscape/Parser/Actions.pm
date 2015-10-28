@@ -538,9 +538,14 @@ method account($/)
 # --- end posting account grammar-actions }}}
 # --- posting amount grammar-actions {{{
 
-method asset_code($/)
+method asset_code:bare ($/)
 {
     make ~$/;
+}
+
+method asset_code:quoted ($/)
+{
+    make $<var_name_string_basic>.made;
 }
 
 method asset_symbol($/)

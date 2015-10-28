@@ -39,7 +39,7 @@ subtest
         @include_lines.grep({is_valid_include_line($_)}).elems ==
             @include_lines.elems,
         q:to/EOF/
-        ♪ [Grammar.parse($include_line, :rule<include_line>)] - 1 of 3
+        ♪ [Grammar.parse($include_line, :rule<include_line>)] - 1 of 4
         ┏━━━━━━━━━━━━━┓
         ┃             ┃  ∙ Include lines validate successfully, as
         ┃   Success   ┃    expected.
@@ -101,7 +101,7 @@ subtest
     ok(
         @entries.grep({is_valid_entry($_)}).elems == @entries.elems,
         q:to/EOF/
-        ♪ [Grammar.parse($entry, :rule<entry>)] - 2 of 3
+        ♪ [Grammar.parse($entry, :rule<entry>)] - 2 of 4
         ┏━━━━━━━━━━━━━┓
         ┃             ┃  ∙ Entries validate successfully, as expected.
         ┃   Success   ┃
@@ -117,19 +117,36 @@ subtest
 subtest
 {
     my Str $journal = slurp 'examples/sample.transactions';
+    my Str $journal_quoted = slurp 't/data/quoted-asset-codes.transactions';
+
     my $journal_match = Nightscape::Parser::Grammar.parse($journal);
+    my $journal_quoted_match =
+        Nightscape::Parser::Grammar.parse($journal_quoted);
+
     is(
         $journal_match.WHAT,
         Match,
         q:to/EOF/
-        ♪ [Grammar.parse($journal)] - 3 of 3
+        ♪ [Grammar.parse($journal)] - 3 of 4
         ┏━━━━━━━━━━━━━┓
         ┃             ┃  ∙ Journal validates successfully, as expected.
         ┃   Success   ┃
         ┃             ┃
         ┗━━━━━━━━━━━━━┛
         EOF
-    )
+    );
+    is(
+        $journal_quoted_match.WHAT,
+        Match,
+        q:to/EOF/
+        ♪ [Grammar.parse($journal_quoted)] - 4 of 4
+        ┏━━━━━━━━━━━━━┓
+        ┃             ┃  ∙ Journal with quoted asset codes validates
+        ┃   Success   ┃    successfully, as expected.
+        ┃             ┃
+        ┗━━━━━━━━━━━━━┛
+        EOF
+    );
 }
 
 # end journal grammar tests }}}
