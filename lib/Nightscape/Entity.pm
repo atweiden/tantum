@@ -141,7 +141,8 @@ method !incise_capital_gains_and_losses(
             #         );
             # - PostingIDBalanceDelta is Changeset.balance_delta
             my Hash[Hash[Hash[Rat:D,PostingID:D],Rat:D],AcctName:D]
-                %total_quantity_debited{Quantity:D} = get_total_quantity_debited(
+                %total_quantity_debited{Quantity:D} =
+                    self!get_total_quantity_debited(
                         :%acct_targets,
                         :$asset_code,
                         :entry_id($tax_id),
@@ -1284,8 +1285,31 @@ method get_posting_value(
     $posting_value;
 }
 
+multi method perform_sanity_check(
+    Quantity :$target_acct_debit_quantity!,
+    Quantity :$target_acct_credit_quantity!
+)
+{
+    if $target_acct_debit_quantity
+    {
+        unless $target_acct_credit_quantity == 0
+        {
+            die "Sorry, unexpected presence of target acct credits when
+                 debits are present";
+        }
+    }
+    elsif $target_acct_credit_quantity
+    {
+        unless $target_acct_debit_quantity == 0
+        {
+            die "Sorry, unexpected presence of target acct debits when
+                 credits are present";
+        }
+    }
+}
+
 # get quantity debited in targets, separately and in total
-sub get_total_quantity_debited(
+method !get_total_quantity_debited(
     Nightscape::Entity::COA::Acct:D :%acct_targets! is readonly,
     AssetCode:D :$asset_code!,
     EntryID:D :$entry_id!,
@@ -1396,22 +1420,10 @@ sub get_total_quantity_debited(
 
         # ensure only one of target acct credit quantity or debit quantity
         # is > 0
-        if $target_acct_debit_quantity
-        {
-            unless $target_acct_credit_quantity == 0
-            {
-                die "Sorry, unexpected presence of target acct credits
-                     when debits are present";
-            }
-        }
-        elsif $target_acct_credit_quantity
-        {
-            unless $target_acct_debit_quantity == 0
-            {
-                die "Sorry, unexpected presence of target acct debits
-                     when credits are present";
-            }
-        }
+        self.perform_sanity_check(
+            :$target_acct_debit_quantity,
+            :$target_acct_credit_quantity
+        );
 
         # the intuitive version doesn't work
         #     %total_balance_delta_per_acct{$acct.name} =
