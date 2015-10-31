@@ -66,7 +66,7 @@ sub contains_capital_gains_losses(
 {
     my Rat $capital_gains = [+] @taxes».capital_gains;
     my Rat $capital_losses = [+] @taxes».capital_losses;
-    $capital_gains or $capital_losses ?? True !! False;
+    $capital_gains || $capital_losses ?? True !! False;
 }
 
 # modify %wllt on a per $tax_id basis using %instructions
@@ -140,8 +140,8 @@ method !incise_capital_gains_and_losses(
             #             entry_id => $tax_id
             #         );
             # - PostingIDBalanceDelta is Changeset.balance_delta
-            my Hash[Hash[Hash[Rat,PostingID],Rat],AcctName]
-                %total_quantity_debited{Quantity} = get_total_quantity_debited(
+            my Hash[Hash[Hash[Rat:D,PostingID:D],Rat:D],AcctName:D]
+                %total_quantity_debited{Quantity:D} = get_total_quantity_debited(
                         :%acct_targets,
                         :$asset_code,
                         :entry_id($tax_id),
@@ -149,8 +149,9 @@ method !incise_capital_gains_and_losses(
                     );
 
             # total quantity expended, separately and in total
-            my Hash[Quantity,Quantity] %total_quantity_expended{Quantity} =
-                get_total_quantity_expended(:$costing, :@taxes);
+            my Hash[Quantity:D,Quantity:D]
+                %total_quantity_expended{Quantity:D} =
+                    get_total_quantity_expended(:$costing, :@taxes);
 
             self.perform_sanity_check(
                 :%total_quantity_debited,
@@ -159,10 +160,11 @@ method !incise_capital_gains_and_losses(
 
             # fetch instructions for incising realized capital gains / losses
             # NEW/MOD | AcctName | QuantityToDebit | XE
-            my Array[Instruction] %instructions{PostingID} = gen_instructions(
-                :%total_quantity_debited,
-                :%total_quantity_expended
-            );
+            my Array[Instruction:D] %instructions{PostingID:D} =
+                gen_instructions(
+                    :%total_quantity_debited,
+                    :%total_quantity_expended
+                );
 
             self!mkincision(
                 :$asset_code,
@@ -470,7 +472,7 @@ sub resolve_acct_targets(
     EntryID:D :$tax_id!
 ) returns Hash[Nightscape::Entity::COA::Acct:D,AcctName:D]
 {
-    my Nightscape::Entity::COA::Acct %acct_targets{AcctName} = %acct.grep({
+    my Nightscape::Entity::COA::Acct:D %acct_targets{AcctName:D} = %acct.grep({
         # only find targets in Silo ASSETS
         .value.path[0] ~~ "ASSETS"
     }).grep({
@@ -871,7 +873,7 @@ sub buckets2instructions(
     for %buckets.kv -> $posting_id, $bucket
     {
         # store list of instructions generated from bucket
-        my Instruction @instructions;
+        my Instruction:D @instructions;
 
         # store bucket's parent acct name, which is the subject of
         # PostingID
@@ -1028,7 +1030,7 @@ sub buckets2instructions(
             }
         }
 
-        push %instructions{$posting_id}, @instructions;
+        push %instructions{$posting_id}, |@instructions;
     }
 
     %instructions;
@@ -1044,7 +1046,7 @@ sub gen_instructions(
 {
     # make buckets containing amounts needing to be filled in
     # Entity.wallet, indexed by PostingID, %(PostingID => Bucket)
-    my Bucket:D %buckets{PostingID:D} = gen_buckets();
+    my Bucket:D %buckets{PostingID:D} = gen_buckets(:%total_quantity_debited);
 
     # fill buckets based on total quantity expended
     fill_buckets(:%buckets, :%total_quantity_expended);
@@ -1120,7 +1122,8 @@ method gen_txn(
     my Nightscape::Entry::Posting @postings_assets_silo =
         Nightscape::Entry.ls_postings(:@postings, :$silo);
 
-    my Regex $asset_code = /{$.entity_base_currency}/;
+    my AssetCode $entity_base_currency = $.entity_base_currency;
+    my Regex $asset_code = /$entity_base_currency/;
     my Nightscape::Entry::Posting @postings_assets_silo_base_currency =
         Nightscape::Entry.ls_postings(:@postings, :$asset_code, :$silo);
 
@@ -1318,7 +1321,8 @@ sub get_total_quantity_debited(
     #
     #  $total_quantity_debited = [+] (.TargetAcctBalanceDelta for TargetAcctName)
     #
-    my Hash[Hash[Rat,PostingID],Rat] %total_balance_delta_per_acct{AcctName};
+    my Hash[Hash[Rat:D,PostingID:D],Rat:D]
+        %total_balance_delta_per_acct{AcctName:D};
 
     # for each target acct
     for %acct_targets.kv -> $acct_name, $acct
@@ -1346,7 +1350,7 @@ sub get_total_quantity_debited(
         #         PostingID => PostingIDBalanceDelta
         #     )
         #
-        my Rat %balance_delta_by_posting_id{PostingID};
+        my Rat:D %balance_delta_by_posting_id{PostingID:D};
 
         # for all those changesets in acct affecting only asset code $asset_code,
         # and sharing EntryID $entry_id
@@ -1415,7 +1419,7 @@ sub get_total_quantity_debited(
         #             $%balance_delta_by_posting_id;
         #
         # helper:
-        my Hash[Rat,PostingID] %target_acct_balance_delta{Rat} =
+        my Hash[Rat:D,PostingID:D] %target_acct_balance_delta{Rat:D} =
             $target_acct_balance_delta_sum => $%balance_delta_by_posting_id;
         %total_balance_delta_per_acct{$acct_name} = $%target_acct_balance_delta;
 
@@ -1427,7 +1431,7 @@ sub get_total_quantity_debited(
 
     # store total quantity debited (subtotal quantity debited less
     # subtotal quantity credited)
-    my GreaterThanZero $total_quantity_debited =
+    my GreaterThanZero:D $total_quantity_debited =
         $subtotal_quantity_debited - $subtotal_quantity_credited;
 
     # TotalQuantityDebited => %(
@@ -1447,14 +1451,14 @@ sub get_total_quantity_debited(
     #     )
     # )
     #
-    # TotalQuantityDebited ----------------------------------------------------+
-    # TargetAcctName -------------------------+                                |
-    # TargetAcctBalanceDelta ---------+       |                                |
-    # PostingID --------------+       |       |                                |
-    # PostingIDBalanceDelta   |       |       |                                |
-    #                  |      |       |       |                                |
-    #                  |      |       |       |                                |
-    my Hash[Hash[Hash[Rat,PostingID],Rat],AcctName] %total_quantity_debited{Quantity} =
+    # TotalQuantityDebited ------------------------------------------------------------+
+    # TargetAcctName ------------------------------+                                   |
+    # TargetAcctBalanceDelta -------------+        |                                   |
+    # PostingID ----------------+         |        |                                   |
+    # PostingIDBalanceDelta     |         |        |                                   |
+    #                  |        |         |        |                                   |
+    #                  |        |         |        |                                   |
+    my Hash[Hash[Hash[Rat:D,PostingID:D],Rat:D],AcctName:D] %total_quantity_debited{Quantity:D} =
         $total_quantity_debited => %total_balance_delta_per_acct;
 }
 
@@ -1466,19 +1470,20 @@ sub get_total_quantity_expended(
 ) returns Hash[Hash[Quantity:D,Quantity:D],Quantity:D]
 {
     # store total quantity expended
-    my Hash[Quantity,Quantity] %total_quantity_expended{Quantity};
-    my Quantity $total_quantity_expended;
-    my Quantity %per_basis_lot{Quantity};
+    my Hash[Quantity:D,Quantity:D] %total_quantity_expended{Quantity:D};
+    my Quantity:D $total_quantity_expended = 0.0;
+    my Quantity:D %per_basis_lot{Quantity:D};
 
     # foreach tax event
     for @taxes -> $tax_event
     {
         # get subtotal quantity expended, and add to total
-        my Quantity $subtotal_quantity_expended = $tax_event.quantity_expended;
+        my Quantity:D $subtotal_quantity_expended =
+            $tax_event.quantity_expended;
         $total_quantity_expended += $subtotal_quantity_expended;
 
         # store acquisition price / avco for this tax id
-        my Quantity $xe_asset_quantity;
+        my Quantity:D $xe_asset_quantity = 0.0;
 
         # AVCO costing method?
         if $costing ~~ AVCO
@@ -1755,6 +1760,7 @@ method transact(Nightscape::Entity::TXN:D $transaction is readonly)
     # mod holdings (only needed for entries dealing in aux assets)
     my Nightscape::Entity::TXN::ModHolding %mod_holdings{AssetCode} =
         $transaction.mod_holdings;
+
     if %mod_holdings
     {
         for %mod_holdings.kv -> $asset_code, $mod_holding
@@ -1875,7 +1881,7 @@ method tree2acct(
             in_wallet($wallet, @path[1..*]).ls_assets_with_ids;
 
         # store PostingIDs handled, indexed by asset code
-        my Array[PostingID:D] %posting_ids_by_asset{AssetCode:D} =
+        my Array[PostingID] %posting_ids_by_asset{AssetCode:D} =
             in_wallet($wallet, @path[1..*]).ls_assets_with_ids(:posting);
 
         # store all EntryIDs handled
@@ -1883,7 +1889,7 @@ method tree2acct(
             in_wallet($wallet, @path[1..*]).ls_ids;
 
         # store all PostingIDs handled
-        my PostingID:D @posting_ids_handled =
+        my PostingID @posting_ids_handled =
             in_wallet($wallet, @path[1..*]).ls_ids(:posting);
 
         # instantiate acct

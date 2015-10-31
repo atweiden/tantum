@@ -39,13 +39,14 @@ has AssetCode $.quantity_expended_asset_code;
 method get_holding_period() returns Hash[Int:D,HoldingPeriod:D]
 {
     # holding period (in days)
-    my Int $holding_period_in_days = $.date_of_expenditure - $.acquisition_date;
+    my Int:D $holding_period_in_days =
+        $.date_of_expenditure.Date - $.acquisition_date.Date;
 
     # holding period (long or short term)
-    my HoldingPeriod $holding_period =
+    my HoldingPeriod:D $holding_period =
         $holding_period_in_days > 365 ?? LONG_TERM !! SHORT_TERM;
 
-    my Int %holding_period{HoldingPeriod} =
+    my Int:D %holding_period{HoldingPeriod:D} =
         $holding_period => $holding_period_in_days;
 }
 

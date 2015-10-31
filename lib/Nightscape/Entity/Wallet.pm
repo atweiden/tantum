@@ -176,10 +176,10 @@ multi method ls_assets_with_ids() returns Hash[Array[EntryID:D],AssetCode:D]
 # list PostingIDs handled, indexed by asset code
 multi method ls_assets_with_ids(
     Bool:D :$posting! where *.so
-) returns Hash[Array[PostingID:D],AssetCode:D]
+) returns Hash[Array[PostingID],AssetCode:D]
 {
     # store PostingIDs handled, indexed by asset code
-    my Array[PostingID:D] %posting_ids_handled_by_asset_code{AssetCode:D};
+    my Array[PostingID] %posting_ids_handled_by_asset_code{AssetCode:D};
 
     # list all assets handled
     my AssetCode:D @assets_handled = self.ls_assets;
@@ -247,13 +247,13 @@ multi method ls_ids() returns Array[EntryID:D]
 }
 
 # list PostingIDs handled, all asset codes
-multi method ls_ids(Bool:D :$posting! where *.so) returns Array[PostingID:D]
+multi method ls_ids(Bool:D :$posting! where *.so) returns Array[PostingID]
 {
     # populate assets handled
     my AssetCode @assets_handled = self.ls_assets;
 
     # store PostingIDs handled
-    my PostingID:D @posting_ids_handled;
+    my PostingID @posting_ids_handled;
 
     # fetch PostingIDs handled
     for @assets_handled -> $asset_code
@@ -290,10 +290,10 @@ multi method ls_ids_by_asset(
 multi method ls_ids_by_asset(
     AssetCode:D :$asset_code!,
     Bool:D :$posting! where *.so
-) returns Array[PostingID:D]
+) returns Array[PostingID]
 {
     # store PostingIDs handled
-    my PostingID:D @posting_ids_handled;
+    my PostingID @posting_ids_handled;
 
     # fetch PostingIDs handled
     for %.balance{$asset_code} -> @changesets
@@ -502,12 +502,16 @@ multi method mkchangeset(
     my DecInc $decinc = DEC;
 
     # target index is after parent PostingID index
-    my Int $index = 1 + %.balance{$asset_code}.first-index({
-        .posting_id == $posting_id
-    });
+    my Int $index = 1 + %.balance{$asset_code}.first:
+        *.posting_id == $posting_id, :k;
 
     # create new PostingID
-    my PostingID $new_posting_id .= new(:$entry_id);
+    my PostingID $new_posting_id .= new(
+        :$entry_id
+        :number(-1),
+        :text("NSAutoPostingID"),
+        :xxhash(55555)
+    );
 
     # splice balance update instruction next to parent PostingID's
     # location in %.balance{$asset_code} array
