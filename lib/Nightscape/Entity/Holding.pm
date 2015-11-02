@@ -65,7 +65,7 @@ method expend(
 
     # deplete units in targeted basis lots
     # has side effect of recording capital gains/losses to %.taxes
-    sub rmtargets(Rat :@targets! where * >= 0) # When typecheck: Quantity => Constraint type check failed for parameter '@targets'
+    sub rmtargets(FatRat :@targets! where * >= 0) # When typecheck: Quantity => Constraint type check failed for parameter '@targets'
     {
         # for each @.basis lot target index $i and associated quantity $q
         for @targets.pairs.kv -> $i, $q
@@ -100,25 +100,25 @@ method expend(
             );
 
             # for calculating capital gains/losses
-            my Rat $d;
+            my FatRat $d;
 
             # AVCO inventory valuation method?
             if $costing ~~ AVCO
             {
                 # (expend price - average cost) * quantity expended
-                $d = ($price - $.avco) * $qty;
+                $d = FatRat(($price - $.avco) * $qty);
             }
             # FIFO or LIFO inventory valuation method?
             elsif $costing ~~ FIFO or $costing ~~ LIFO
             {
                 # (expend price - acquisition price) * quantity expended
-                $d = ($price - $basis.price) * $qty;
+                $d = FatRat(($price - $basis.price) * $qty);
             }
 
             if $d > 0
             {
                 # record capital gains
-                my Quantity $capital_gains = $d.abs;
+                my Quantity $capital_gains = FatRat($d.abs);
                 push %!taxes{$entry_id}, Nightscape::Entity::Holding::Taxes.new(
                     :$entry_id,
                     :$acquisition_date,
@@ -134,7 +134,7 @@ method expend(
             elsif $d < 0
             {
                 # record capital losses
-                my Quantity $capital_losses = $d.abs;
+                my Quantity $capital_losses = FatRat($d.abs);
                 push %!taxes{$entry_id}, Nightscape::Entity::Holding::Taxes.new(
                     :$entry_id,
                     :$acquisition_date,
@@ -238,7 +238,7 @@ method gen_avco() returns Price:D
     my Quantity $quantity = self.get_total_quantity;
 
     # weighted average cost
-    my Price $avco = Rat($value / $quantity);
+    my Price $avco = FatRat($value / $quantity);
 }
 
 # calculate total quantity of units held

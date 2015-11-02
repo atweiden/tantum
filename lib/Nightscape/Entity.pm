@@ -64,8 +64,8 @@ sub contains_capital_gains_losses(
     Nightscape::Entity::Holding::Taxes:D @taxes
 ) returns Bool:D
 {
-    my Rat $capital_gains = [+] @taxes».capital_gains;
-    my Rat $capital_losses = [+] @taxes».capital_losses;
+    my FatRat $capital_gains = [+] @taxes».capital_gains;
+    my FatRat $capital_losses = [+] @taxes».capital_losses;
     $capital_gains || $capital_losses ?? True !! False;
 }
 
@@ -140,7 +140,7 @@ method !incise_capital_gains_and_losses(
             #             entry_id => $tax_id
             #         );
             # - PostingIDBalanceDelta is Changeset.balance_delta
-            my Hash[Hash[Hash[Rat:D,PostingID:D],Rat:D],AcctName:D]
+            my Hash[Hash[Hash[FatRat:D,PostingID:D],FatRat:D],AcctName:D]
                 %total_quantity_debited{Quantity:D} =
                     self!get_total_quantity_debited(
                         :%acct_targets,
@@ -231,7 +231,7 @@ method !mkincision(
         self.perform_sanity_check(:$capital_gains, :$capital_losses);
 
         # take difference of realized capital gains and losses
-        my Rat $gains_less_losses = $capital_gains - $capital_losses;
+        my FatRat $gains_less_losses = $capital_gains - $capital_losses;
 
         # determine whether gain (INC) or loss (DEC)
         my DecInc $decinc;
@@ -293,7 +293,7 @@ multi method perform_sanity_check(
 }
 
 multi method perform_sanity_check(
-    Hash[Hash[Hash[Rat:D,PostingID:D],Rat:D],AcctName:D]
+    Hash[Hash[Hash[FatRat:D,PostingID:D],FatRat:D],AcctName:D]
         :%total_quantity_debited! is readonly,
     Hash[Quantity:D,Quantity:D] :%total_quantity_expended!,
 )
@@ -389,7 +389,7 @@ multi method perform_sanity_check(
                 $xe = $mod_wallet.xe_asset_quantity;
             }
 
-            my Quantity $val = Rat($quantity_to_debit * $xe);
+            my Quantity $val = FatRat($quantity_to_debit * $xe);
             $new_value_debited += $val;
         }
     }
@@ -397,11 +397,11 @@ multi method perform_sanity_check(
     # we expect NSAutoCapitalGains to change by this amount
     # if >0, realized capital gains, NSAutoCapitalGains++
     # if <0, realized capital losses, NSAutoCapitalGains--
-    my Rat $expected_income_delta =
+    my FatRat $expected_income_delta =
         $original_value_debited - $new_value_debited;
 
     # the amount to change NSAutoCapitalGains by
-    my Rat $actual_income_delta =
+    my FatRat $actual_income_delta =
         [+] (.capital_gains - .capital_losses for @taxes);
 
     # was expected income delta not the same as actual income
@@ -414,8 +414,8 @@ multi method perform_sanity_check(
 }
 
 multi method perform_sanity_check(
-    Rat:D :$capital_gains!,
-    Rat:D :$capital_losses!
+    FatRat:D :$capital_gains!,
+    FatRat:D :$capital_losses!
 )
 {
     if $capital_gains > 0
@@ -500,7 +500,7 @@ class Bucket
     has AcctName $.acct_name;
 
     # bucket max capacity
-    has Quantity $.capacity = 0.0;
+    has Quantity $.capacity = FatRat(0.0);
 
     # was bucket capacity artificially constrained by acct quantity
     # debited limits?
@@ -510,7 +510,7 @@ class Bucket
     has Quantity $.unconstrained_capacity;
 
     # running total filled
-    has Quantity $.filled = 0.0;
+    has Quantity $.filled = FatRat(0.0);
 
     # capacity less filled
     has Quantity $.open = $!capacity - $!filled;
@@ -547,14 +547,14 @@ class Bucket
     # update $.filled, gets called after every subfill
     method !update_filled()
     {
-        my Quantity $filled = 0.0;
+        my Quantity $filled = FatRat(0.0);
         $filled += [+] %.subfills.values;
         $!filled = $filled;
     }
 }
 
 sub gen_buckets(
-    Hash[Hash[Hash[Rat:D,PostingID:D],Rat:D],AcctName:D]
+    Hash[Hash[Hash[FatRat:D,PostingID:D],FatRat:D],AcctName:D]
         :%total_quantity_debited! is readonly,
 ) returns Hash[Bucket:D,PostingID:D]
 {
@@ -1040,7 +1040,7 @@ sub buckets2instructions(
 # return instructions for incising realized capital gains / losses
 # indexed by causal posting_id (NEW/MOD | AcctName | QuantityToDebit | XE)
 sub gen_instructions(
-    Hash[Hash[Hash[Rat:D,PostingID:D],Rat:D],AcctName:D]
+    Hash[Hash[Hash[FatRat:D,PostingID:D],FatRat:D],AcctName:D]
         :%total_quantity_debited! is readonly,
     Hash[Quantity:D,Quantity:D] :%total_quantity_expended! is readonly
 ) returns Hash[Array[Instruction:D],PostingID:D]
@@ -1148,14 +1148,14 @@ method gen_txn(
 
         # sum INCs
         my Nightscape::Entry::Posting @p_inc = @p.grep({ .decinc ~~ INC });
-        my Rat $incs = Rat([+] (.amount.asset_quantity for @p_inc));
+        my FatRat $incs = FatRat([+] (.amount.asset_quantity for @p_inc));
 
         # sum DECs
         my Nightscape::Entry::Posting @p_dec = @p.grep({ .decinc ~~ DEC });
-        my Rat $decs = Rat([+] (.amount.asset_quantity for @p_dec));
+        my FatRat $decs = FatRat([+] (.amount.asset_quantity for @p_dec));
 
         # INCs - DECs
-        my Rat $d = $incs - $decs;
+        my FatRat $d = $incs - $decs;
 
         # asset flow: acquire / expend
         my AssetFlow $asset_flow = mkasset_flow($d);
@@ -1201,9 +1201,9 @@ method gen_txn(
 # get balance of each asset present in wallet %wallet Silo Assets
 method get_balance(
     Nightscape::Entity::Wallet:D :%wallet! is readonly
-) returns Hash[Rat,AssetCode]
+) returns Hash[FatRat,AssetCode]
 {
-    my Rat %balance{AssetCode};
+    my FatRat %balance{AssetCode};
     my AssetCode @assets_handled = self.ls_assets_handled(:%wallet);
     for @assets_handled -> $asset_code
     {
@@ -1219,10 +1219,10 @@ method get_balance(
 method get_balance_by_asset(
     AssetCode:D :$asset_code!,
     Nightscape::Entity::Wallet:D :%wallet! is readonly,
-) returns Rat
+) returns FatRat
 {
     my AssetCode $base_currency; # purposefully empty var
-    my Rat $balance = in_wallet(%wallet{ASSETS}).get_balance(
+    my FatRat $balance = in_wallet(%wallet{ASSETS}).get_balance(
         :$asset_code,
         :$base_currency,
         :recursive
@@ -1234,7 +1234,7 @@ method get_balance_by_asset(
 method get_eqbal(
     Nightscape::Entity::Wallet:D :%wallet! is readonly,
     Nightscape::Entity::COA::Acct :%acct is readonly
-) returns Hash[Rat:D,Silo:D]
+) returns Hash[FatRat:D,Silo:D]
 {
     # assets handled, from COA::Acct if %acct was passed, falling back
     # to the COA::Acct generated from Wallet if COA::Acct was not passed
@@ -1242,8 +1242,8 @@ method get_eqbal(
         %acct ?? self.ls_assets_handled(:%acct)
               !! self.ls_assets_handled(:%wallet);
 
-    # store total sum Rat balance indexed by Silo
-    my Rat:D %balance{Silo:D};
+    # store total sum FatRat balance indexed by Silo
+    my FatRat:D %balance{Silo:D};
 
     # sum wallet balances and store in %balance
     sub fill_balance(AssetCode:D $asset_code)
@@ -1314,7 +1314,7 @@ method !get_total_quantity_debited(
     AssetCode:D :$asset_code!,
     EntryID:D :$entry_id!,
     Nightscape::Entity::Wallet:D :%wallet! is readonly
-) returns Hash[Hash[Hash[Hash[Rat:D,PostingID:D],Rat:D],AcctName:D],Quantity:D]
+) returns Hash[Hash[Hash[Hash[FatRat:D,PostingID:D],FatRat:D],AcctName:D],Quantity:D]
 {
     # store subtotal quantity debited
     my Quantity $subtotal_quantity_debited;
@@ -1345,7 +1345,7 @@ method !get_total_quantity_debited(
     #
     #  $total_quantity_debited = [+] (.TargetAcctBalanceDelta for TargetAcctName)
     #
-    my Hash[Hash[Rat:D,PostingID:D],Rat:D]
+    my Hash[Hash[FatRat:D,PostingID:D],FatRat:D]
         %total_balance_delta_per_acct{AcctName:D};
 
     # for each target acct
@@ -1374,7 +1374,7 @@ method !get_total_quantity_debited(
         #         PostingID => PostingIDBalanceDelta
         #     )
         #
-        my Rat:D %balance_delta_by_posting_id{PostingID:D};
+        my FatRat:D %balance_delta_by_posting_id{PostingID:D};
 
         # for all those changesets in acct affecting only asset code $asset_code,
         # and sharing EntryID $entry_id
@@ -1384,7 +1384,7 @@ method !get_total_quantity_debited(
             my PostingID $posting_id = $changeset.posting_id;
 
             # causal posting's balance adjustment, for summing
-            my Rat $posting_id_balance_delta = $changeset.balance_delta;
+            my FatRat $posting_id_balance_delta = $changeset.balance_delta;
 
             # changeset's debit quantity, indexed by PostingID
             %balance_delta_by_posting_id{$posting_id} =
@@ -1394,14 +1394,14 @@ method !get_total_quantity_debited(
         # sum posting balance deltas, should be less than zero,
         # representing net expenditure/outflow of asset from silo
         # ASSETS wallet
-        my Rat $target_acct_balance_delta_sum =
+        my FatRat $target_acct_balance_delta_sum =
             [+] %balance_delta_by_posting_id.values;
 
         # store this target acct's debits to asset
-        my Quantity $target_acct_debit_quantity = 0.0;
+        my Quantity $target_acct_debit_quantity = FatRat(0.0);
 
         # store this target acct's credits to asset
-        my Quantity $target_acct_credit_quantity = 0.0;
+        my Quantity $target_acct_credit_quantity = FatRat(0.0);
 
         # is sum of target acct's balance deltas less than zero?
         if $target_acct_balance_delta_sum < 0
@@ -1431,7 +1431,7 @@ method !get_total_quantity_debited(
         #             $%balance_delta_by_posting_id;
         #
         # helper:
-        my Hash[Rat:D,PostingID:D] %target_acct_balance_delta{Rat:D} =
+        my Hash[FatRat:D,PostingID:D] %target_acct_balance_delta{FatRat:D} =
             $target_acct_balance_delta_sum => $%balance_delta_by_posting_id;
         %total_balance_delta_per_acct{$acct_name} = $%target_acct_balance_delta;
 
@@ -1463,14 +1463,14 @@ method !get_total_quantity_debited(
     #     )
     # )
     #
-    # TotalQuantityDebited ------------------------------------------------------------+
-    # TargetAcctName ------------------------------+                                   |
-    # TargetAcctBalanceDelta -------------+        |                                   |
-    # PostingID ----------------+         |        |                                   |
-    # PostingIDBalanceDelta     |         |        |                                   |
-    #                  |        |         |        |                                   |
-    #                  |        |         |        |                                   |
-    my Hash[Hash[Hash[Rat:D,PostingID:D],Rat:D],AcctName:D] %total_quantity_debited{Quantity:D} =
+    # TotalQuantityDebited ------------------------------------------------------------------+
+    # TargetAcctName ------------------------------------+                                   |
+    # TargetAcctBalanceDelta ------------------+         |                                   |
+    # PostingID -------------------+           |         |                                   |
+    # PostingIDBalanceDelta        |           |         |                                   |
+    #                    |         |           |         |                                   |
+    #                    |         |           |         |                                   |
+    my Hash[Hash[Hash[FatRat:D,PostingID:D],FatRat:D],AcctName:D] %total_quantity_debited{Quantity:D} =
         $total_quantity_debited => %total_balance_delta_per_acct;
 }
 
@@ -1483,7 +1483,7 @@ sub get_total_quantity_expended(
 {
     # store total quantity expended
     my Hash[Quantity:D,Quantity:D] %total_quantity_expended{Quantity:D};
-    my Quantity:D $total_quantity_expended = 0.0;
+    my Quantity:D $total_quantity_expended = FatRat(0.0);
     my Quantity:D %per_basis_lot{Quantity:D};
 
     # foreach tax event
@@ -1495,7 +1495,7 @@ sub get_total_quantity_expended(
         $total_quantity_expended += $subtotal_quantity_expended;
 
         # store acquisition price / avco for this tax id
-        my Quantity:D $xe_asset_quantity = 0.0;
+        my Quantity:D $xe_asset_quantity = FatRat(0.0);
 
         # AVCO costing method?
         if $costing ~~ AVCO

@@ -48,10 +48,10 @@ method get_balance(
     AssetCode:D :$asset_code!,    # get wallet balance for this asset code
     AssetCode :$base_currency,    # (optional) request results in $base_currency
     Bool :$recursive              # (optional) recursively query subwallets
-) returns Rat:D                   # returns 0.0 if asset code does not exist
+) returns FatRat:D                # returns 0.0 if asset code does not exist
 {
-    my Rat $balance;
-    my Rat @deltas;
+    my FatRat $balance;
+    my FatRat @deltas;
 
     # does this wallet have a balance for asset code?
     if try {%.balance{$asset_code}}
@@ -95,7 +95,7 @@ method get_balance(
                     }
 
                     # multiply changeset default balance delta by exchange rate
-                    my Rat $balance_delta =
+                    my FatRat $balance_delta =
                         $changeset.balance_delta * $changeset.xe_asset_quantity;
 
                     # use balance figure converted to $base_currency
@@ -117,7 +117,7 @@ method get_balance(
     else
     {
         # balance is zero
-        $balance = 0.0;
+        $balance = FatRat(0.0);
     }
 
 
@@ -319,7 +319,7 @@ multi method mkchangeset(
 )
 {
     # store delta by which to change wallet balance of asset code
-    my Rat $balance_delta;
+    my FatRat $balance_delta;
 
     # store asset code of balance delta
     my AssetCode $balance_delta_asset_code = $asset_code;
@@ -362,7 +362,7 @@ multi method mkchangeset(
 )
 {
     # store delta by which to change wallet balance of asset code
-    my Rat $balance_delta;
+    my FatRat $balance_delta;
 
     # store asset code of balance delta
     my AssetCode $balance_delta_asset_code = $asset_code;
@@ -448,7 +448,8 @@ multi method mkchangeset(
     my Nightscape::Entity::Wallet::Changeset $changeset := @changesets[0];
 
     # new Changeset.balance_delta
-    my Rat $balance_delta = -$quantity_to_debit; # negated, debiting ASSETS silo
+    # negated because we're debiting ASSETS silo
+    my FatRat $balance_delta = -$quantity_to_debit;
 
     # update this Changeset.balance_delta
     $changeset.mkbalance_delta(:$balance_delta, :force);

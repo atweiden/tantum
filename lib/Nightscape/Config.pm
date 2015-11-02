@@ -120,7 +120,8 @@ method gen_pricesheet(:%prices!) returns Hash[Hash[Price,DateTime],AssetCode]
             if Nightscape::Parser::Grammar.parse($key, :rule<full_date>)
             {
                 my %dt = <year month day> Z=> map +*, $key.split('-');
-                %dates_and_prices{DateTime.new(|%dt)} = $date_price_pairs{$key};
+                %dates_and_prices{DateTime.new(|%dt)} =
+                    FatRat($date_price_pairs{$key});
             }
         };
 

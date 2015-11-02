@@ -193,13 +193,13 @@ method string:literal_multi ($/)
 
 method integer_unsigned($/)
 {
-    # ensure integers are coerced to type Rat
-    make Rat(+$/);
+    # ensure integers are coerced to type FatRat
+    make FatRat(+$/);
 }
 
 method float_unsigned($/)
 {
-    make Rat(+$/);
+    make FatRat(+$/);
 }
 
 method plus_or_minus:sym<+>($/)

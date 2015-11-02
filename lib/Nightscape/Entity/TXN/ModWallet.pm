@@ -74,8 +74,8 @@ method get_value() returns Quantity:D
     $value;
 }
 
-# deconstruct value of TXN::ModWallet into ٍ± Rat
-method get_raw_value() returns Rat:D
+# deconstruct value of TXN::ModWallet into ٍ± FatRat
+method get_raw_value() returns FatRat:D
 {
     # get DecInc
     my DecInc $decinc = $.decinc;
@@ -83,8 +83,8 @@ method get_raw_value() returns Rat:D
     # get value
     my Quantity $value = self.get_value;
 
-    # convert to raw Rat value
-    my Rat $raw_value = $decinc ~~ INC ?? $value !! -$value;
+    # convert to raw FatRat value
+    my FatRat $raw_value = $decinc ~~ INC ?? $value !! -$value;
 }
 
 # vim: ft=perl6

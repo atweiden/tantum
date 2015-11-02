@@ -21,10 +21,10 @@ has Price $.avco_at_expenditure;
 has DateTime $.date_of_expenditure;
 
 # capital gains
-has Quantity $.capital_gains = 0.0;
+has Quantity $.capital_gains = FatRat(0.0);
 
 # capital losses
-has Quantity $.capital_losses = 0.0;
+has Quantity $.capital_losses = FatRat(0.0);
 
 # holding period (long or short term)
 has HoldingPeriod $.holding_period = self.get_holding_period.keys[0];

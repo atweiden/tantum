@@ -3,7 +3,7 @@ use Nightscape::Types;
 unit class Nightscape::Entity::Wallet::Changeset;
 
 # Δ ± balance
-has Rat $.balance_delta;
+has FatRat $.balance_delta;
 
 # self-referential asset code of this balance delta
 has AssetCode $.balance_delta_asset_code;
@@ -21,7 +21,7 @@ has AssetCode $.xe_asset_code;
 has Quantity $.xe_asset_quantity;
 
 # update balance_delta in-place
-method mkbalance_delta(Rat:D :$balance_delta!, Bool :$force)
+method mkbalance_delta(FatRat:D :$balance_delta!, Bool :$force)
 {
     # update $.balance_delta in-place
     sub init()

@@ -20,7 +20,7 @@ method is_balanced() returns Bool:D
         ::(EQUITY) => -1;
 
     # running total
-    my Rat $total;
+    my FatRat $total;
 
     # exchange rate consistency verification
     my Array[Quantity] %xe_verify{AssetCode};

@@ -14,18 +14,18 @@ subset AssetCode of Str is export where
     Nightscape::Parser::Grammar.parse($_, :rule<asset_code>);
 }
 
-subset GreaterThanZero of Rat is export where * > 0;
+subset GreaterThanZero of FatRat is export where * > 0;
 
 subset Instruction of Hash is export where
 {
     .keys.sort ~~ <acct_name newmod posting_id quantity_to_debit xe>;
 }
 
-subset LessThanZero of Rat is export where * < 0;
+subset LessThanZero of FatRat is export where * < 0;
 
-subset Price of Rat is export where * >= 0;
+subset Price of FatRat is export where * >= 0;
 
-subset Quantity of Rat is export where * >= 0;
+subset Quantity of FatRat is export where * >= 0;
 
 subset VarName of Str is export where
 {
@@ -81,7 +81,7 @@ multi sub infix:<==>(PostingID:D $a, PostingID:D $b) is export returns Bool:D
         $a.number == $b.number && $a.xxhash == $b.xxhash;
 }
 
-sub mkasset_flow(Rat:D $d) is export returns AssetFlow:D
+sub mkasset_flow(FatRat:D $d) is export returns AssetFlow:D
 {
     if $d > 0
     {

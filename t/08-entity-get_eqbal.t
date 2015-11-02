@@ -201,15 +201,15 @@ else
 # if drift is negative, then INCOME + LIABILITIES + EQUITY outweighs
 # ASSETS + EXPENSES, because INCOME, LIABILITIES and EQUITY have a
 # -1 multiplier
-my Rat $drift = [+] (.drift for @entities[0].transactions);
+my FatRat $drift = [+] (.drift for @entities[0].transactions);
 
-my Rat %balance{Silo} = @entities[0].get_eqbal(
+my FatRat %balance{Silo} = @entities[0].get_eqbal(
     :wallet(@entities[0].coa.wllt)
     :acct(@entities[0].coa.acct)
 );
 # say "Entity.coa.wllt eqbal: ", %balance.perl;
 
-# my Rat %balance_orig{Silo} = @entities[0].get_eqbal(
+# my FatRat %balance_orig{Silo} = @entities[0].get_eqbal(
 #     :wallet(@entities[0].wallet)
 # );
 # say "Entity.wallet eqbal: ", %balance_orig.perl;
@@ -370,14 +370,14 @@ else
 
 # say $_.perl for @entities_advanced[0].tree(:wallet(@entities_advanced[0].coa.wllt));
 
-my Rat $drift_advanced = [+] (.drift for @entities_advanced[0].transactions);
-my Rat %balance_advanced{Silo} = @entities_advanced[0].get_eqbal(
+my FatRat $drift_advanced = [+] (.drift for @entities_advanced[0].transactions);
+my FatRat %balance_advanced{Silo} = @entities_advanced[0].get_eqbal(
     :wallet(@entities_advanced[0].coa.wllt)
     :acct(@entities_advanced[0].coa.acct)
 );
 # say "Entity.coa.wllt eqbal: ", %balance_advanced.perl;
 
-# my Rat %balance_advanced_orig{Silo} = @entities_advanced[0].get_eqbal(
+# my FatRat %balance_advanced_orig{Silo} = @entities_advanced[0].get_eqbal(
 #     :wallet(@entities_advanced[0].wallet)
 # );
 # say "Entity.wallet eqbal: ", %balance_advanced_orig.perl;
