@@ -104,7 +104,7 @@ method !incise_capital_gains_and_losses(
             # from EntryID $tax_id
             # - associated realized capital gains / losses must have resulted
             #   from the assorted changesets in these wallets
-            my Nightscape::Entity::COA::Acct %acct_targets{AcctName} =
+            my Nightscape::Entity::COA::Acct:D %acct_targets{AcctName:D} =
                 resolve_acct_targets(:%acct, :$asset_code, :$tax_id);
 
             # total quantity debited in targets, separately and in total
@@ -478,7 +478,9 @@ sub resolve_acct_targets(
         .value.path[0] ~~ "ASSETS"
     }).grep({
         # only find targets with matching asset code and EntryID
-        .value.entry_ids_by_asset{$asset_code}.grep($tax_id)
+        .value.entry_ids_by_asset{$asset_code} # empty wallets return Nil
+            ?? .value.entry_ids_by_asset{$asset_code}.grep($tax_id)
+            !! False;
     });
 }
 
