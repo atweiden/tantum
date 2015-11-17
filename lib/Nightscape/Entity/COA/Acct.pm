@@ -2,8 +2,8 @@ use v6;
 use Nightscape::Types;
 unit class Nightscape::Entity::COA::Acct;
 
-has AcctName $.name;
-has VarName @.path;
+has AcctName $.name is required;
+has VarName @.path is required;
 
 # which assets were handled?
 has AssetCode:D @.assets_handled;                          # Wallet.ls_assets();

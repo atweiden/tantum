@@ -4,7 +4,7 @@ use Nightscape::Types;
 unit class Nightscape::Config::Entity;
 
 # entity name
-has VarName $.entity_name;
+has VarName $.entity_name is required;
 
 # entity base asset costing method
 has Costing $.base_costing;

@@ -4,14 +4,14 @@ use Nightscape::Types;
 unit class Nightscape::Entity::Holding::Basis;
 
 # causal EntryID
-has EntryID $.entry_id;
+has EntryID $.entry_id is required;
 
 # date, price, quantity
-has DateTime $.date;
-has Price $.price;
+has DateTime $.date is required;
+has Price $.price is required;
 
 # TODO: rework quantity in style of Changeset
-has Quantity $.quantity;
+has Quantity $.quantity is required;
 
 # for each expenditure, causal EntryID and associated quantity expended
 has Nightscape::Entity::Holding::Basis::Depletion %.depletions{EntryID};

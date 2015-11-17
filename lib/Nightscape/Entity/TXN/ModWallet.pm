@@ -3,22 +3,22 @@ use Nightscape::Types;
 unit class Nightscape::Entity::TXN::ModWallet;
 
 # parent entity
-has VarName $.entity;
+has VarName $.entity is required;
 
 # causal EntryID
-has EntryID $.entry_id;
+has EntryID $.entry_id is required;
 
 # causal PostingID
-has PostingID $.posting_id;
+has PostingID $.posting_id is required;
 
 # account
-has Silo $.silo;
+has Silo $.silo is required;
 has VarName @.subwallet;
 
 # amount
-has AssetCode $.asset_code;
-has DecInc $.decinc;
-has Quantity $.quantity;
+has AssetCode $.asset_code is required;
+has DecInc $.decinc is required;
+has Quantity $.quantity is required;
 
 # xe
 has AssetCode $.xe_asset_code;

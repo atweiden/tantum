@@ -3,8 +3,8 @@ use Nightscape::Entry::Posting::Amount::XE;
 use Nightscape::Types;
 unit class Nightscape::Entry::Posting::Amount;
 
-has AssetCode $.asset_code;
-has Quantity $.asset_quantity;
+has AssetCode $.asset_code is required;
+has Quantity $.asset_quantity is required;
 has Str $.asset_symbol;
 has Str $.plus_or_minus;
 has Nightscape::Entry::Posting::Amount::XE $.exchange_rate;

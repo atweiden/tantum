@@ -5,7 +5,7 @@ use Nightscape::Types;
 unit class Nightscape::Entity::Holding;
 
 # asset code
-has AssetCode $.asset_code;
+has AssetCode $.asset_code is required;
 
 # average cost of units held
 has Price $.avco;

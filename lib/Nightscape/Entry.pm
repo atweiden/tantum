@@ -4,9 +4,9 @@ use Nightscape::Entry::Posting;
 use Nightscape::Types;
 unit class Nightscape::Entry;
 
-has EntryID $.id;
-has Nightscape::Entry::Header $.header;
-has Nightscape::Entry::Posting @.postings;
+has EntryID $.id is required;
+has Nightscape::Entry::Header $.header is required;
+has Nightscape::Entry::Posting @.postings is required;
 
 # check if entry is balanced
 method is_balanced() returns Bool:D

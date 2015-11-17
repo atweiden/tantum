@@ -3,16 +3,16 @@ use Nightscape::Types;
 unit class Nightscape::Entity::Wallet::Changeset;
 
 # Δ ± balance
-has FatRat $.balance_delta;
+has FatRat $.balance_delta is required;
 
 # self-referential asset code of this balance delta
-has AssetCode $.balance_delta_asset_code;
+has AssetCode $.balance_delta_asset_code is required;
 
 # causal EntryID
-has EntryID $.entry_id;
+has EntryID $.entry_id is required;
 
 # causal PostingID
-has PostingID $.posting_id;
+has PostingID $.posting_id is required;
 
 # causal posting's exchange rate asset code, if given
 has AssetCode $.xe_asset_code;

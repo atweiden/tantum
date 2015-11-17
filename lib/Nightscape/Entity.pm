@@ -8,7 +8,7 @@ use Nightscape::Types;
 unit class Nightscape::Entity;
 
 # entity name
-has VarName $.entity_name;
+has VarName $.entity_name is required;
 
 # entity base currency
 has AssetCode $.entity_base_currency =

@@ -4,10 +4,10 @@ use Nightscape::Entry::Posting::Amount;
 use Nightscape::Types;
 unit class Nightscape::Entry::Posting;
 
-has PostingID $.id;
-has Nightscape::Entry::Posting::Account $.account;
-has Nightscape::Entry::Posting::Amount $.amount;
-has DecInc $.decinc;
+has PostingID $.id is required;
+has Nightscape::Entry::Posting::Account $.account is required;
+has Nightscape::Entry::Posting::Amount $.amount is required;
+has DecInc $.decinc is required;
 
 # get posting value in entity's base currency
 #

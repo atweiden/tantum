@@ -5,10 +5,10 @@ use Nightscape::Types;
 unit class Nightscape::Entity::TXN;
 
 # parent entity
-has VarName $.entity;
+has VarName $.entity is required;
 
 # causal EntryID
-has EntryID $.entry_id;
+has EntryID $.entry_id is required;
 
 # transaction drift (error margin)
 has FatRat $.drift = self.get_drift.keys[0];
@@ -17,7 +17,7 @@ has FatRat $.drift = self.get_drift.keys[0];
 has Nightscape::Entity::TXN::ModHolding %.mod_holdings{AssetCode};
 
 # wallet balance modification instructions per posting, in entry
-has Nightscape::Entity::TXN::ModWallet @.mod_wallet;
+has Nightscape::Entity::TXN::ModWallet @.mod_wallet is required;
 
 # calculate drift (error margin) present in this TXN's ModWallet array
 method get_drift(
