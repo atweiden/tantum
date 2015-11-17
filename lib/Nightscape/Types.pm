@@ -60,7 +60,7 @@ class EntryID is export
     }
 }
 
-class PostingID is EntryID is export
+class PostingID is export is EntryID
 {
     # parent EntryID
     has EntryID $.entry_id;
@@ -102,7 +102,7 @@ sub mkdecinc(Str $plus_or_minus) is export returns DecInc:D
     $plus_or_minus ~~ '-' ?? DEC !! INC;
 }
 
-class X::Nightscape::Entry is export is Exception
+class X::Nightscape::Entry is Exception
 {
     has EntryID $.entry_id;
 
@@ -116,11 +116,11 @@ class X::Nightscape::Entry is export is Exception
     }
 }
 
-class X::Nightscape::Entry::NotBalanced is export is X::Nightscape::Entry {*}
+class X::Nightscape::Entry::NotBalanced is X::Nightscape::Entry {*}
 
-class X::Nightscape::Entry::XEMismatch is export is X::Nightscape::Entry {*}
+class X::Nightscape::Entry::XEMismatch is X::Nightscape::Entry {*}
 
-class X::Nightscape::Posting is export is Exception
+class X::Nightscape::Posting is Exception
 {
     has PostingID $.posting_id;
 
@@ -138,17 +138,16 @@ class X::Nightscape::Posting is export is Exception
     }
 }
 
-class X::Nightscape::Posting::XEBad is export is X::Nightscape::Posting {*}
+class X::Nightscape::Posting::XEBad is X::Nightscape::Posting {*}
 
-class X::Nightscape::Posting::XEMissing is export is X::Nightscape::Posting {*}
+class X::Nightscape::Posting::XEMissing is X::Nightscape::Posting {*}
 
-class X::Nightscape::Entity::Holding::Expend::OutOfStock is export
-    is X::Nightscape::Entry {*}
+class X::Nightscape::Entity::Holding::Expend::OutOfStock is X::Nightscape::Entry {*}
 
 # transaction journal parser exceptions {{{
 
 # for Actions.entry verify entry is limited to one entity
-class X::Nightscape::Parser::Entry::MultipleEntities is export is Exception
+class X::Nightscape::Parser::Entry::MultipleEntities is Exception
 {
     has Str $.entry_text;
     has Int $.number_entities;
@@ -166,7 +165,7 @@ class X::Nightscape::Parser::Entry::MultipleEntities is export is Exception
     }
 }
 
-class X::Nightscape::Parser::Include is export is Exception
+class X::Nightscape::Parser::Include is Exception
 {
     has Str $.filename;
 
