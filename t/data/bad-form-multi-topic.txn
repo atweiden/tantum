@@ -43,4 +43,4 @@
   ASSETS:Personal:ColdStorage:Paper    +12 BTC @ 10 USD
   ASSETS:Personal:ColdStorage:Paper    -36 BTC @ 10 USD
 
-# vim: ft=transactions
+# vim: ft=txn

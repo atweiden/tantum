@@ -425,9 +425,9 @@ Includes
 
 - include separate transaction journal files by writing `include
   'path/to/file/without/extension'` with no leading whitespace
-- included files must have `.transactions` extension, but include
-  directives in transaction journals must leave off the extension,
-  as the `.transactions` extension is appended automatically by Nightscape
+- included files must have `.txn` extension, but include directives
+  in transaction journals must leave off the extension, as the `.txn`
+  extension is appended automatically by Nightscape
 - filename to include must be surrounded with double quotes or single
   quotes, and follow TOML basic string and literal string rules
   respectively.

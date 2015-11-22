@@ -48,11 +48,7 @@ multi method ls_entries(
         my Nightscape::Entry @entries = $parsed.made;
 
         # entries, sorted by date ascending then by importance descending
-        @entries = @entries.sort({
-            $^b.header.important > $^a.header.important
-        }).sort({
-            .header.date
-        }) if $sort;
+        @entries = sort_entries(@entries) if $sort;
 
         @entries;
     }
@@ -60,6 +56,22 @@ multi method ls_entries(
     {
         die "Sorry, could not parse transaction journal at 「$file」";
     }
+}
+
+# list entries from txnpkg txn.json
+multi method ls_entries(
+    Str:D :$json!,
+    Bool :$sort
+) returns Array[Nightscape::Entry:D]
+{
+    # import JSON cached txnpkg and convert to C<Nightscape::Entry>s
+    use Nightscape::Import;
+    my Nightscape::Entry:D @entries = Nightscape::Import.entries($json);
+
+    # entries, sorted by date ascending then by importance descending
+    @entries = sort_entries(@entries) if $sort;
+
+    @entries;
 }
 
 # filter entries
@@ -138,6 +150,18 @@ method mkentity(VarName:D :$entity_name!, Bool :$force)
         # entity does not exist, instantiate new entity
         init();
     }
+}
+
+# sort entries by date ascending then by importance descending
+sub sort_entries(Nightscape::Entry @entries) returns Array[Nightscape::Entry]
+{
+    my Nightscape::Entry @e = @entries.sort({
+        $^b.header.important > $^a.header.important
+    }).sort({
+        .header.date
+    });
+
+    @e;
 }
 
 # vim: ft=perl6

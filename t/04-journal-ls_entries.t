@@ -5,7 +5,7 @@ use Nightscape;
 
 plan 12;
 
-my Str $file = "examples/sample.transactions";
+my Str $file = "examples/sample/sample.txn";
 my Nightscape::Entry @entries;
 
 if $file.IO.e
@@ -92,7 +92,7 @@ else
     );
 }
 
-my Str $file_inc = "t/data/with-includes.transactions";
+my Str $file_inc = "t/data/with-includes.txn";
 my Nightscape::Entry @entries_inc;
 
 if $file_inc.IO.e

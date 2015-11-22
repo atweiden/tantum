@@ -54,25 +54,8 @@ gains or losses.
 Usage
 -----
 
-Run diagnostics:
-
 ```bash
-$ PERL6LIB=lib ./bin/nightscape.pl examples/sample.transactions
-```
-
-Generate man page:
-
-```bash
-$ pod2man \
-    --center="General Commands Manual" \
-    --release="v0.0.1" \
-    man/nightscape.pod > man/nightscape.1
-```
-
-Run all tests:
-
-```bash
-$ prove [-v] -r -e perl6 t/
+$ PERL6LIB=lib ./bin/nightscape.pl examples/sample/sample.txn
 ```
 
 
@@ -84,6 +67,11 @@ Installation
 - Rakudo Perl 6
 - [Config::TOML](https://github.com/atweiden/config-toml)
 - [Digest::xxHash](https://github.com/atweiden/digest-xxhash)
+- [JSON::Tiny](https://github.com/moritz/json)
+
+#### Optional Dependencies
+
+- [Pacman](https://www.archlinux.org/pacman/): for querying cached txnpkgs
 
 
 Licensing

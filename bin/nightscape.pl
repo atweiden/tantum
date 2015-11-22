@@ -24,7 +24,258 @@ our $CONF = Nightscape::Config.new;
 # main
 # -----------------------------------------------------------------------------
 
-sub MAIN(
+# requires pacman for querying cached txnpkgs
+multi sub MAIN(
+    'list',
+    Str:D $txnpkg_name,
+    Str:D :$cache-dir = "%*ENV<HOME>/.nightscape/db";
+    Str :c(:$config),
+    Str :$data-dir,
+    Str :$log-dir,
+    Str :$price-dir
+)
+{
+    # get hash of txnpkgs ($pkgname => $pkgver)
+    my Hash:D %txnpkgs{Str:D} = Qx<
+        pacman -Qg txn | awk '{print $2}'
+    >.trim.split("\n").map({
+        my Str:D $pkg = qqx<pacman -Q $_>.trim;
+        my Str:D $pkgname = $pkg.split(/\s+/)[0].trim;
+        my Str:D $pkgver = $pkg.split(/\s+/)[1].split('-')[0].trim;
+        my Int:D $pkgrel = Int($pkg.split(/\s+/)[1].split('-')[1].trim);
+        $pkgname => %(:version($pkgver), :release($pkgrel));
+    });
+
+    # quote txnpkg_names for literal regex interpretation
+    my Str:D @txnpkg_names =
+        %txnpkgs.keys».subst(/.*/, -> $/ {"'" ~ $/.orig ~ "'"});
+
+    # ensure txnpkg exists
+    unless $txnpkg_name ~~ /<{@txnpkg_names}>/
+    {
+        die "Sorry, txnpkg 「$txnpkg_name」 missing";
+    }
+
+    # is txnpkg readable?
+    my Str:D $txnpkg_ver = %txnpkgs{$txnpkg_name}<version>;
+    my Int:D $txnpkg_rel = %txnpkgs{$txnpkg_name}<release>;
+    my Str:D $txnpkg_path =
+        "$cache-dir/$txnpkg_name-$txnpkg_ver-$txnpkg_rel.txn.tar.xz";
+
+    unless $txnpkg_path.IO.r
+    {
+        die "Sorry, txnpkg not readable. Check permissions.";
+    }
+
+    # extract tarball to tmpdir
+    my Str:D $build_root = '/dev/shm/' ~ "$txnpkg_name-$txnpkg_ver-$txnpkg_rel";
+    mkdir $build_root;
+    shell "tar -xvf $txnpkg_path -C $build_root";
+    my Str:D $json = slurp "$build_root/txn.json";
+
+    # clean up build root
+    dir($build_root)».unlink;
+    rmdir $build_root;
+
+    # initialize config profile from cmdline args
+    {
+        # assemble config from cmdline args
+        my %config;
+
+        # was --config cmdline arg passed?
+        if $config
+        {
+            # check config file passed as cmdline arg exists
+            if $config.IO.e
+            {
+                %config<config_file> = "$config";
+            }
+            else
+            {
+                die "Sorry, couldn't locate the given config file: $config";
+            }
+        }
+        else
+        {
+            # make default config directory if it doesn't exist
+            my Str $config_dir = IO::Path.new($CONF.config_file).dirname;
+            unless $config_dir.IO.d
+            {
+                say "Config directory doesn't exist.";
+                print "Creating config directory in $config_dir… ";
+                mkdir "$config_dir"
+                    or die "Sorry, couldn't create config directory: ",
+                        $config_dir;
+                say "done.";
+            }
+            # write default config file if it doesn't exist
+            unless $CONF.config_file.IO.e
+            {
+                my Str $config_text = q:to/EOCONF/;
+                base-currency = "USD"
+                EOCONF
+                print "Placing default config file at ", $CONF.config_file, "… ";
+                spurt $CONF.config_file, $config_text, :createonly;
+                say "done.";
+            }
+        }
+
+        if $data-dir
+        {
+            # check data dir passed as cmdline arg exists
+            if $data-dir.IO.d
+            {
+                %config<data_dir> = "$data-dir";
+            }
+            else
+            {
+                die "Sorry, couldn't locate the given data directory: ",
+                    $data-dir;
+            }
+        }
+        else
+        {
+            # make default data directory if it doesn't exist
+            unless $CONF.data_dir.IO.d
+            {
+                say "Data directory doesn't exist.";
+                print "Creating data directory in ", $CONF.data_dir, "… ";
+                mkdir $CONF.data_dir
+                    or die "Sorry, couldn't create data directory: ",
+                        $CONF.data_dir;
+                say "done.";
+            }
+        }
+
+        if $log-dir
+        {
+            # check log dir passed as cmdline arg exists
+            if $log-dir.IO.d
+            {
+                %config<log_dir> = "$log-dir";
+            }
+            else
+            {
+                die "Sorry, couldn't locate the given log directory: ",
+                    $log-dir;
+            }
+        }
+        else
+        {
+            # make default log directory if it doesn't exist
+            unless $CONF.log_dir.IO.d
+            {
+                say "Log directory doesn't exist.";
+                print "Creating log directory in ", $CONF.log_dir, "… ";
+                mkdir $CONF.log_dir
+                    or die "Sorry, couldn't create log directory: ",
+                        $CONF.log_dir;
+                say "done.";
+            }
+        }
+
+        if $price-dir
+        {
+            # check price dir passed as cmdline arg exists
+            if $price-dir.IO.d
+            {
+                %config<price_dir> = "$price-dir";
+            }
+            else
+            {
+                die "Sorry, couldn't locate the given price directory: ",
+                    $price-dir;
+            }
+        }
+        else
+        {
+            # make default price directory if it doesn't exist
+            unless $CONF.price_dir.IO.d
+            {
+                say "Price directory doesn't exist.";
+                print "Creating price directory in ", $CONF.price_dir, "… ";
+                mkdir $CONF.price_dir
+                    or die "Sorry, couldn't create price directory: ",
+                        $CONF.price_dir;
+                say "done.";
+            }
+        }
+
+        # apply config
+        $CONF = Nightscape::Config.new(|%config);
+    }
+
+    # prepare assets and entities for transaction journal parsing
+    {
+        # parse TOML config
+        my %toml;
+        try
+        {
+            use Config::TOML;
+            my Str $toml_text = slurp $CONF.config_file
+                or die "Sorry, couldn't read config file: ", $CONF.config_file;
+            # assume UTC when local offset unspecified in TOML dates
+            %toml = from-toml($toml_text, :date-local-offset(0));
+            CATCH
+            {
+                say "Sorry, couldn't parse TOML syntax in config file: ",
+                    $CONF.config_file;
+            }
+        }
+
+        # set base currency
+        $CONF.base_currency = %toml<base-currency> if %toml<base-currency>;
+
+        # set base costing method
+        $CONF.base_costing = %toml<base-costing> if %toml<base-costing>;
+
+        # populate asset settings
+        my %assets_found = Nightscape::Config.detoml_assets(%toml);
+        if %assets_found
+        {
+            for %assets_found.kv -> $asset_code, $asset_data
+            {
+                $CONF.assets{$asset_code} = Nightscape::Config.gen_settings(
+                    :$asset_code,
+                    :$asset_data
+                );
+            }
+        }
+
+        # populate entity settings
+        my %entities_found = Nightscape::Config.detoml_entities(%toml);
+        if %entities_found
+        {
+            for %entities_found.kv -> $entity_name, $entity_data
+            {
+                $CONF.entities{$entity_name} = Nightscape::Config.gen_settings(
+                    :$entity_name,
+                    :$entity_data
+                );
+            }
+        }
+    }
+
+    say q:to/EOF/;
+    Diagnostics
+    ===========
+    EOF
+
+    say q:to/EOF/;
+    Journal
+    -------
+    EOF
+    use Nightscape;
+    .say for Nightscape.ls_entries(:$json, :sort);
+
+    say "\n", q:to/EOF/;
+    Config
+    ------
+    EOF
+    say $CONF.perl;
+}
+
+multi sub MAIN(
     Str:D $file,
     Str :c(:$config),
     Str :$data-dir,

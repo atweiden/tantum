@@ -61,7 +61,7 @@ our $CONF = Nightscape::Config.new(:$config_file);
     }
 }
 
-my Str $file = "t/data/sensible.transactions";
+my Str $file = "t/data/sensible.txn";
 my Nightscape::Entity @entities;
 my Nightscape::Entry @entries;
 
@@ -232,7 +232,7 @@ is(
 # say "\n" x 3;
 # say @entities[0].coa.wllt.perl;
 
-my Str $file_advanced = "t/data/bad-form-multi-topic.transactions";
+my Str $file_advanced = "t/data/bad-form-multi-topic.txn";
 my Nightscape::Entity @entities_advanced;
 my Nightscape::Entry @entries_advanced;
 

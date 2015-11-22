@@ -23,4 +23,4 @@
   Assets:Personal:Bankwest:Cheque     $500 USD
   Assets:Personal:BitBroker          -Ł5 LTC @ $100 USD
 
-# vim: ft=transactions
+# vim: ft=txn

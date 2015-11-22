@@ -665,8 +665,8 @@ method filename:literal ($/)
 
 method include($/)
 {
-    # transaction journal to include with .transactions extension appended
-    my Str $filename = $<filename>.made ~ ".transactions";
+    # transaction journal to include with .txn extension appended
+    my Str $filename = $<filename>.made ~ ".txn";
 
     # is include directive's transaction journal readable?
     if $filename.IO.e && $filename.IO.r

@@ -3,7 +3,7 @@
     "version"     : "*",
     "author"      : "Andy Weidenbaum",
     "description" : "Bitcoin double-entry cmdline accounting system",
-    "depends"     : ["Config::TOML", "Digest::xxHash"],
+    "depends"     : ["Config::TOML", "Digest::xxHash", "JSON::Tiny"],
     "source-type" : "git",
     "source-url"  : "git://github.com/atweiden/nightscape.git"
 }

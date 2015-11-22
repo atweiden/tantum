@@ -116,8 +116,8 @@ subtest
 
 subtest
 {
-    my Str $journal = slurp 'examples/sample.transactions';
-    my Str $journal_quoted = slurp 't/data/quoted-asset-codes.transactions';
+    my Str $journal = slurp 'examples/sample/sample.txn';
+    my Str $journal_quoted = slurp 't/data/quoted-asset-codes.txn';
 
     my $journal_match = Nightscape::Parser::Grammar.parse($journal);
     my $journal_quoted_match =

@@ -26,4 +26,4 @@
   Assets:Personal:ColdStorage:BTC    -2.0 BTC @ 100 USD
   Assets:Personal:ColdStorage:LTC    -2.0 LTC @ 1.0 USD
 
-# vim: ft=transactions
+# vim: ft=txn

@@ -6,7 +6,7 @@ use Nightscape::Types;
 
 plan 1;
 
-my Str $file = "examples/sample.transactions";
+my Str $file = "examples/sample/sample.txn";
 my Nightscape::Entry @entries;
 
 if $file.IO.e

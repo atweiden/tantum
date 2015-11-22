@@ -5,7 +5,7 @@ use Nightscape;
 
 plan 2;
 
-my Str $file = "t/data/invalid.transactions";
+my Str $file = "t/data/invalid.txn";
 my Nightscape::Entry @entries;
 
 if $file.IO.e
@@ -27,8 +27,8 @@ else
         :entity(/Personal/)
     );
 
-    # check that entry id 3 of data/invalid.transactions causes exchange
-    # rate mismatch error
+    # check that entry id 3 of data/invalid.txn causes exchange rate
+    # mismatch error
     dies-ok { @entries_by_entity_personal[3].is_balanced },
             q:to/EOF/;
             ♪ [is_balanced-mismatch] - 1 of 2
@@ -39,8 +39,8 @@ else
             ┗━━━━━━━━━━━━━┛
             EOF
 
-    # check that entry id 4 of data/invalid.transactions causes exchange
-    # rate mismatch error
+    # check that entry id 4 of data/invalid.txn causes exchange rate
+    # mismatch error
     dies-ok { @entries_by_entity_personal[4].is_balanced },
             q:to/EOF/;
             ♪ [is_balanced-mismatch] - 2 of 2
