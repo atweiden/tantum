@@ -48,7 +48,7 @@ multi sub MAIN(
 
     # quote txnpkg_names for literal regex interpretation
     my Str:D @txnpkg_names =
-        %txnpkgs.keys».subst(/.*/, -> $/ {"'" ~ $/.orig ~ "'"});
+        %txnpkgs.keys».subst(/(.*)/, -> $/ {"'" ~ $0 ~ "'"});
 
     # ensure txnpkg exists
     unless $txnpkg_name ~~ /<{@txnpkg_names}>/
