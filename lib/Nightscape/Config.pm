@@ -41,18 +41,18 @@ method detoml_assets(%toml) returns Hash[Any,AssetCode]
 # filter entities from unvalidated %toml config
 method detoml_entities(%toml) returns Hash[Any,VarName]
 {
-    use Nightscape::Parser::Grammar;
+    use TXN::Parser::Grammar;
 
     # detect entities
     my VarName @entities_found;
     %toml.map({
-        if my Match $parsed_section = Nightscape::Parser::Grammar.parse(
+        if my Match $parsed_section = TXN::Parser::Grammar.parse(
             $_.keys,
             :rule<var_name>
         )
         {
             push @entities_found, $parsed_section.orig.Str
-                unless Nightscape::Parser::Grammar.parse(
+                unless TXN::Parser::Grammar.parse(
                     $parsed_section.orig,
                     :rule<reserved>
                 );
@@ -102,7 +102,7 @@ method gen_pricesheet(:%prices!) returns Hash[Hash[Price,DateTime],AssetCode]
     #                   DateTime.new(...) => 200.00     # from price-file
     #               )
     #           }<>
-    use Nightscape::Parser::Grammar;
+    use TXN::Parser::Grammar;
 
     my Hash[Price,DateTime] %pricesheet{AssetCode};
     for %prices.kv -> $asset_code, $date_price_pairs
@@ -117,7 +117,7 @@ method gen_pricesheet(:%prices!) returns Hash[Hash[Price,DateTime],AssetCode]
         for $date_price_pairs.keys -> $key
         {
             # convert valid YYYY-MM-DD dates to DateTime
-            if Nightscape::Parser::Grammar.parse($key, :rule<full_date>)
+            if TXN::Parser::Grammar.parse($key, :rule<full_date>)
             {
                 my %dt = <year month day> Z=> map +*, $key.split('-');
                 %dates_and_prices{DateTime.new(|%dt)} =

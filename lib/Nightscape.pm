@@ -36,13 +36,13 @@ multi method ls_entries(
     Bool :$sort
 ) returns Array[Nightscape::Entry]
 {
-    use Nightscape::Parser;
+    use TXN::Parser;
 
     # resolve include directives in transaction journal on disk
-    my Str:D $journal = Nightscape::Parser.preprocess($file);
+    my Str:D $journal = TXN::Parser.preprocess($file);
 
     # parse preprocessed transaction journal
-    if my Match $parsed = Nightscape::Parser.parse($journal)
+    if my Match $parsed = TXN::Parser.parse($journal)
     {
         # entries, unsorted, with included transaction journals
         my Nightscape::Entry @entries = $parsed.made;
@@ -78,6 +78,7 @@ multi method ls_entries(
 multi method ls_entries(
     Nightscape::Entry:D :@entries is readonly = @.entries,
     DateTime :$date,
+    Range :$date_range,
     Regex :$description,
     Regex :$entity,
     EntryID :$entry_id,
@@ -87,6 +88,7 @@ multi method ls_entries(
 {
     my Nightscape::Entry @e = @entries;
     @e = self._ls_entries(:entries(@e), :$date) if $date;
+    @e = self._ls_entries(:entries(@e), :$date_range) if $date_range;
     @e = self._ls_entries(:entries(@e), :$description) if defined $description;
     @e = self._ls_entries(:entries(@e), :$entity) if defined $entity;
     @e = self._ls_entries(:entries(@e), :$entry_id) if $entry_id;
@@ -102,6 +104,15 @@ multi method _ls_entries(
 ) returns Array[Nightscape::Entry]
 {
     my Nightscape::Entry @e = @entries.grep({ .header.date ~~ ~$date });
+}
+
+# list entries within date range
+multi method _ls_entries(
+    Nightscape::Entry:D :@entries! is readonly,
+    Range:D :$date_range!
+) returns Array[Nightscape::Entry]
+{
+    my Nightscape::Entry @e = @entries.grep({ .header.date ~~ $date_range });
 }
 
 # list entries by entity

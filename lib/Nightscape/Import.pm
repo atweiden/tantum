@@ -10,10 +10,10 @@ sub gen_entry_header(%header_container) returns Nightscape::Entry::Header:D
     # parse stringified DateTime
     {
         my Str:D $header_date_container = %header_container<date>;
-        use Nightscape::Parser::Actions;
-        use Nightscape::Parser::Grammar;
-        my Nightscape::Parser::Actions $actions .= new;
-        my DateTime:D $date = Nightscape::Parser::Grammar.parse(
+        use TXN::Parser::Actions;
+        use TXN::Parser::Grammar;
+        my TXN::Parser::Actions $actions .= new;
+        my DateTime:D $date = TXN::Parser::Grammar.parse(
             $header_date_container,
             :$actions,
             :rule<date>

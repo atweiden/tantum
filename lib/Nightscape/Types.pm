@@ -1,17 +1,17 @@
 use v6;
-use Nightscape::Parser::Grammar;
+use TXN::Parser::Grammar;
 unit class Nightscape::Types;
 
 subset AcctName of Str is export where
 {
-    Nightscape::Parser::Grammar.parse($_, :rule<acct_name>);
+    TXN::Parser::Grammar.parse($_, :rule<acct_name>);
 }
 
 subset AssetsAcctName of AcctName is export where * ~~ / ^ASSETS ':' \N+$ /;
 
 subset AssetCode of Str is export where
 {
-    Nightscape::Parser::Grammar.parse($_, :rule<asset_code>);
+    TXN::Parser::Grammar.parse($_, :rule<asset_code>);
 }
 
 subset GreaterThanZero of FatRat is export where * > 0;
@@ -29,7 +29,7 @@ subset Quantity of FatRat is export where * >= 0;
 
 subset VarName of Str is export where
 {
-    Nightscape::Parser::Grammar.parse($_, :rule<var_name>);
+    TXN::Parser::Grammar.parse($_, :rule<var_name>);
 }
 
 subset xxHash of Int is export;
@@ -143,44 +143,5 @@ class X::Nightscape::Posting::XEBad is X::Nightscape::Posting {*}
 class X::Nightscape::Posting::XEMissing is X::Nightscape::Posting {*}
 
 class X::Nightscape::Entity::Holding::Expend::OutOfStock is X::Nightscape::Entry {*}
-
-# transaction journal parser exceptions {{{
-
-# for Actions.entry verify entry is limited to one entity
-class X::Nightscape::Parser::Entry::MultipleEntities is Exception
-{
-    has Str $.entry_text;
-    has Int $.number_entities;
-
-    method message()
-    {
-        say qq:to/EOF/;
-        Sorry, only one entity per journal entry allowed, but found
-        $.number_entities entities.
-
-        In entry:
-
-        「$.entry_text」
-        EOF
-    }
-}
-
-class X::Nightscape::Parser::Include is Exception
-{
-    has Str $.filename;
-
-    method message()
-    {
-        say qq:to/EOF/;
-        Sorry, could not load transaction journal to include at
-
-            「$.filename」
-
-        Transaction journal not found or not readable.
-        EOF
-    }
-}
-
-# end transaction journal parsing exceptions }}}
 
 # vim: ft=perl6 fdm=marker fdl=0

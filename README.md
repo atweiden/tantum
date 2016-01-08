@@ -68,6 +68,7 @@ Installation
 - [Config::TOML](https://github.com/atweiden/config-toml)
 - [Digest::xxHash](https://github.com/atweiden/digest-xxhash)
 - [JSON::Tiny](https://github.com/moritz/json)
+- [TXN](https://github.com/atweiden/mktxn)
 
 #### Optional Dependencies
 
