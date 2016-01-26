@@ -34,7 +34,7 @@ method ls-entity-names(
 multi method ls-entries(
     Str:D :$file!,
     Bool :$sort
-) returns Array[Nightscape::Entry]
+) returns Array[Nightscape::Entry:D]
 {
     use TXN::Parser;
 
@@ -68,8 +68,8 @@ multi method ls-entries(
 ) returns Array[Nightscape::Entry:D]
 {
     # import JSON cached txnpkg and convert to C<Nightscape::Entry>s
-    use Nightscape::Import;
-    my Nightscape::Entry:D @entries = Nightscape::Import.entries(:$json);
+    use Nightscape::Import::JSON;
+    my Nightscape::Entry:D @entries = Nightscape::Import::JSON.entries(:$json);
 
     # entries, sorted by date ascending then by importance descending
     @entries = sort-entries(@entries) if $sort;
@@ -87,7 +87,7 @@ multi method ls-entries(
     EntryID :$entry-id,
     Int :$important,
     Regex :$tag
-) returns Array[Nightscape::Entry]
+) returns Array #Array[Nightscape::Entry]
 {
     my Nightscape::Entry @e = @entries;
     @e = self._ls-entries(:entries(@e), :$date) if $date;
@@ -104,7 +104,7 @@ multi method ls-entries(
 multi method _ls-entries(
     Nightscape::Entry:D :@entries! is readonly,
     DateTime:D :$date!
-) returns Array[Nightscape::Entry]
+) returns Array #Array[Nightscape::Entry]
 {
     my Nightscape::Entry @e = @entries.grep({ .header.date ~~ ~$date });
 }
@@ -122,7 +122,7 @@ multi method _ls-entries(
 multi method _ls-entries(
     Nightscape::Entry:D :@entries! is readonly,
     Regex:D :$entity!
-) returns Array[Nightscape::Entry]
+) returns Array #Array[Nightscape::Entry]
 {
     my Nightscape::Entry @e = @entries.grep({
         .postings[0].account.entity ~~ $entity
