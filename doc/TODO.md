@@ -81,10 +81,10 @@ if you don't specify:
 ```
 
 for `[EntityNamedFoo]`, then Nightscape will default to looking for
-exchange rate pricing in the config_file section titled:
+exchange rate pricing in the config-file section titled:
 
 ```
-[Assets.$aux_currency_code.Prices.$entity_base_currency_code]
+[Assets.$aux-currency-code.Prices.$entity-base-currency-code]
 ```
 
 ```toml
@@ -99,7 +99,7 @@ if you specify:
 ```
 
 then Nightscape will ignore all other pricing data contained in the
-config_file for EntityNamedFoo’s transactions, and exclusively read
+config-file for EntityNamedFoo’s transactions, and exclusively read
 pricing directives given under EntityNamedFoo.
 
 alternatively, if you specify:
@@ -252,8 +252,8 @@ Tentative
 
 - do postings balance?
 - is hash1 a prefix of hash2
-- "Does account_string1 name a parent of, or same a/c as, account_string2?"
-- "Does transaction_or_posting affect named account?"
+- "Does account-string1 name a parent of, or same a/c as, account-string2?"
+- "Does transaction-or-posting affect named account?"
 - "Return transactions affecting named account?"
 
 ```python
@@ -280,7 +280,7 @@ has Nightscape::Entity::SubAccount %.subaccount{VarName};
 - inventory
   - for tracking FIFO
 - config stuff
-  - must_balance?
+  - must-balance?
 
 #### implement name option for accounts and title option for journal
 

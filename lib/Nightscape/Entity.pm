@@ -8,11 +8,11 @@ use Nightscape::Types;
 unit class Nightscape::Entity;
 
 # entity name
-has VarName $.entity_name is required;
+has VarName $.entity-name is required;
 
 # entity base currency
-has AssetCode $.entity_base_currency =
-    $GLOBAL::CONF ?? $GLOBAL::CONF.resolve_base_currency($!entity_name)
+has AssetCode $.entity-base-currency =
+    $GLOBAL::CONF ?? $GLOBAL::CONF.resolve-base-currency($!entity-name)
                   !! "USD";
 
 # chart of accounts
@@ -43,12 +43,12 @@ method acct2wllt(
 ) returns Hash[Nightscape::Entity::Wallet:D,Silo:D]
 {
     # make copy of %wallet for incising realized capital gains / losses
-    my Nightscape::Entity::Wallet:D %wllt{Silo:D} = clone_wallet(:%wallet);
-    self!incise_capital_gains_and_losses(:%acct, :%holdings, :%wallet, :%wllt);
+    my Nightscape::Entity::Wallet:D %wllt{Silo:D} = clone-wallet(:%wallet);
+    self!incise-capital-gains-and-losses(:%acct, :%holdings, :%wallet, :%wllt);
     %wllt;
 }
 
-sub clone_wallet(
+sub clone-wallet(
     Nightscape::Entity::Wallet:D :%wallet! is readonly
 ) returns Hash[Nightscape::Entity::Wallet:D,Silo:D]
 {
@@ -60,17 +60,17 @@ sub clone_wallet(
     %wllt;
 }
 
-sub contains_capital_gains_losses(
+sub contains-capital-gains-losses(
     Nightscape::Entity::Holding::Taxes:D @taxes
 ) returns Bool:D
 {
-    my FatRat $capital_gains = [+] @taxes».capital_gains;
-    my FatRat $capital_losses = [+] @taxes».capital_losses;
-    $capital_gains || $capital_losses ?? True !! False;
+    my FatRat $capital-gains = [+] @taxes».capital-gains;
+    my FatRat $capital-losses = [+] @taxes».capital-losses;
+    $capital-gains || $capital-losses ?? True !! False;
 }
 
-# modify %wllt on a per $tax_id basis using %instructions
-method !incise_capital_gains_and_losses(
+# modify %wllt on a per $tax-id basis using %instructions
+method !incise-capital-gains-and-losses(
     Nightscape::Entity::COA::Acct:D :%acct! is readonly,
     Nightscape::Entity::Holding:D :%holdings! is readonly,
     Nightscape::Entity::Wallet:D :%wallet! is readonly,
@@ -78,34 +78,34 @@ method !incise_capital_gains_and_losses(
 )
 {
     # for each asset code in holdings
-    for %holdings.kv -> $asset_code, $holdings
+    for %holdings.kv -> $asset-code, $holdings
     {
         # fetch costing method for asset code
-        my Costing $costing = $GLOBAL::CONF.resolve_costing(
-            :$asset_code,
-            :$.entity_name
+        my Costing $costing = $GLOBAL::CONF.resolve-costing(
+            :$asset-code,
+            :$.entity-name
         );
 
         # for each EntryID resulting in realized capital gains / losses for
         # this asset code
-        for $holdings.taxes.kv -> $tax_id, @taxes
+        for $holdings.taxes.kv -> $tax-id, @taxes
         {
-            unless contains_capital_gains_losses(@taxes)
+            unless contains-capital-gains-losses(@taxes)
             {
                 next;
             }
 
             # ensure all original quantities expended are quoted in the
-            # asset code $asset_code, and that acquisition price is
+            # asset code $asset-code, and that acquisition price is
             # quoted in entity's base currency
-            self.perform_sanity_check(:$asset_code, :@taxes);
+            self.perform-sanity-check(:$asset-code, :@taxes);
 
             # fetch all accts containing this asset code with changesets created
-            # from EntryID $tax_id
+            # from EntryID $tax-id
             # - associated realized capital gains / losses must have resulted
             #   from the assorted changesets in these wallets
-            my Nightscape::Entity::COA::Acct:D %acct_targets{AcctName:D} =
-                resolve_acct_targets(:%acct, :$asset_code, :$tax_id);
+            my Nightscape::Entity::COA::Acct:D %acct-targets{AcctName:D} =
+                resolve-acct-targets(:%acct, :$asset-code, :$tax-id);
 
             # total quantity debited in targets, separately and in total
             #
@@ -133,44 +133,44 @@ method !incise_capital_gains_and_losses(
             # - TargetAcctBalanceDelta is sum of all PostingIDBalanceDelta
             # - PostingID is ID of posting in EntryID causing
             #   this round of realized capital gains / losses, wrt asset
-            #   code $asset_code
-            #   - get_total_quantity_debited calls
-            #         Wallet.ls_changesets(
-            #             asset_code => $asset_code,
-            #             entry_id => $tax_id
+            #   code $asset-code
+            #   - get-total-quantity-debited calls
+            #         Wallet.ls-changesets(
+            #             asset-code => $asset-code,
+            #             entry-id => $tax-id
             #         );
-            # - PostingIDBalanceDelta is Changeset.balance_delta
+            # - PostingIDBalanceDelta is Changeset.balance-delta
             my Hash[Hash[Hash[FatRat:D,PostingID:D],FatRat:D],AcctName:D]
-                %total_quantity_debited{Quantity:D} =
-                    self!get_total_quantity_debited(
-                        :%acct_targets,
-                        :$asset_code,
-                        :entry_id($tax_id),
+                %total-quantity-debited{Quantity:D} =
+                    self!get-total-quantity-debited(
+                        :%acct-targets,
+                        :$asset-code,
+                        :entry-id($tax-id),
                         :%wallet
                     );
 
             # total quantity expended, separately and in total
             my Hash[Quantity:D,Quantity:D]
-                %total_quantity_expended{Quantity:D} =
-                    get_total_quantity_expended(:$costing, :@taxes);
+                %total-quantity-expended{Quantity:D} =
+                    get-total-quantity-expended(:$costing, :@taxes);
 
-            self.perform_sanity_check(
-                :%total_quantity_debited,
-                :%total_quantity_expended
+            self.perform-sanity-check(
+                :%total-quantity-debited,
+                :%total-quantity-expended
             );
 
             # fetch instructions for incising realized capital gains / losses
             # NEW/MOD | AcctName | QuantityToDebit | XE
             my Array[Instruction:D] %instructions{PostingID:D} =
-                gen_instructions(
-                    :%total_quantity_debited,
-                    :%total_quantity_expended
+                gen-instructions(
+                    :%total-quantity-debited,
+                    :%total-quantity-expended
                 );
 
             self!mkincision(
-                :$asset_code,
+                :$asset-code,
                 :%instructions,
-                :$tax_id,
+                :$tax-id,
                 :@taxes,
                 :%wllt
             );
@@ -179,9 +179,9 @@ method !incise_capital_gains_and_losses(
 }
 
 method !mkincision(
-    AssetCode:D :$asset_code!,
+    AssetCode:D :$asset-code!,
     Array[Instruction:D] :%instructions!,
-    EntryID:D :$tax_id!,
+    EntryID:D :$tax-id!,
     Nightscape::Entity::Holding::Taxes:D :@taxes! is readonly,
     Nightscape::Entity::Wallet:D :%wllt!
 )
@@ -189,92 +189,92 @@ method !mkincision(
     # run another check to make sure, after instructions are
     # applied, the difference in total quantity debited in entity
     # base currency is balanced by the change to NSAutoCapitalGains
-    self.perform_sanity_check(:%instructions, :$tax_id, :@taxes);
+    self.perform-sanity-check(:%instructions, :$tax-id, :@taxes);
 
     # apply instructions to balance out NSAutoCapitalGains later
-    for %instructions.kv -> $posting_id, @instructions
+    for %instructions.kv -> $posting-id, @instructions
     {
         for @instructions -> $instruction
         {
             # get wallet path by splitting AcctName on ':'
-            my VarName @path = $instruction<acct_name>.split(':');
+            my VarName @path = $instruction<acct-name>.split(':');
 
             # make new changeset or modify existing, by instruction
-            in_wallet(%wllt{::(@path[0])}, @path[1..*]).mkchangeset(
-                :$asset_code,
-                :xe_asset_code($.entity_base_currency),
-                :entry_id($tax_id),
-                :$posting_id,
+            in-wallet(%wllt{::(@path[0])}, @path[1..*]).mkchangeset(
+                :$asset-code,
+                :xe-asset-code($.entity-base-currency),
+                :entry-id($tax-id),
+                :$posting-id,
                 :$instruction
             );
         }
     }
 
     # incise silo INCOME with realized capital gains / losses
-    for @taxes -> $tax_event
+    for @taxes -> $tax-event
     {
         # store realized capital gains, realized capital losses
         #
-        # use of Quantity subset type on Taxes.capital_gains
-        # and Taxes.capital_losses proves neither capital gains
+        # use of Quantity subset type on Taxes.capital-gains
+        # and Taxes.capital-losses proves neither capital gains
         # nor capital losses can be less than zero
-        my Quantity $capital_gains = $tax_event.capital_gains;
-        my Quantity $capital_losses = $tax_event.capital_losses;
+        my Quantity $capital-gains = $tax-event.capital-gains;
+        my Quantity $capital-losses = $tax-event.capital-losses;
 
         # get holding period and convert to wallet name
-        my HoldingPeriod $holding_period = $tax_event.holding_period;
-        my VarName $holding_period_name =
-            $holding_period ~~ LONG_TERM ?? "LongTerm" !! "ShortTerm";
+        my HoldingPeriod $holding-period = $tax-event.holding-period;
+        my VarName $holding-period-name =
+            $holding-period ~~ LONG-TERM ?? "LongTerm" !! "ShortTerm";
 
         # check that, if capital gains exist, capital losses
         # don't exist, and vice versa
-        self.perform_sanity_check(:$capital_gains, :$capital_losses);
+        self.perform-sanity-check(:$capital-gains, :$capital-losses);
 
         # take difference of realized capital gains and losses
-        my FatRat $gains_less_losses = $capital_gains - $capital_losses;
+        my FatRat $gains-less-losses = $capital-gains - $capital-losses;
 
         # determine whether gain (INC) or loss (DEC)
         my DecInc $decinc;
-        if $gains_less_losses > 0
+        if $gains-less-losses > 0
         {
             $decinc = INC;
         }
-        elsif $gains_less_losses < 0
+        elsif $gains-less-losses < 0
         {
             $decinc = DEC;
         }
 
         # purposefully empty vars, not needed for NSAutoCapitalGains
-        my PostingID $posting_id;
+        my PostingID $posting-id;
         my AssetCode $xeac;
         my Quantity $xeaq;
 
         # enter realized capital gains / losses in Silo INCOME
-        in_wallet(
+        in-wallet(
             %wllt{INCOME},
             "NSAutoCapitalGains",
-            $holding_period_name
+            $holding-period-name
         ).mkchangeset(
-            :entry_id($tax_id),
-            :$posting_id,
-            :asset_code($.entity_base_currency),
+            :entry-id($tax-id),
+            :$posting-id,
+            :asset-code($.entity-base-currency),
             :$decinc,
-            :quantity($gains_less_losses.abs),
-            :xe_asset_code($xeac),
-            :xe_asset_quantity($xeaq)
+            :quantity($gains-less-losses.abs),
+            :xe-asset-code($xeac),
+            :xe-asset-quantity($xeaq)
         );
     }
 }
 
-multi method perform_sanity_check(
-    AssetCode:D :$asset_code!,
+multi method perform-sanity-check(
+    AssetCode:D :$asset-code!,
     Nightscape::Entity::Holding::Taxes:D :@taxes! is readonly
 )
 {
     for @taxes
     {
         # was incorrect asset code expended?
-        unless $_.quantity_expended_asset_code ~~ $asset_code
+        unless $_.quantity-expended-asset-code ~~ $asset-code
         {
             # error: improper asset code expended
             die "Sorry, improper asset code expended in tax event";
@@ -282,7 +282,7 @@ multi method perform_sanity_check(
 
         # did asset code used for acquisition price differ from
         # entity's base currency?
-        unless $_.acquisition_price_asset_code ~~ $.entity_base_currency
+        unless $_.acquisition-price-asset-code ~~ $.entity-base-currency
         {
             # error: acquisition price asset code differs from
             # entity base currency
@@ -292,66 +292,66 @@ multi method perform_sanity_check(
     }
 }
 
-multi method perform_sanity_check(
+multi method perform-sanity-check(
     Hash[Hash[Hash[FatRat:D,PostingID:D],FatRat:D],AcctName:D]
-        :%total_quantity_debited! is readonly,
-    Hash[Quantity:D,Quantity:D] :%total_quantity_expended!,
+        :%total-quantity-debited! is readonly,
+    Hash[Quantity:D,Quantity:D] :%total-quantity-expended!,
 )
 {
-    my Quantity $total_quantity_debited = %total_quantity_debited.keys[0];
-    my Quantity $total_quantity_expended = %total_quantity_expended.keys[0];
+    my Quantity $total-quantity-debited = %total-quantity-debited.keys[0];
+    my Quantity $total-quantity-expended = %total-quantity-expended.keys[0];
 
     # verify that the sum total quantity being debited from
     # ASSETS wallets == the sum total quantity expended according
-    # to Taxes{$tax_id}
+    # to Taxes{$tax-id}
     #
-    # was the total quantity debited of asset code $asset_code in target
+    # was the total quantity debited of asset code $asset-code in target
     # ASSETS wallets different from the total quantity expended
-    # according to Taxes instances generated by EntryID $tax_id?
+    # according to Taxes instances generated by EntryID $tax-id?
     #
     # they should always be equivalent
-    unless $total_quantity_debited == $total_quantity_expended
+    unless $total-quantity-debited == $total-quantity-expended
     {
         # error: total quantity debited mismatch
         die "Sorry, encountered total quantity debited mismatch";
         # this suggests original Holding.EXPEND call calculation
         # of INCs - DECs contains a bug not caught in testing, or
-        # that the above %acct_targets were grepped for using
-        # flawed terms, or that Entity.get_total_quantity_debited
-        # call to Wallet.ls_changesets produced unexpected results
+        # that the above %acct-targets were grepped for using
+        # flawed terms, or that Entity.get-total-quantity-debited
+        # call to Wallet.ls-changesets produced unexpected results
     }
 }
 
-multi method perform_sanity_check(
+multi method perform-sanity-check(
     Array[Instruction:D] :%instructions!,
-    EntryID:D :$tax_id!,
+    EntryID:D :$tax-id!,
     Nightscape::Entity::Holding::Taxes:D :@taxes! is readonly
 )
 {
     # get original quantity debited value in entity base currency,
-    # of asset code $asset_code in entry id $tax_id, that is,
+    # of asset code $asset-code in entry id $tax-id, that is,
     # the sum of balance deltas
     #
     # NOTE: it is crucial to only sum the value of postings
     #       rewritten by Instructions (%instructions.keys)
-    my Quantity $original_value_debited =
-        [+] (self.get_posting_value(
-                :base_currency($.entity_base_currency),
-                :entry_id($tax_id),
-                :posting_id($_)
+    my Quantity $original-value-debited =
+        [+] (self.get-posting-value(
+                :base-currency($.entity-base-currency),
+                :entry-id($tax-id),
+                :posting-id($_)
             ) for %instructions.keys);
 
     # get new quantity debited value in entity base currency,
-    # of asset code $asset_code in EntryID $tax_id, from
+    # of asset code $asset-code in EntryID $tax-id, from
     # Instructions
-    my Quantity $new_value_debited;
+    my Quantity $new-value-debited;
     for %instructions.values -> @instructions
     {
         for @instructions -> $instruction
         {
             # all Instructions include quantity to debit
-            my Quantity $quantity_to_debit =
-                $instruction<quantity_to_debit>;
+            my Quantity $quantity-to-debit =
+                $instruction<quantity-to-debit>;
 
             # some MOD Instructions and all NEW Instructions
             # include xe
@@ -363,73 +363,73 @@ multi method perform_sanity_check(
             else
             {
                 # find xe by backtracing to causal transaction
-                my Nightscape::Entity::TXN $txn = self.ls_txn(
-                    :posting_id($instruction<posting_id>)
+                my Nightscape::Entity::TXN $txn = self.ls-txn(
+                    :posting-id($instruction<posting-id>)
                 );
-                my Nightscape::Entity::TXN::ModWallet @mod_wallets =
-                    $txn.mod_wallet.grep({
-                        .posting_id == $instruction<posting_id>
+                my Nightscape::Entity::TXN::ModWallet @mod-wallets =
+                    $txn.mod-wallet.grep({
+                        .posting-id == $instruction<posting-id>
                     });
-                unless @mod_wallets.elems == 1
+                unless @mod-wallets.elems == 1
                 {
-                    if @mod_wallets.elems > 1
+                    if @mod-wallets.elems > 1
                     {
-                        die "Sorry, found more than one TXN.mod_wallet
+                        die "Sorry, found more than one TXN.mod-wallet
                              with the same PostingID, which should
                              be impossible";
                     }
-                    elsif @mod_wallets.elems < 1
+                    elsif @mod-wallets.elems < 1
                     {
-                        die "Sorry, found no matching TXN.mod_wallet
+                        die "Sorry, found no matching TXN.mod-wallet
                              with requested PostingID";
                     }
                 }
-                my Nightscape::Entity::TXN::ModWallet $mod_wallet =
-                    @mod_wallets[0];
-                $xe = $mod_wallet.xe_asset_quantity;
+                my Nightscape::Entity::TXN::ModWallet $mod-wallet =
+                    @mod-wallets[0];
+                $xe = $mod-wallet.xe-asset-quantity;
             }
 
-            my Quantity $val = FatRat($quantity_to_debit * $xe);
-            $new_value_debited += $val;
+            my Quantity $val = FatRat($quantity-to-debit * $xe);
+            $new-value-debited += $val;
         }
     }
 
     # we expect NSAutoCapitalGains to change by this amount
     # if >0, realized capital gains, NSAutoCapitalGains++
     # if <0, realized capital losses, NSAutoCapitalGains--
-    my FatRat $expected_income_delta =
-        $original_value_debited - $new_value_debited;
+    my FatRat $expected-income-delta =
+        $original-value-debited - $new-value-debited;
 
     # the amount to change NSAutoCapitalGains by
-    my FatRat $actual_income_delta =
-        [+] (.capital_gains - .capital_losses for @taxes);
+    my FatRat $actual-income-delta =
+        [+] (.capital-gains - .capital-losses for @taxes);
 
     # was expected income delta not the same as actual income
     # delta?
-    unless $expected_income_delta == $actual_income_delta
+    unless $expected-income-delta == $actual-income-delta
     {
         # error: expectations differ from actual
         die "Sorry, expected income delta not equivalent to gains less losses";
     }
 }
 
-multi method perform_sanity_check(
-    FatRat:D :$capital_gains!,
-    FatRat:D :$capital_losses!
+multi method perform-sanity-check(
+    FatRat:D :$capital-gains!,
+    FatRat:D :$capital-losses!
 )
 {
-    if $capital_gains > 0
+    if $capital-gains > 0
     {
-        unless $capital_losses == 0
+        unless $capital-losses == 0
         {
             die "Sorry, unexpected capital losses in the
                 presence of capital gains on a per tax
                 event basis";
         }
     }
-    elsif $capital_losses > 0
+    elsif $capital-losses > 0
     {
-        unless $capital_gains == 0
+        unless $capital-gains == 0
         {
             die "Sorry, unexpected capital gains in the
                 presence of capital losses on a per tax
@@ -454,7 +454,7 @@ multi method perform_sanity_check(
         # - if (expend price - basis price) * quantity expended < 0,
         #   only then will a Taxes class be instantiated and
         #   realized capital losses recorded
-        # - under no other conditions would the key $tax_id exist
+        # - under no other conditions would the key $tax-id exist
         # - each single tax event will necessarily be either
         #   a gain or a loss
         die "Sorry, unexpected absence of capital gains and losses";
@@ -462,29 +462,29 @@ multi method perform_sanity_check(
 }
 
 # grep for wallet paths C<AcctName>s containing Wallet.balance
-# adjustment events only of asset code $asset_code, and caused only
-# by EntryID $tax_id leading to realized capital gains or realized
+# adjustment events only of asset code $asset-code, and caused only
+# by EntryID $tax-id leading to realized capital gains or realized
 # capital losses
 # - the changesets are not being returned, just the paths to wallets
 #   containing those changesets (AcctName) and related info (Acct)
-sub resolve_acct_targets(
+sub resolve-acct-targets(
     Nightscape::Entity::COA::Acct:D :%acct! is readonly,
-    AssetCode:D :$asset_code!,
-    EntryID:D :$tax_id!
+    AssetCode:D :$asset-code!,
+    EntryID:D :$tax-id!
 ) returns Hash[Nightscape::Entity::COA::Acct:D,AcctName:D]
 {
-    my Nightscape::Entity::COA::Acct:D %acct_targets{AcctName:D} = %acct.grep({
+    my Nightscape::Entity::COA::Acct:D %acct-targets{AcctName:D} = %acct.grep({
         # only find targets in Silo ASSETS
         .value.path[0] ~~ "ASSETS"
     }).grep({
         # only find targets with matching asset code and EntryID
-        .value.entry_ids_by_asset{$asset_code} # empty wallets return Nil
-            ?? .value.entry_ids_by_asset{$asset_code}.grep($tax_id)
+        .value.entry-ids-by-asset{$asset-code} # empty wallets return Nil
+            ?? .value.entry-ids-by-asset{$asset-code}.grep($tax-id)
             !! False;
     });
 }
 
-method gen_acct(
+method gen-acct(
     Nightscape::Entity::Wallet:D :%wallet! is readonly
 ) returns Hash[Nightscape::Entity::COA::Acct:D,AcctName:D]
 {
@@ -499,7 +499,7 @@ method gen_acct(
 class Bucket
 {
     # containing acct (ownership, lookup path)
-    has AcctName $.acct_name;
+    has AcctName $.acct-name;
 
     # bucket max capacity
     has Quantity $.capacity = FatRat(0.0);
@@ -509,7 +509,7 @@ class Bucket
     has Bool $.constrained = False;
 
     # bucket's original, unconstrained capacity
-    has Quantity $.unconstrained_capacity;
+    has Quantity $.unconstrained-capacity;
 
     # running total filled
     has Quantity $.filled = FatRat(0.0);
@@ -518,36 +518,36 @@ class Bucket
     has Quantity $.open = $!capacity - $!filled;
 
     # causal PostingID
-    has PostingID $.posting_id;
+    has PostingID $.posting-id;
 
     # subfills indexed by acquisition price
     has Quantity %.subfills{Quantity};
 
-    # add subfill to %.subfills at acquisition price (xe_asset_quantity)
+    # add subfill to %.subfills at acquisition price (xe-asset-quantity)
     method mksubfill(
-        Quantity:D :$acquisition_price!,    # price at acquisition (or avco)
+        Quantity:D :$acquisition-price!,    # price at acquisition (or avco)
         Quantity:D :$subfill!               # amount to fill at price
     )
     {
         # ensure bucket has capacity open for this subfill
-        self!update_open;
+        self!update-open;
         unless $subfill <= $.open
         {
             die "Sorry, cannot mksubfill, not enough capacity remaining";
         }
-        %!subfills{$acquisition_price} = $subfill;
-        self!update_filled;
-        self!update_open;
+        %!subfills{$acquisition-price} = $subfill;
+        self!update-filled;
+        self!update-open;
     }
 
     # calculate bucket capacity less filled
-    method !update_open()
+    method !update-open()
     {
         $!open = $.capacity - $.filled;
     }
 
     # update $.filled, gets called after every subfill
-    method !update_filled()
+    method !update-filled()
     {
         my Quantity $filled = FatRat(0.0);
         $filled += [+] %.subfills.values;
@@ -555,14 +555,14 @@ class Bucket
     }
 }
 
-sub gen_buckets(
+sub gen-buckets(
     Hash[Hash[Hash[FatRat:D,PostingID:D],FatRat:D],AcctName:D]
-        :%total_quantity_debited! is readonly,
+        :%total-quantity-debited! is readonly,
 ) returns Hash[Bucket:D,PostingID:D]
 {
     my Bucket:D %buckets{PostingID:D};
 
-    # (from data structure of %total_quantity_debited)
+    # (from data structure of %total-quantity-debited)
     # total quantity debited in targets, separately and in total
     #
     #     TotalQuantityDebited => %(
@@ -582,12 +582,12 @@ sub gen_buckets(
     #         )
     #     )
     #
-    for %total_quantity_debited.values.list[0].hash.kv ->
-        $target_acct_name, %target_acct_balance_delta
+    for %total-quantity-debited.values.list[0].hash.kv ->
+        $target-acct-name, %target-acct-balance-delta
     {
         # filter out accts where no assets were debited
-        # ($target_acct_balance_delta_sum >= 0)
-        unless %target_acct_balance_delta.keys[0] < 0
+        # ($target-acct-balance-delta-sum >= 0)
+        unless %target-acct-balance-delta.keys[0] < 0
         {
             next;
         }
@@ -601,28 +601,28 @@ sub gen_buckets(
         #         PostingID => PostingIDBalanceDelta
         #     )
         #
-        for %target_acct_balance_delta.kv ->
-            $target_acct_balance_delta_sum, %balance_delta_by_posting_id
+        for %target-acct-balance-delta.kv ->
+            $target-acct-balance-delta-sum, %balance-delta-by-posting-id
         {
             # store quantity remaining to debit of this TargetAcct
             # (TargetAcctBalanceDelta)
             #
             # must skip to new acct before overdebiting an acct with
             # realized capital gains / losses incision balacing strategy
-            my Quantity $remaining_acct_debit_quantity =
-                $target_acct_balance_delta_sum.abs;
+            my Quantity $remaining-acct-debit-quantity =
+                $target-acct-balance-delta-sum.abs;
 
             # instantiate one bucket per PostingID, only for those
-            # postings with negative balance_delta
+            # postings with negative balance-delta
             #
             # we subdivide only these postings with asset outflows when incising
             # realized capital gains / losses
 
             # for all %(PostingID => PostingIDBalanceDelta) pairs with
-            # Changeset.balance_delta less than zero
+            # Changeset.balance-delta less than zero
             my LessThanZero %bdbpu{PostingID} =
-                %balance_delta_by_posting_id.grep({ .value < 0 });
-            for %bdbpu.kv -> $posting_id, $balance_delta
+                %balance-delta-by-posting-id.grep({ .value < 0 });
+            for %bdbpu.kv -> $posting-id, $balance-delta
             {
                 # store capacity of Bucket
                 my Quantity $capacity;
@@ -633,46 +633,46 @@ sub gen_buckets(
 
                 # if constrained, what is the original unconstrained
                 # capacity?
-                my Quantity $unconstrained_capacity;
+                my Quantity $unconstrained-capacity;
 
                 # is this acct's remaining quantity debited greater than
                 # or equal to PostingID's PostingIDBalanceDelta.abs?
                 #
                 # to make comparing easier, negate balance delta since
                 # it is known to be < 0
-                if $remaining_acct_debit_quantity >= -$balance_delta
+                if $remaining-acct-debit-quantity >= -$balance-delta
                 {
                     # instantiate Bucket with full capacity of its
-                    # causal Changeset.balance_delta, since the quantity
+                    # causal Changeset.balance-delta, since the quantity
                     # remaining to debit from this acct is greater than
                     # or equal to this number
-                    $capacity = -$balance_delta;
+                    $capacity = -$balance-delta;
 
                     # subtract capacity from remaining acct debit quantity
-                    $remaining_acct_debit_quantity -= $capacity;
+                    $remaining-acct-debit-quantity -= $capacity;
                 }
                 # is this acct's remaining quantity debited less than
                 # the posting's quantity debited?
-                elsif $remaining_acct_debit_quantity < -$balance_delta
+                elsif $remaining-acct-debit-quantity < -$balance-delta
                 {
                     # special case: mark bucket as having artificially
                     # constrained capacity, and record its original
                     # capacity
                     $constrained = True;
-                    $unconstrained_capacity = -$balance_delta;
+                    $unconstrained-capacity = -$balance-delta;
 
                     # instantiate Bucket with partial capacity of its
-                    # causal Changeset.balance_delta
+                    # causal Changeset.balance-delta
                     #
                     # the transaction journal entry subacct net debited
-                    # $target_acct_debit_quantity, and we don't want
+                    # $target-acct-debit-quantity, and we don't want
                     # the postings made through this acct to contain
                     # holding basis lot quantities above the original
                     # net debited quantity
-                    $capacity = $remaining_acct_debit_quantity;
+                    $capacity = $remaining-acct-debit-quantity;
 
                     # subtract capacity from remaining acct debit quantity
-                    $remaining_acct_debit_quantity -= $capacity;
+                    $remaining-acct-debit-quantity -= $capacity;
                 }
 
                 #
@@ -680,14 +680,14 @@ sub gen_buckets(
                 #
                 # - capacity (of the amount expended in the acct per the Entry)
                 #   - INCs less DECs to the asset in the original Entry
-                #   - this is what the method Entity.get_total_quantity_debited
+                #   - this is what the method Entity.get-total-quantity-debited
                 #     does when it sums the balance delta of all changesets
                 #     particular to an EntryID's handling of an asset,
                 #     one with realized capital gains / losses
                 # - PostingID
-                #   - PostingID with a Changeset.balance_delta less
+                #   - PostingID with a Changeset.balance-delta less
                 #     than zero
-                #     - if the summed balance_deltas are negative for an asset
+                #     - if the summed balance-deltas are negative for an asset
                 #       in a particular entry, at least one of the negative
                 #       C<Entry::Posting>s had to be in part responsible for a
                 #       holding basis lot expenditure
@@ -695,15 +695,15 @@ sub gen_buckets(
                 #     holding basis lots with differing XE if necessary
                 #   - since the changesets are summed, it may not matter whether
                 #     we subdivide a positive or a negative
-                #     Changeset.balance_delta as the net result of summing
+                #     Changeset.balance-delta as the net result of summing
                 #     either one should be equivalent
                 #   - it's impossible to run out of buckets for an Entry's
                 #     expenditures, because net outflows (expenditures) of an
                 #     asset will always be less than or equal to the sum of the
-                #     Entry's negative-only C<Changeset.balance_delta>s
+                #     Entry's negative-only C<Changeset.balance-delta>s
                 #     - paying the Bitcoin miners' fee during an asset transfer
                 #       would be an example of an expenditure sized much less
-                #       than the sum of the Entry's negative-only balance_deltas
+                #       than the sum of the Entry's negative-only balance-deltas
                 #     - example:
                 #
                 #     # asset transfer to cold storage
@@ -715,7 +715,7 @@ sub gen_buckets(
                 #       ASSETS:Personal:BitBrokerB         -15 BTC @ 300 USD
                 #       ASSETS:Personal:BitBrokerC         -18 BTC @ 300 USD
                 #
-                #     # sum of Entry's C<Changeset.balance_delta>s affecting
+                #     # sum of Entry's C<Changeset.balance-delta>s affecting
                 #     # ASSETS wallet and asset code BTC:
                 #     #     = (23.999 + 24) - (15 + 15 + 18)
                 #     #     = 47.999 - 48
@@ -727,7 +727,7 @@ sub gen_buckets(
                 #     #     = abs(-0.001)
                 #     #     = 0.001
                 #     #
-                #     # sum of negative-only C<Changeset.balance_delta>s:
+                #     # sum of negative-only C<Changeset.balance-delta>s:
                 #     #     = 15 + 15 + 18
                 #     #     = 48
                 #     #
@@ -740,16 +740,16 @@ sub gen_buckets(
                 #     # 15 outflow and the 18 outflow are subdivided, or all
                 #     # three
                 #
-                %buckets{$posting_id} = Bucket.new(
-                    :acct_name($target_acct_name),
+                %buckets{$posting-id} = Bucket.new(
+                    :acct-name($target-acct-name),
                     :$capacity,
                     :$constrained,
-                    :$unconstrained_capacity,
-                    :$posting_id
+                    :$unconstrained-capacity,
+                    :$posting-id
                 );
 
                 # is there no remaining quantity to debit in acct?
-                unless $remaining_acct_debit_quantity > 0
+                unless $remaining-acct-debit-quantity > 0
                 {
                     # go to next %(TargetAcctBalanceDelta => Posting)
                     # pair
@@ -767,22 +767,22 @@ sub gen_buckets(
     %buckets;
 }
 
-sub fill_buckets(
+sub fill-buckets(
     Bucket:D :%buckets!,
-    Hash[Quantity:D,Quantity:D] :%total_quantity_expended! is readonly
+    Hash[Quantity:D,Quantity:D] :%total-quantity-expended! is readonly
 )
 {
-    my Quantity $remaining_total_quantity_expended =
-        %total_quantity_expended.keys[0];
+    my Quantity $remaining-total-quantity-expended =
+        %total-quantity-expended.keys[0];
 
     # for every subtotal quantity expended needing a bucket to call home
-    # (at acquisition price), put each $subtotal_quantity_expended into
+    # (at acquisition price), put each $subtotal-quantity-expended into
     # bucket until/unless full, then fill next bucket
-    for %total_quantity_expended.values.list[0].hash.kv ->
-        $acquisition_price, $subtotal_quantity_expended
+    for %total-quantity-expended.values.list[0].hash.kv ->
+        $acquisition-price, $subtotal-quantity-expended
     {
         # store remaining subtotal still needing to be disbursed to buckets
-        my Quantity $remaining = $subtotal_quantity_expended;
+        my Quantity $remaining = $subtotal-quantity-expended;
 
         # does any portion of this subtotal still need to be disbursed?
         while $remaining > 0
@@ -793,7 +793,7 @@ sub fill_buckets(
             #   spends which holdings at each price point expended
 
             # for each %(PostingID => Bucket) pair
-            for %buckets.kv -> $posting_id, $bucket
+            for %buckets.kv -> $posting-id, $bucket
             {
                 # how much capacity in bucket is currently open?
                 my Quantity $open = $bucket.open;
@@ -811,7 +811,7 @@ sub fill_buckets(
                 {
                     # take up the entire capacity of this bucket
                     $bucket.mksubfill(
-                        :$acquisition_price,
+                        :$acquisition-price,
                         :subfill($open)
                     );
 
@@ -825,7 +825,7 @@ sub fill_buckets(
 
                     # subtract $open from $remaining, ensuring we have
                     # $open less to disburse
-                    $remaining_total_quantity_expended -= $open;
+                    $remaining-total-quantity-expended -= $open;
                     $remaining -= $open;
 
                     # if remaining was disbursed in full due to bucket's
@@ -840,12 +840,12 @@ sub fill_buckets(
                 {
                     # take up just the amount needed in this bucket
                     $bucket.mksubfill(
-                        :$acquisition_price,
+                        :$acquisition-price,
                         :subfill($remaining)
                     );
 
                     # ensure $remaining less $remaining is 0
-                    $remaining_total_quantity_expended -= $remaining;
+                    $remaining-total-quantity-expended -= $remaining;
                     $remaining -= $remaining;
 
                     # break from this original subtotal quantity lot needing
@@ -858,7 +858,7 @@ sub fill_buckets(
     }
 
     # is there not zero remaining of total quantity expended?
-    unless $remaining_total_quantity_expended == 0
+    unless $remaining-total-quantity-expended == 0
     {
         # error: total quantity expended failed to be reassigned in full
         die "Sorry, expected remaining total quantity expended to be zero";
@@ -873,22 +873,22 @@ sub buckets2instructions(
     my Array[Instruction:D] %instructions{PostingID:D};
 
     # foreach %(PostingID => Bucket) pair
-    for %buckets.kv -> $posting_id, $bucket
+    for %buckets.kv -> $posting-id, $bucket
     {
         # store list of instructions generated from bucket
         my Instruction:D @instructions;
 
         # store bucket's parent acct name, which is the subject of
         # PostingID
-        my AcctName $acct_name = $bucket.acct_name;
+        my AcctName $acct-name = $bucket.acct-name;
 
         # was bucket capacity artificially constrained by acct debit
         # quantity limits?
         if $bucket.constrained
         {
             # what was bucket causal posting's unconstrained capacity?
-            my Quantity $unconstrained_capacity =
-                $bucket.unconstrained_capacity;
+            my Quantity $unconstrained-capacity =
+                $bucket.unconstrained-capacity;
 
             # what was bucket capacity forced down to?
             my Quantity $capacity = $bucket.capacity;
@@ -897,7 +897,7 @@ sub buckets2instructions(
             my Quantity $filled = $bucket.filled;
 
             # how much of the bucket's forced capacity is open?
-            my Quantity $open_constrained = $capacity - $filled;
+            my Quantity $open-constrained = $capacity - $filled;
 
             # open total is the sum of the bucket's constrained space
             # open and its original, unconstrained capacity less the
@@ -906,7 +906,7 @@ sub buckets2instructions(
             # The Special Case of a Constrained Bucket
             # ----------------------------------------
             #
-            #     ┏━━━━━━━━━━━━━━━━━┓ <------- $unconstrained_capacity
+            #     ┏━━━━━━━━━━━━━━━━━┓ <------- $unconstrained-capacity
             #     ┃                 ┃
             #     ┃                 ┃
             #     ┃                 ┃
@@ -915,13 +915,13 @@ sub buckets2instructions(
             #     ┃                 ┃
             #     ┃─────────────────┃ <------- $capacity
             #     ┃                 ┃
-            #     ┃┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┃ <------- $open_constrained
+            #     ┃┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┃ <------- $open-constrained
             #     ┃                 ┃
             #     ┗━━━━━━━━━━━━━━━━━┛
             #
-            # open total is the MOD Instruction's quantity_to_debit
-            my Quantity $open_total =
-                $open_constrained + ($unconstrained_capacity - $capacity);
+            # open total is the MOD Instruction's quantity-to-debit
+            my Quantity $open-total =
+                $open-constrained + ($unconstrained-capacity - $capacity);
 
             # is open total not greater than zero?
             #
@@ -929,7 +929,7 @@ sub buckets2instructions(
             # bucket would not have a constrained capacity in the first
             # place if it weren't for the unconstrained capacity exceeding
             # remaining acct debit quantity
-            unless $open_total > 0
+            unless $open-total > 0
             {
                 # error: unexpected open total
                 die "Sorry, unexpected open total";
@@ -938,28 +938,28 @@ sub buckets2instructions(
             # set orig bucket = special case open total
             {
                 my NewMod $newmod = MOD;
-                my Quantity $quantity_to_debit = $open_total;
+                my Quantity $quantity-to-debit = $open-total;
                 my Quantity $xe = Nil;
                 my Instruction $instruction = {
-                    :$acct_name,
+                    :$acct-name,
                     :$newmod,
-                    :$posting_id,
-                    :$quantity_to_debit,
+                    :$posting-id,
+                    :$quantity-to-debit,
                     :$xe
                 };
                 push @instructions, $instruction;
             }
 
             # create one more bucket foreach $bucket.subfills.keys[0..*]
-            for $bucket.subfills.kv -> $acquisition_price, $quantity_to_debit
+            for $bucket.subfills.kv -> $acquisition-price, $quantity-to-debit
             {
                 my NewMod $newmod = NEW;
-                my Quantity $xe = $acquisition_price;
+                my Quantity $xe = $acquisition-price;
                 my Instruction $instruction = {
-                    :$acct_name,
+                    :$acct-name,
                     :$newmod,
-                    :$posting_id,
-                    :$quantity_to_debit,
+                    :$posting-id,
+                    :$quantity-to-debit,
                     :$xe
                 };
                 push @instructions, $instruction;
@@ -971,28 +971,28 @@ sub buckets2instructions(
             # set orig bucket = open size
             {
                 my NewMod $newmod = MOD;
-                my Quantity $quantity_to_debit = $bucket.open;
+                my Quantity $quantity-to-debit = $bucket.open;
                 my Quantity $xe = Nil;
                 my Instruction $instruction = {
-                    :$acct_name,
+                    :$acct-name,
                     :$newmod,
-                    :$posting_id,
-                    :$quantity_to_debit,
+                    :$posting-id,
+                    :$quantity-to-debit,
                     :$xe
                 };
                 push @instructions, $instruction;
             }
 
             # create one more bucket foreach $bucket.subfills.keys[0..*]
-            for $bucket.subfills.kv -> $acquisition_price, $quantity_to_debit
+            for $bucket.subfills.kv -> $acquisition-price, $quantity-to-debit
             {
                 my NewMod $newmod = NEW;
-                my Quantity $xe = $acquisition_price;
+                my Quantity $xe = $acquisition-price;
                 my Instruction $instruction = {
-                    :$acct_name,
+                    :$acct-name,
                     :$newmod,
-                    :$posting_id,
-                    :$quantity_to_debit,
+                    :$posting-id,
+                    :$quantity-to-debit,
                     :$xe
                 };
                 push @instructions, $instruction;
@@ -1004,13 +1004,13 @@ sub buckets2instructions(
             # set orig bucket = $bucket.subfills.keys[0]
             {
                 my NewMod $newmod = MOD;
-                my Quantity $quantity_to_debit = $bucket.subfills.values[0];
+                my Quantity $quantity-to-debit = $bucket.subfills.values[0];
                 my Quantity $xe = $bucket.subfills.keys[0];
                 my Instruction $instruction = {
-                    :$acct_name,
+                    :$acct-name,
                     :$newmod,
-                    :$posting_id,
-                    :$quantity_to_debit,
+                    :$posting-id,
+                    :$quantity-to-debit,
                     :$xe
                 };
                 push @instructions, $instruction;
@@ -1020,39 +1020,39 @@ sub buckets2instructions(
             loop (my Int $i = 1; $i < $bucket.subfills.elems; $i++)
             {
                 my NewMod $newmod = NEW;
-                my Quantity $quantity_to_debit = $bucket.subfills.values[$i];
+                my Quantity $quantity-to-debit = $bucket.subfills.values[$i];
                 my Quantity $xe = $bucket.subfills.keys[$i];
                 my Instruction $instruction = {
-                    :$acct_name,
+                    :$acct-name,
                     :$newmod,
-                    :$posting_id,
-                    :$quantity_to_debit,
+                    :$posting-id,
+                    :$quantity-to-debit,
                     :$xe
                 };
                 push @instructions, $instruction;
             }
         }
 
-        push %instructions{$posting_id}, |@instructions;
+        push %instructions{$posting-id}, |@instructions;
     }
 
     %instructions;
 }
 
 # return instructions for incising realized capital gains / losses
-# indexed by causal posting_id (NEW/MOD | AcctName | QuantityToDebit | XE)
-sub gen_instructions(
+# indexed by causal posting-id (NEW/MOD | AcctName | QuantityToDebit | XE)
+sub gen-instructions(
     Hash[Hash[Hash[FatRat:D,PostingID:D],FatRat:D],AcctName:D]
-        :%total_quantity_debited! is readonly,
-    Hash[Quantity:D,Quantity:D] :%total_quantity_expended! is readonly
+        :%total-quantity-debited! is readonly,
+    Hash[Quantity:D,Quantity:D] :%total-quantity-expended! is readonly
 ) returns Hash[Array[Instruction:D],PostingID:D]
 {
     # make buckets containing amounts needing to be filled in
     # Entity.wallet, indexed by PostingID, %(PostingID => Bucket)
-    my Bucket:D %buckets{PostingID:D} = gen_buckets(:%total_quantity_debited);
+    my Bucket:D %buckets{PostingID:D} = gen-buckets(:%total-quantity-debited);
 
     # fill buckets based on total quantity expended
-    fill_buckets(:%buckets, :%total_quantity_expended);
+    fill-buckets(:%buckets, :%total-quantity-expended);
 
     # convert %buckets to instructions
     my Array[Instruction:D] %instructions{PostingID:D} = buckets2instructions(
@@ -1061,29 +1061,29 @@ sub gen_instructions(
 }
 
 # given entry, return instantiated transaction
-method gen_txn(
+method gen-txn(
     Nightscape::Entry:D :$entry! is readonly
 ) returns Nightscape::Entity::TXN:D
 {
     # verify entry is balanced or exit with an error
-    unless $entry.is_balanced
+    unless $entry.is-balanced
     {
-        say "Sorry, cannot gen_txn: entry not balanced.";
-        die X::Nightscape::Entry::NotBalanced.new(:entry_id($entry.id));
+        say "Sorry, cannot gen-txn: entry not balanced.";
+        die X::Nightscape::Entry::NotBalanced.new(:entry-id($entry.id));
     }
 
     # source EntryID
-    my EntryID $entry_id = $entry.id;
+    my EntryID $entry-id = $entry.id;
 
     # transaction data storage
-    my Nightscape::Entity::TXN::ModHolding %mod_holdings{AssetCode};
-    my Nightscape::Entity::TXN::ModWallet @mod_wallet;
+    my Nightscape::Entity::TXN::ModHolding %mod-holdings{AssetCode};
+    my Nightscape::Entity::TXN::ModWallet @mod-wallet;
 
-    # build mod_wallet for dec/inc applicable wallet balance
+    # build mod-wallet for dec/inc applicable wallet balance
     for $entry.postings -> $posting
     {
         # from Nightscape::Entry::Posting
-        my PostingID $posting_id = $posting.id;
+        my PostingID $posting-id = $posting.id;
         my Nightscape::Entry::Posting::Account $account = $posting.account;
         my Nightscape::Entry::Posting::Amount $amount = $posting.amount;
         my DecInc $decinc = $posting.decinc;
@@ -1093,216 +1093,216 @@ method gen_txn(
         my VarName @subwallet = $account.subaccount;
 
         # from Nightscape::Entry::Posting::Amount
-        my AssetCode $asset_code = $amount.asset_code;
-        my Quantity $quantity = $amount.asset_quantity;
+        my AssetCode $asset-code = $amount.asset-code;
+        my Quantity $quantity = $amount.asset-quantity;
 
         # from Nightscape::Entry::Posting::Amount::XE
-        my AssetCode $xe_asset_code;
-        $xe_asset_code = try {$amount.exchange_rate.asset_code};
-        my Quantity $xe_asset_quantity;
-        $xe_asset_quantity = try {$amount.exchange_rate.asset_quantity};
+        my AssetCode $xe-asset-code;
+        $xe-asset-code = try {$amount.exchange-rate.asset-code};
+        my Quantity $xe-asset-quantity;
+        $xe-asset-quantity = try {$amount.exchange-rate.asset-quantity};
 
-        # build mod_wallet
-        push @mod_wallet, Nightscape::Entity::TXN::ModWallet.new(
-            :entity($.entity_name),
-            :$entry_id,
-            :$posting_id,
-            :$asset_code,
+        # build mod-wallet
+        push @mod-wallet, Nightscape::Entity::TXN::ModWallet.new(
+            :entity($.entity-name),
+            :$entry-id,
+            :$posting-id,
+            :$asset-code,
             :$decinc,
             :$quantity,
             :$silo,
             :@subwallet,
-            :$xe_asset_code,
-            :$xe_asset_quantity
+            :$xe-asset-code,
+            :$xe-asset-quantity
         );
     }
 
-    # build mod_holdings for acquire/expend the applicable holdings
+    # build mod-holdings for acquire/expend the applicable holdings
 
     # find entry postings affecting silo ASSETS
     my Silo $silo = ASSETS;
     my Nightscape::Entry::Posting @postings = $entry.postings;
-    my Nightscape::Entry::Posting @postings_assets_silo =
-        Nightscape::Entry.ls_postings(:@postings, :$silo);
+    my Nightscape::Entry::Posting @postings-assets-silo =
+        Nightscape::Entry.ls-postings(:@postings, :$silo);
 
-    my AssetCode $entity_base_currency = $.entity_base_currency;
-    my Regex $asset_code = /$entity_base_currency/;
-    my Nightscape::Entry::Posting @postings_assets_silo_base_currency =
-        Nightscape::Entry.ls_postings(:@postings, :$asset_code, :$silo);
+    my AssetCode $entity-base-currency = $.entity-base-currency;
+    my Regex $asset-code = /$entity-base-currency/;
+    my Nightscape::Entry::Posting @postings-assets-silo-base-currency =
+        Nightscape::Entry.ls-postings(:@postings, :$asset-code, :$silo);
 
     # filter out base currency postings
-    my Nightscape::Entry::Posting @postings_remainder =
-        (@postings_assets_silo (-) @postings_assets_silo_base_currency).keys;
+    my Nightscape::Entry::Posting @postings-remainder =
+        (@postings-assets-silo (-) @postings-assets-silo-base-currency).keys;
 
     # find unique aux asset codes
-    my AssetCode @aux_asset_codes = Nightscape::Entry.ls_asset_codes(
-        :postings(@postings_remainder)
+    my AssetCode @aux-asset-codes = Nightscape::Entry.ls-asset-codes(
+        :postings(@postings-remainder)
     );
 
     # calculate difference between INCs and DECs for each aux asset code
-    for @aux_asset_codes -> $aux_asset_code
+    for @aux-asset-codes -> $aux-asset-code
     {
         # filter for postings only of this asset code
-        my Nightscape::Entry::Posting @p = Nightscape::Entry.ls_postings(
-            :postings(@postings_remainder),
-            :asset_code(/$aux_asset_code/)
+        my Nightscape::Entry::Posting @p = Nightscape::Entry.ls-postings(
+            :postings(@postings-remainder),
+            :asset-code(/$aux-asset-code/)
         );
 
         # sum INCs
-        my Nightscape::Entry::Posting @p_inc = @p.grep({ .decinc ~~ INC });
-        my FatRat $incs = FatRat([+] (.amount.asset_quantity for @p_inc));
+        my Nightscape::Entry::Posting @p-inc = @p.grep({ .decinc ~~ INC });
+        my FatRat $incs = FatRat([+] (.amount.asset-quantity for @p-inc));
 
         # sum DECs
-        my Nightscape::Entry::Posting @p_dec = @p.grep({ .decinc ~~ DEC });
-        my FatRat $decs = FatRat([+] (.amount.asset_quantity for @p_dec));
+        my Nightscape::Entry::Posting @p-dec = @p.grep({ .decinc ~~ DEC });
+        my FatRat $decs = FatRat([+] (.amount.asset-quantity for @p-dec));
 
         # INCs - DECs
         my FatRat $d = $incs - $decs;
 
         # asset flow: acquire / expend
-        my AssetFlow $asset_flow = mkasset_flow($d);
+        my AssetFlow $asset-flow = mkasset-flow($d);
 
         # asset quantity
         my Quantity $quantity = $d.abs;
 
         # asset costing method
-        my Costing $costing = $GLOBAL::CONF.resolve_costing(
-            :asset_code($aux_asset_code),
-            :$.entity_name
+        my Costing $costing = $GLOBAL::CONF.resolve-costing(
+            :asset-code($aux-asset-code),
+            :$.entity-name
         );
 
         # prepare cost basis data
         my DateTime $date = $entry.header.date;
-        my Price $price = @p[0].amount.exchange_rate.asset_quantity;
-        my AssetCode $acquisition_price_asset_code =
-            @p[0].amount.exchange_rate.asset_code;
+        my Price $price = @p[0].amount.exchange-rate.asset-quantity;
+        my AssetCode $acquisition-price-asset-code =
+            @p[0].amount.exchange-rate.asset-code;
 
-        # build mod_holdings
-        %mod_holdings{$aux_asset_code} =
+        # build mod-holdings
+        %mod-holdings{$aux-asset-code} =
             Nightscape::Entity::TXN::ModHolding.new(
-                :entity($.entity_name),
-                :asset_code($aux_asset_code),
-                :$asset_flow,
+                :entity($.entity-name),
+                :asset-code($aux-asset-code),
+                :$asset-flow,
                 :$costing,
                 :$date,
                 :$price,
-                :$acquisition_price_asset_code,
+                :$acquisition-price-asset-code,
                 :$quantity
             );
     }
 
     # build transaction
     Nightscape::Entity::TXN.new(
-        :entity($.entity_name),
-        :$entry_id,
-        :%mod_holdings,
-        :@mod_wallet
+        :entity($.entity-name),
+        :$entry-id,
+        :%mod-holdings,
+        :@mod-wallet
     );
 }
 
 # get balance of each asset present in wallet %wallet Silo Assets
-method get_balance(
+method get-balance(
     Nightscape::Entity::Wallet:D :%wallet! is readonly
 ) returns Hash[FatRat,AssetCode]
 {
     my FatRat %balance{AssetCode};
-    my AssetCode @assets_handled = self.ls_assets_handled(:%wallet);
-    for @assets_handled -> $asset_code
+    my AssetCode @assets-handled = self.ls-assets-handled(:%wallet);
+    for @assets-handled -> $asset-code
     {
-        %balance{$asset_code} = self.get_balance_by_asset(
-            :$asset_code,
+        %balance{$asset-code} = self.get-balance-by-asset(
+            :$asset-code,
             :%wallet
         );
     }
     %balance;
 }
 
-# get balance of asset $asset_code in wallet %wallet Silo Assets
-method get_balance_by_asset(
-    AssetCode:D :$asset_code!,
+# get balance of asset $asset-code in wallet %wallet Silo Assets
+method get-balance-by-asset(
+    AssetCode:D :$asset-code!,
     Nightscape::Entity::Wallet:D :%wallet! is readonly,
 ) returns FatRat
 {
-    my AssetCode $base_currency; # purposefully empty var
-    my FatRat $balance = in_wallet(%wallet{ASSETS}).get_balance(
-        :$asset_code,
-        :$base_currency,
+    my AssetCode $base-currency; # purposefully empty var
+    my FatRat $balance = in-wallet(%wallet{ASSETS}).get-balance(
+        :$asset-code,
+        :$base-currency,
         :recursive
     );
 }
 
 # recursively sum balances in terms of entity base currency,
 # all wallets in all Silos
-method get_eqbal(
+method get-eqbal(
     Nightscape::Entity::Wallet:D :%wallet! is readonly,
     Nightscape::Entity::COA::Acct :%acct is readonly
 ) returns Hash[FatRat:D,Silo:D]
 {
     # assets handled, from COA::Acct if %acct was passed, falling back
     # to the COA::Acct generated from Wallet if COA::Acct was not passed
-    my AssetCode @assets_handled =
-        %acct ?? self.ls_assets_handled(:%acct)
-              !! self.ls_assets_handled(:%wallet);
+    my AssetCode @assets-handled =
+        %acct ?? self.ls-assets-handled(:%acct)
+              !! self.ls-assets-handled(:%wallet);
 
     # store total sum FatRat balance indexed by Silo
     my FatRat:D %balance{Silo:D};
 
     # sum wallet balances and store in %balance
-    sub fill_balance(AssetCode:D $asset_code)
+    sub fill-balance(AssetCode:D $asset-code)
     {
         # for all wallets in all Silos
         for Silo.enums.keys -> $silo
         {
             # adjust Silo wallet's running balance (in entity's base currency)
-            %balance{::($silo)} += in_wallet(%wallet{::($silo)}).get_balance(
-                :$asset_code,
-                :base_currency($.entity_base_currency),
+            %balance{::($silo)} += in-wallet(%wallet{::($silo)}).get-balance(
+                :$asset-code,
+                :base-currency($.entity-base-currency),
                 :recursive
             );
         }
     }
 
     # calculate %balance for all assets handled by this entity
-    fill_balance($_) for @assets_handled;
+    fill-balance($_) for @assets-handled;
 
     %balance;
 }
 
-method get_posting_value(
-    AssetCode:D :$base_currency!,
-    EntryID:D :$entry_id!,
-    PostingID:D :$posting_id!
+method get-posting-value(
+    AssetCode:D :$base-currency!,
+    EntryID:D :$entry-id!,
+    PostingID:D :$posting-id!
 ) returns Quantity:D
 {
-    my Quantity $posting_value;
-    my Nightscape::Entity::TXN $txn = self.ls_txn(:$entry_id);
-    $txn.mod_wallet.grep({ .posting_id == $posting_id }).map({
-        unless .xe_asset_code ~~ $base_currency
+    my Quantity $posting-value;
+    my Nightscape::Entity::TXN $txn = self.ls-txn(:$entry-id);
+    $txn.mod-wallet.grep({ .posting-id == $posting-id }).map({
+        unless .xe-asset-code ~~ $base-currency
         {
-            die "Sorry, unexpected xe_asset_code";
+            die "Sorry, unexpected xe-asset-code";
         };
-        $posting_value += .quantity * .xe_asset_quantity
+        $posting-value += .quantity * .xe-asset-quantity
     });
 
-    $posting_value;
+    $posting-value;
 }
 
-multi method perform_sanity_check(
-    Quantity :$target_acct_debit_quantity!,
-    Quantity :$target_acct_credit_quantity!
+multi method perform-sanity-check(
+    Quantity :$target-acct-debit-quantity!,
+    Quantity :$target-acct-credit-quantity!
 )
 {
-    if $target_acct_debit_quantity
+    if $target-acct-debit-quantity
     {
-        unless $target_acct_credit_quantity == 0
+        unless $target-acct-credit-quantity == 0
         {
             die "Sorry, unexpected presence of target acct credits when
                  debits are present";
         }
     }
-    elsif $target_acct_credit_quantity
+    elsif $target-acct-credit-quantity
     {
-        unless $target_acct_debit_quantity == 0
+        unless $target-acct-debit-quantity == 0
         {
             die "Sorry, unexpected presence of target acct debits when
                  credits are present";
@@ -1311,20 +1311,20 @@ multi method perform_sanity_check(
 }
 
 # get quantity debited in targets, separately and in total
-method !get_total_quantity_debited(
-    Nightscape::Entity::COA::Acct:D :%acct_targets! is readonly,
-    AssetCode:D :$asset_code!,
-    EntryID:D :$entry_id!,
+method !get-total-quantity-debited(
+    Nightscape::Entity::COA::Acct:D :%acct-targets! is readonly,
+    AssetCode:D :$asset-code!,
+    EntryID:D :$entry-id!,
     Nightscape::Entity::Wallet:D :%wallet! is readonly
 ) returns Hash[Hash[Hash[Hash[FatRat:D,PostingID:D],FatRat:D],AcctName:D],Quantity:D]
 {
     # store subtotal quantity debited
-    my Quantity $subtotal_quantity_debited;
+    my Quantity $subtotal-quantity-debited;
 
     # store subtotal quantity credited
-    my Quantity $subtotal_quantity_credited;
+    my Quantity $subtotal-quantity-credited;
 
-    # store Changeset.balance_delta indexed by PostingID, indexed by
+    # store Changeset.balance-delta indexed by PostingID, indexed by
     # subtotal quantity debited in the acct (the sum of balance deltas
     # one per posting), indexed by acct name:
     #
@@ -1345,20 +1345,20 @@ method !get_total_quantity_debited(
     #
     #  -------
     #
-    #  $total_quantity_debited = [+] (.TargetAcctBalanceDelta for TargetAcctName)
+    #  $total-quantity-debited = [+] (.TargetAcctBalanceDelta for TargetAcctName)
     #
     my Hash[Hash[FatRat:D,PostingID:D],FatRat:D]
-        %total_balance_delta_per_acct{AcctName:D};
+        %total-balance-delta-per-acct{AcctName:D};
 
     # for each target acct
-    for %acct_targets.kv -> $acct_name, $acct
+    for %acct-targets.kv -> $acct-name, $acct
     {
         # get all those changesets in acct affecting only asset code
-        # $asset_code, and sharing EntryID $entry_id
+        # $asset-code, and sharing EntryID $entry-id
         my Nightscape::Entity::Wallet::Changeset @changesets =
-            in_wallet(%wallet{::($acct.path[0])}, $acct.path[1..*]).ls_changesets(
-                :$asset_code,
-                :$entry_id
+            in-wallet(%wallet{::($acct.path[0])}, $acct.path[1..*]).ls-changesets(
+                :$asset-code,
+                :$entry-id
             );
 
         # were there no matching changesets found?
@@ -1376,77 +1376,77 @@ method !get_total_quantity_debited(
         #         PostingID => PostingIDBalanceDelta
         #     )
         #
-        my FatRat:D %balance_delta_by_posting_id{PostingID:D};
+        my FatRat:D %balance-delta-by-posting-id{PostingID:D};
 
-        # for all those changesets in acct affecting only asset code $asset_code,
-        # and sharing EntryID $entry_id
+        # for all those changesets in acct affecting only asset code $asset-code,
+        # and sharing EntryID $entry-id
         for @changesets -> $changeset
         {
             # causal PostingID, for precise changeset lookups
-            my PostingID $posting_id = $changeset.posting_id;
+            my PostingID $posting-id = $changeset.posting-id;
 
             # causal posting's balance adjustment, for summing
-            my FatRat $posting_id_balance_delta = $changeset.balance_delta;
+            my FatRat $posting-id-balance-delta = $changeset.balance-delta;
 
             # changeset's debit quantity, indexed by PostingID
-            %balance_delta_by_posting_id{$posting_id} =
-                $posting_id_balance_delta;
+            %balance-delta-by-posting-id{$posting-id} =
+                $posting-id-balance-delta;
         }
 
         # sum posting balance deltas, should be less than zero,
         # representing net expenditure/outflow of asset from silo
         # ASSETS wallet
-        my FatRat $target_acct_balance_delta_sum =
-            [+] %balance_delta_by_posting_id.values;
+        my FatRat $target-acct-balance-delta-sum =
+            [+] %balance-delta-by-posting-id.values;
 
         # store this target acct's debits to asset
-        my Quantity $target_acct_debit_quantity = FatRat(0.0);
+        my Quantity $target-acct-debit-quantity = FatRat(0.0);
 
         # store this target acct's credits to asset
-        my Quantity $target_acct_credit_quantity = FatRat(0.0);
+        my Quantity $target-acct-credit-quantity = FatRat(0.0);
 
         # is sum of target acct's balance deltas less than zero?
-        if $target_acct_balance_delta_sum < 0
+        if $target-acct-balance-delta-sum < 0
         {
             # since we're sure the delta sum is less than zero, take
             # absolute value to get target acct debit quantity
-            $target_acct_debit_quantity = $target_acct_balance_delta_sum.abs;
+            $target-acct-debit-quantity = $target-acct-balance-delta-sum.abs;
         }
         # is sum of target acct's balance deltas greater than zero?
-        elsif $target_acct_balance_delta_sum > 0
+        elsif $target-acct-balance-delta-sum > 0
         {
             # since we're sure the delta sum is greater than zero,
             # this is a credit
-            $target_acct_credit_quantity = $target_acct_balance_delta_sum;
+            $target-acct-credit-quantity = $target-acct-balance-delta-sum;
         }
 
         # ensure only one of target acct credit quantity or debit quantity
         # is > 0
-        self.perform_sanity_check(
-            :$target_acct_debit_quantity,
-            :$target_acct_credit_quantity
+        self.perform-sanity-check(
+            :$target-acct-debit-quantity,
+            :$target-acct-credit-quantity
         );
 
         # the intuitive version doesn't work
-        #     %total_balance_delta_per_acct{$acct.name} =
-        #         $target_acct_balance_delta_sum =>
-        #             $%balance_delta_by_posting_id;
+        #     %total-balance-delta-per-acct{$acct.name} =
+        #         $target-acct-balance-delta-sum =>
+        #             $%balance-delta-by-posting-id;
         #
         # helper:
-        my Hash[FatRat:D,PostingID:D] %target_acct_balance_delta{FatRat:D} =
-            $target_acct_balance_delta_sum => $%balance_delta_by_posting_id;
-        %total_balance_delta_per_acct{$acct_name} = $%target_acct_balance_delta;
+        my Hash[FatRat:D,PostingID:D] %target-acct-balance-delta{FatRat:D} =
+            $target-acct-balance-delta-sum => $%balance-delta-by-posting-id;
+        %total-balance-delta-per-acct{$acct-name} = $%target-acct-balance-delta;
 
         # add subtotal balance delta to total quantity debited / credited
         # as appropriate
-        $subtotal_quantity_debited += $target_acct_debit_quantity;
-        $subtotal_quantity_credited += $target_acct_credit_quantity;
+        $subtotal-quantity-debited += $target-acct-debit-quantity;
+        $subtotal-quantity-credited += $target-acct-credit-quantity;
     }
 
     # store total quantity debited (subtotal quantity debited less
     # subtotal quantity credited)
-    my GreaterThanZero:D $total_quantity_debited =
-        $subtotal_quantity_debited - $subtotal_quantity_credited;
+    my GreaterThanZero:D $total-quantity-debited =
+        $subtotal-quantity-debited - $subtotal-quantity-credited;
 
     # TotalQuantityDebited => %(
     #     TargetAcctName => %(
@@ -1472,59 +1472,59 @@ method !get_total_quantity_debited(
     # PostingIDBalanceDelta        |           |         |                                   |
     #                    |         |           |         |                                   |
     #                    |         |           |         |                                   |
-    my Hash[Hash[Hash[FatRat:D,PostingID:D],FatRat:D],AcctName:D] %total_quantity_debited{Quantity:D} =
-        $total_quantity_debited => %total_balance_delta_per_acct;
+    my Hash[Hash[Hash[FatRat:D,PostingID:D],FatRat:D],AcctName:D] %total-quantity-debited{Quantity:D} =
+        $total-quantity-debited => %total-balance-delta-per-acct;
 }
 
 # get quantity expended of a holding indexed by acquisition price,
 # indexed by total quantity expended
-sub get_total_quantity_expended(
+sub get-total-quantity-expended(
     Costing:D :$costing!,
     Nightscape::Entity::Holding::Taxes:D :@taxes! is readonly
 ) returns Hash[Hash[Quantity:D,Quantity:D],Quantity:D]
 {
     # store total quantity expended
-    my Hash[Quantity:D,Quantity:D] %total_quantity_expended{Quantity:D};
-    my Quantity:D $total_quantity_expended = FatRat(0.0);
-    my Quantity:D %per_basis_lot{Quantity:D};
+    my Hash[Quantity:D,Quantity:D] %total-quantity-expended{Quantity:D};
+    my Quantity:D $total-quantity-expended = FatRat(0.0);
+    my Quantity:D %per-basis-lot{Quantity:D};
 
     # foreach tax event
-    for @taxes -> $tax_event
+    for @taxes -> $tax-event
     {
         # get subtotal quantity expended, and add to total
-        my Quantity:D $subtotal_quantity_expended =
-            $tax_event.quantity_expended;
-        $total_quantity_expended += $subtotal_quantity_expended;
+        my Quantity:D $subtotal-quantity-expended =
+            $tax-event.quantity-expended;
+        $total-quantity-expended += $subtotal-quantity-expended;
 
         # store acquisition price / avco for this tax id
-        my Quantity:D $xe_asset_quantity = FatRat(0.0);
+        my Quantity:D $xe-asset-quantity = FatRat(0.0);
 
         # AVCO costing method?
         if $costing ~~ AVCO
         {
             # retrieve avco at expenditure of holding expended
-            $xe_asset_quantity = $tax_event.avco_at_expenditure;
+            $xe-asset-quantity = $tax-event.avco-at-expenditure;
         }
         # FIFO/LIFO costing method?
         elsif $costing ~~ FIFO or $costing ~~ LIFO
         {
             # retrieve acquisition price of holding expended
-            $xe_asset_quantity = $tax_event.acquisition_price;
+            $xe-asset-quantity = $tax-event.acquisition-price;
         }
 
         # record acquisition price => subtotal quantity expended key-value pair
-        # in %per_basis_lot
-        %per_basis_lot{$xe_asset_quantity} += $subtotal_quantity_expended;
+        # in %per-basis-lot
+        %per-basis-lot{$xe-asset-quantity} += $subtotal-quantity-expended;
     }
 
-    %total_quantity_expended = $total_quantity_expended => $%per_basis_lot;
+    %total-quantity-expended = $total-quantity-expended => $%per-basis-lot;
 }
 
 # given a wallet, and subwallet name list, return scalar container of
 # the deepest subwallet
 #
 # has harmless side effect of creating new and often empty Wallet classes
-sub in_wallet(Nightscape::Entity::Wallet $wallet, *@subwallet) is rw
+sub in-wallet(Nightscape::Entity::Wallet $wallet, *@subwallet) is rw
 {
     # make $subwallet point to the same scalar container as $wallet
     my Nightscape::Entity::Wallet $subwallet := $wallet;
@@ -1553,38 +1553,38 @@ sub in_wallet(Nightscape::Entity::Wallet $wallet, *@subwallet) is rw
 }
 
 # list all unique asset codes handled by entity
-multi method ls_assets_handled(
+multi method ls-assets-handled(
     Nightscape::Entity::COA::Acct:D :%acct! is readonly
 ) returns Array[AssetCode:D]
 {
     # store assets handled by entity
-    my AssetCode:D @assets_handled;
+    my AssetCode:D @assets-handled;
 
     # for all accts
-    for %acct.kv -> $acct_name, $acct
+    for %acct.kv -> $acct-name, $acct
     {
         # record assets handled in this acct
-        push @assets_handled, |$acct.assets_handled;
+        push @assets-handled, |$acct.assets-handled;
     }
 
-    @assets_handled .= unique;
+    @assets-handled .= unique;
 }
 
-multi method ls_assets_handled(
+multi method ls-assets-handled(
     Nightscape::Entity::Wallet:D :%wallet! is readonly
 ) returns Array[AssetCode:D]
 {
     # generate acct from %wallet
-    my Nightscape::Entity::COA::Acct %acct{AcctName} = self.gen_acct(:%wallet);
+    my Nightscape::Entity::COA::Acct %acct{AcctName} = self.gen-acct(:%wallet);
 
     # store assets handled by entity
-    my AssetCode:D @assets_handled = self.ls_assets_handled(:%acct);
+    my AssetCode:D @assets-handled = self.ls-assets-handled(:%acct);
 }
 
-multi method ls_txn(EntryID:D :$entry_id!) returns Nightscape::Entity::TXN:D
+multi method ls-txn(EntryID:D :$entry-id!) returns Nightscape::Entity::TXN:D
 {
     my Nightscape::Entity::TXN @txn = @.transactions.grep({
-        .entry_id == $entry_id
+        .entry-id == $entry-id
     });
     unless @txn.elems == 1
     {
@@ -1600,10 +1600,10 @@ multi method ls_txn(EntryID:D :$entry_id!) returns Nightscape::Entity::TXN:D
     my Nightscape::Entity::TXN $txn = @txn[0];
 }
 
-multi method ls_txn(PostingID:D :$posting_id!) returns Nightscape::Entity::TXN:D
+multi method ls-txn(PostingID:D :$posting-id!) returns Nightscape::Entity::TXN:D
 {
     my Nightscape::Entity::TXN @txn = @.transactions.grep({
-        .mod_wallet».posting_id.grep($posting_id)
+        .mod-wallet».posting-id.grep($posting-id)
     });
     unless @txn.elems == 1
     {
@@ -1623,7 +1623,7 @@ multi method ls_txn(PostingID:D :$posting_id!) returns Nightscape::Entity::TXN:D
 method mkcoa(Bool :$force)
 {
     # generate acct from %.wallet
-    my Nightscape::Entity::COA::Acct %acct{AcctName} = self.gen_acct(:%.wallet);
+    my Nightscape::Entity::COA::Acct %acct{AcctName} = self.gen-acct(:%.wallet);
 
     # find entries with realized capital gains / realized capital losses
     # use %.acct to find target list with wallet path
@@ -1657,94 +1657,94 @@ method mkcoa(Bool :$force)
 # instantiate TXN and append to entity's transactions queue
 method mktxn(Nightscape::Entry:D $entry is readonly)
 {
-    push @!transactions, self.gen_txn(:$entry);
+    push @!transactions, self.gen-txn(:$entry);
 }
 
 # acquire/expend the applicable holdings
-method !mod_holdings(
-    EntryID:D :$entry_id!,
-    AssetCode:D :$asset_code!,
-    AssetFlow:D :$asset_flow!,
+method !mod-holdings(
+    EntryID:D :$entry-id!,
+    AssetCode:D :$asset-code!,
+    AssetFlow:D :$asset-flow!,
     Costing:D :$costing!,
     DateTime:D :$date!,
     Price:D :$price!,
-    AssetCode:D :$acquisition_price_asset_code!,
+    AssetCode:D :$acquisition-price-asset-code!,
     Quantity:D :$quantity!
 )
 {
     # acquisition?
-    if $asset_flow ~~ ACQUIRE
+    if $asset-flow ~~ ACQUIRE
     {
         # instantiate holding if needed
-        unless %.holdings{$asset_code}
+        unless %.holdings{$asset-code}
         {
-            %!holdings{$asset_code} = Nightscape::Entity::Holding.new(
-                :$asset_code
+            %!holdings{$asset-code} = Nightscape::Entity::Holding.new(
+                :$asset-code
             );
         }
 
         # acquire asset
-        %!holdings{$asset_code}.acquire(
-            :$entry_id,
+        %!holdings{$asset-code}.acquire(
+            :$entry-id,
             :$date,
             :$price,
-            :$acquisition_price_asset_code,
+            :$acquisition-price-asset-code,
             :$quantity
         );
     }
     # expenditure?
-    elsif $asset_flow ~~ EXPEND
+    elsif $asset-flow ~~ EXPEND
     {
         # if holding does not exist, exit with an error
-        unless %.holdings{$asset_code}
+        unless %.holdings{$asset-code}
         {
-            say "Sorry, no holding exists of asset code 「$asset_code」.";
-            die X::Nightscape::Entry.new(:$entry_id);
+            say "Sorry, no holding exists of asset code 「$asset-code」.";
+            die X::Nightscape::Entry.new(:$entry-id);
         }
 
         # check for sufficient unit quantity of asset in holdings
-        my Quantity $quantity_held = %.holdings{$asset_code}.get_total_quantity;
-        unless $quantity_held >= $quantity
+        my Quantity $quantity-held = %.holdings{$asset-code}.get-total-quantity;
+        unless $quantity-held >= $quantity
         {
             say qq:to/EOF/;
-            Sorry, cannot mod_holdings.expend: found insufficient quantity
-            of asset 「$asset_code」 in holdings.
+            Sorry, cannot mod-holdings.expend: found insufficient quantity
+            of asset 「$asset-code」 in holdings.
 
-            Units needed of $asset_code: 「$quantity」
-            Units held of $asset_code: 「$quantity_held」
+            Units needed of $asset-code: 「$quantity」
+            Units held of $asset-code: 「$quantity-held」
             EOF
-            die X::Nightscape::Entry.new(:$entry_id);
+            die X::Nightscape::Entry.new(:$entry-id);
         }
 
         # expend asset
-        %!holdings{$asset_code}.expend(
-            :$entry_id,
+        %!holdings{$asset-code}.expend(
+            :$entry-id,
             :$date,
-            :$asset_code,
+            :$asset-code,
             :$costing,
             :$price,
-            :$acquisition_price_asset_code,
+            :$acquisition-price-asset-code,
             :$quantity
         );
     }
     # stable?
-    elsif $asset_flow ~~ STABLE
+    elsif $asset-flow ~~ STABLE
     {
         # no change, likely an intra-entity asset transfer
     }
 }
 
 # dec/inc the applicable wallet balance
-method !mod_wallet(
-    EntryID:D :$entry_id!,
-    PostingID:D :$posting_id!,
-    AssetCode:D :$asset_code!,
+method !mod-wallet(
+    EntryID:D :$entry-id!,
+    PostingID:D :$posting-id!,
+    AssetCode:D :$asset-code!,
     DecInc:D :$decinc!,
     Quantity:D :$quantity!,
     Silo:D :$silo!,
     Str :@subwallet, # When typecheck: VarName => Constraint type check failed for parameter '@subwallet'
-    AssetCode :$xe_asset_code,
-    Quantity :$xe_asset_quantity
+    AssetCode :$xe-asset-code,
+    Quantity :$xe-asset-quantity
 )
 {
     # ensure $silo wallet exists (potential side effect)
@@ -1753,15 +1753,15 @@ method !mod_wallet(
         %!wallet{$silo} = Nightscape::Entity::Wallet.new;
     }
 
-    # dec/inc wallet balance (potential side effect from in_wallet)
-    in_wallet(%!wallet{$silo}, @subwallet).mkchangeset(
-        :$entry_id,
-        :$posting_id,
-        :$asset_code,
+    # dec/inc wallet balance (potential side effect from in-wallet)
+    in-wallet(%!wallet{$silo}, @subwallet).mkchangeset(
+        :$entry-id,
+        :$posting-id,
+        :$asset-code,
         :$decinc,
         :$quantity,
-        :$xe_asset_code,
-        :$xe_asset_quantity
+        :$xe-asset-code,
+        :$xe-asset-quantity
     );
 }
 
@@ -1769,63 +1769,63 @@ method !mod_wallet(
 method transact(Nightscape::Entity::TXN:D $transaction is readonly)
 {
     # causal transaction journal EntryID
-    my EntryID $entry_id = $transaction.entry_id;
+    my EntryID $entry-id = $transaction.entry-id;
 
     # mod holdings (only needed for entries dealing in aux assets)
-    my Nightscape::Entity::TXN::ModHolding %mod_holdings{AssetCode} =
-        $transaction.mod_holdings;
+    my Nightscape::Entity::TXN::ModHolding %mod-holdings{AssetCode} =
+        $transaction.mod-holdings;
 
-    if %mod_holdings
+    if %mod-holdings
     {
-        for %mod_holdings.kv -> $asset_code, $mod_holding
+        for %mod-holdings.kv -> $asset-code, $mod-holding
         {
-            my AssetFlow $asset_flow = $mod_holding.asset_flow;
-            my Costing $costing = $mod_holding.costing;
-            my DateTime $date = $mod_holding.date;
-            my Price $price = $mod_holding.price;
-            my AssetCode $acquisition_price_asset_code =
-                $mod_holding.acquisition_price_asset_code;
-            my Quantity $quantity = $mod_holding.quantity;
+            my AssetFlow $asset-flow = $mod-holding.asset-flow;
+            my Costing $costing = $mod-holding.costing;
+            my DateTime $date = $mod-holding.date;
+            my Price $price = $mod-holding.price;
+            my AssetCode $acquisition-price-asset-code =
+                $mod-holding.acquisition-price-asset-code;
+            my Quantity $quantity = $mod-holding.quantity;
 
-            self!mod_holdings(
-                :$entry_id,
-                :$asset_code,
-                :$asset_flow,
+            self!mod-holdings(
+                :$entry-id,
+                :$asset-code,
+                :$asset-flow,
                 :$costing,
                 :$date,
                 :$price,
-                :$acquisition_price_asset_code,
+                :$acquisition-price-asset-code,
                 :$quantity
             );
         }
     }
 
     # mod wallet balances
-    my Nightscape::Entity::TXN::ModWallet @mod_wallet = $transaction.mod_wallet;
-    for @mod_wallet -> $mod_wallet
+    my Nightscape::Entity::TXN::ModWallet @mod-wallet = $transaction.mod-wallet;
+    for @mod-wallet -> $mod-wallet
     {
-        my PostingID $posting_id = $mod_wallet.posting_id;
-        my AssetCode $asset_code = $mod_wallet.asset_code;
-        my DecInc $decinc = $mod_wallet.decinc;
-        my Quantity $quantity = $mod_wallet.quantity;
-        my Silo $silo = $mod_wallet.silo;
+        my PostingID $posting-id = $mod-wallet.posting-id;
+        my AssetCode $asset-code = $mod-wallet.asset-code;
+        my DecInc $decinc = $mod-wallet.decinc;
+        my Quantity $quantity = $mod-wallet.quantity;
+        my Silo $silo = $mod-wallet.silo;
         my VarName @subwallet;
-        @subwallet = $mod_wallet.subwallet if $mod_wallet.subwallet;
-        my AssetCode $xe_asset_code;
-        $xe_asset_code = try {$mod_wallet.xe_asset_code};
-        my Quantity $xe_asset_quantity;
-        $xe_asset_quantity = try {$mod_wallet.xe_asset_quantity};
+        @subwallet = $mod-wallet.subwallet if $mod-wallet.subwallet;
+        my AssetCode $xe-asset-code;
+        $xe-asset-code = try {$mod-wallet.xe-asset-code};
+        my Quantity $xe-asset-quantity;
+        $xe-asset-quantity = try {$mod-wallet.xe-asset-quantity};
 
-        self!mod_wallet(
-            :$entry_id,
-            :$posting_id,
-            :$asset_code,
+        self!mod-wallet(
+            :$entry-id,
+            :$posting-id,
+            :$asset-code,
             :$decinc,
             :$quantity,
             :$silo,
             :@subwallet,
-            :$xe_asset_code,
-            :$xe_asset_quantity
+            :$xe-asset-code,
+            :$xe-asset-quantity
         );
     }
 }
@@ -1845,7 +1845,7 @@ method tree(
     {
         # fill tree
         @tree = Nightscape::Entity::Wallet.tree(
-            in_wallet(%wallet{$silo}, @subwallet).tree(:hash)
+            in-wallet(%wallet{$silo}, @subwallet).tree(:hash)
         );
 
         # prepend Silo to tree branches
@@ -1853,8 +1853,8 @@ method tree(
 
         # insert root Silo wallet
         {
-            my VarName:D @root_silo_wallet = ~$silo;
-            @tree.unshift: @root_silo_wallet;
+            my VarName:D @root-silo-wallet = ~$silo;
+            @tree.unshift: @root-silo-wallet;
         }
     }
     else
@@ -1887,34 +1887,34 @@ method tree2acct(
         my Nightscape::Entity::Wallet $wallet = %wallet{::(@path[0])};
 
         # store all assets handled
-        my AssetCode @assets_handled =
-            in_wallet($wallet, @path[1..*]).ls_assets;
+        my AssetCode @assets-handled =
+            in-wallet($wallet, @path[1..*]).ls-assets;
 
         # store EntryIDs handled, indexed by asset code
-        my Array[EntryID:D] %entry_ids_by_asset{AssetCode:D} =
-            in_wallet($wallet, @path[1..*]).ls_assets_with_ids;
+        my Array[EntryID:D] %entry-ids-by-asset{AssetCode:D} =
+            in-wallet($wallet, @path[1..*]).ls-assets-with-ids;
 
         # store PostingIDs handled, indexed by asset code
-        my Array[PostingID] %posting_ids_by_asset{AssetCode:D} =
-            in_wallet($wallet, @path[1..*]).ls_assets_with_ids(:posting);
+        my Array[PostingID] %posting-ids-by-asset{AssetCode:D} =
+            in-wallet($wallet, @path[1..*]).ls-assets-with-ids(:posting);
 
         # store all EntryIDs handled
-        my EntryID:D @entry_ids_handled =
-            in_wallet($wallet, @path[1..*]).ls_ids;
+        my EntryID:D @entry-ids-handled =
+            in-wallet($wallet, @path[1..*]).ls-ids;
 
         # store all PostingIDs handled
-        my PostingID @posting_ids_handled =
-            in_wallet($wallet, @path[1..*]).ls_ids(:posting);
+        my PostingID @posting-ids-handled =
+            in-wallet($wallet, @path[1..*]).ls-ids(:posting);
 
         # instantiate acct
         %acct{$name} = Nightscape::Entity::COA::Acct.new(
             :$name,
             :@path,
-            :@assets_handled,
-            :%entry_ids_by_asset,
-            :@entry_ids_handled,
-            :%posting_ids_by_asset,
-            :@posting_ids_handled
+            :@assets-handled,
+            :%entry-ids-by-asset,
+            :@entry-ids-handled,
+            :%posting-ids-by-asset,
+            :@posting-ids-handled
         );
     }
 
@@ -1956,7 +1956,7 @@ method tree2acct(
 #       ASSETS:Personal:BitBrokerC           -18 BTC @ 0.3 USD
 #
 #     # asset sale in transaction journal entry
-#     # this transaction journal EntryID == $tax_id
+#     # this transaction journal EntryID == $tax-id
 #     2012-10-26 "I sold 48 BTC at a price of $10.00 USD/BTC"
 #       ASSETS:Personal:Bankwest:Cheque       480 USD
 #       ASSETS:Personal:ColdStorage:Bread    -24 BTC @ 10 USD

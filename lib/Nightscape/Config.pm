@@ -5,16 +5,16 @@ use Nightscape::Types;
 unit class Nightscape::Config;
 
 # setup
-has Str $.config_file = resolve_config_file();
-has Str $.data_dir = "%*ENV<HOME>/.nightscape";
-has Str $.log_dir = "$!data_dir/logs";
-has Str $.price_dir = "$!data_dir/prices";
+has Str $.config-file = resolve-config-file();
+has Str $.data-dir = "%*ENV<HOME>/.nightscape";
+has Str $.log-dir = "$!data-dir/logs";
+has Str $.price-dir = "$!data-dir/prices";
 
 # base currency setting default/fallback for all entities
-has AssetCode $.base_currency is rw = "USD";
+has AssetCode $.base-currency is rw = "USD";
 
 # base inventory valuation method default/fallback for all assets
-has Costing $.base_costing is rw = AVCO;
+has Costing $.base-costing is rw = AVCO;
 
 # asset settings parsed from config, indexed by asset code
 has Nightscape::Config::Asset %.assets{AssetCode} is rw;
@@ -23,55 +23,55 @@ has Nightscape::Config::Asset %.assets{AssetCode} is rw;
 has Nightscape::Config::Entity %.entities{VarName} is rw;
 
 # filter asset price data from unvalidated %toml config
-method detoml_assets(%toml) returns Hash[Any,AssetCode]
+method detoml-assets(%toml) returns Hash[Any,AssetCode]
 {
     # find [Aa]ssets toml header (case insensitive)
-    my VarName $assets_header;
-    $assets_header = %toml.keys.grep(/:i ^assets/)[0];
+    my VarName $assets-header;
+    $assets-header = %toml.keys.grep(/:i ^assets/)[0];
 
     # store assets found
-    my %assets_found{AssetCode};
+    my %assets-found{AssetCode};
 
     # assign assets data (under case insensitive [Aa]ssets toml header)
-    %assets_found = %toml{$assets_header} if $assets_header;
+    %assets-found = %toml{$assets-header} if $assets-header;
 
-    %assets_found;
+    %assets-found;
 }
 
 # filter entities from unvalidated %toml config
-method detoml_entities(%toml) returns Hash[Any,VarName]
+method detoml-entities(%toml) returns Hash[Any,VarName]
 {
     use TXN::Parser::Grammar;
 
     # detect entities
-    my VarName @entities_found;
+    my VarName @entities-found;
     %toml.map({
-        if my Match $parsed_section = TXN::Parser::Grammar.parse(
+        if my Match $parsed-section = TXN::Parser::Grammar.parse(
             $_.keys,
-            :rule<var_name>
+            :rule<var-name>
         )
         {
-            push @entities_found, $parsed_section.orig.Str
+            push @entities-found, $parsed-section.orig.Str
                 unless TXN::Parser::Grammar.parse(
-                    $parsed_section.orig,
+                    $parsed-section.orig,
                     :rule<reserved>
                 );
         }
     });
 
     # store entities found
-    my %entities_found{VarName};
-    if @entities_found
+    my %entities-found{VarName};
+    if @entities-found
     {
-        %entities_found{$_} = %toml{$_} for @entities_found;
+        %entities-found{$_} = %toml{$_} for @entities-found;
     }
 
     # entities found
-    %entities_found;
+    %entities-found;
 }
 
-# return pricesheet from unvalidated <Assets>{$asset_code}<Prices> config
-method gen_pricesheet(:%prices!) returns Hash[Hash[Price,DateTime],AssetCode]
+# return pricesheet from unvalidated <Assets>{$asset-code}<Prices> config
+method gen-pricesheet(:%prices!) returns Hash[Hash[Price,DateTime],AssetCode]
 {
     # incoming: {
     #               :USD(
@@ -105,107 +105,107 @@ method gen_pricesheet(:%prices!) returns Hash[Hash[Price,DateTime],AssetCode]
     use TXN::Parser::Grammar;
 
     my Hash[Price,DateTime] %pricesheet{AssetCode};
-    for %prices.kv -> $asset_code, $date_price_pairs
+    for %prices.kv -> $asset-code, $date-price-pairs
     {
-        my Price %dates_and_prices{DateTime};
-        my Price %dates_and_prices_from_file{DateTime};
+        my Price %dates-and-prices{DateTime};
+        my Price %dates-and-prices-from-file{DateTime};
 
         # gather date-price pairs from toplevel Currencies config section
         #
         # build DateTimes from TOML config containing potentially mixed
         # YYYY-MM-DD keys and RFC3339 timestamp keys
-        for $date_price_pairs.keys -> $key
+        for $date-price-pairs.keys -> $key
         {
             # convert valid YYYY-MM-DD dates to DateTime
-            if TXN::Parser::Grammar.parse($key, :rule<full_date>)
+            if TXN::Parser::Grammar.parse($key, :rule<full-date>)
             {
                 my %dt = <year month day> Z=> map +*, $key.split('-');
-                %dates_and_prices{DateTime.new(|%dt)} =
-                    FatRat($date_price_pairs{$key});
+                %dates-and-prices{DateTime.new(|%dt)} =
+                    FatRat($date-price-pairs{$key});
             }
         };
 
         # gather date-price pairs from price-file if it exists
-        my Str $price_file;
-        $date_price_pairs.keys.grep(/'price-file'/).map({
-            $price_file = $date_price_pairs{$_}
+        my Str $price-file;
+        $date-price-pairs.keys.grep(/'price-file'/).map({
+            $price-file = $date-price-pairs{$_}
         });
 
         # price-file directive found?
-        if $price_file
+        if $price-file
         {
             # if toml price-file is given as relative path, prepend to
-            # it $.price_dir
-            if $price_file.IO.is-relative
+            # it $.price-dir
+            if $price-file.IO.is-relative
             {
-                $price_file = $.price_dir ~ "/" ~ $price_file;
+                $price-file = $.price-dir ~ "/" ~ $price-file;
             }
 
             # does price file exist?
-            unless $price_file.IO.e
+            unless $price-file.IO.e
             {
-                die "Sorry, could not locate price file at 「$price_file」";
+                die "Sorry, could not locate price file at 「$price-file」";
             }
 
-            %dates_and_prices_from_file = read_price_file(:$price_file);
+            %dates-and-prices-from-file = read-price-file(:$price-file);
         }
 
-        # merge %dates_and_prices_from_file with %dates_and_prices,
-        # with values from %dates_and_prices keys overwriting
-        # values from equivalent %dates_and_prices_from_file keys
+        # merge %dates-and-prices-from-file with %dates-and-prices,
+        # with values from %dates-and-prices keys overwriting
+        # values from equivalent %dates-and-prices-from-file keys
         my Price %xe{DateTime} =
-            (%dates_and_prices_from_file, %dates_and_prices);
-        %pricesheet{$asset_code} = %xe;
+            (%dates-and-prices-from-file, %dates-and-prices);
+        %pricesheet{$asset-code} = %xe;
     }
     %pricesheet;
 }
 
 # return instantiated asset settings
-multi method gen_settings(
-    AssetCode:D :$asset_code!,
-    :$asset_data!
+multi method gen-settings(
+    AssetCode:D :$asset-code!,
+    :$asset-data!
 ) returns Nightscape::Config::Asset:D
 {
     # asset costing
     my Costing $costing;
-    $costing = ::($asset_data<costing>) if $asset_data<costing>;
+    $costing = ::($asset-data<costing>) if $asset-data<costing>;
 
     # asset prices
     my Hash[Price,DateTime] %prices{AssetCode};
-    %prices = self.gen_pricesheet(:prices($asset_data<Prices>))
-        if $asset_data<Prices>;
+    %prices = self.gen-pricesheet(:prices($asset-data<Prices>))
+        if $asset-data<Prices>;
 
     # build asset settings
-    Nightscape::Config::Asset.new(:$asset_code, :$costing, :%prices);
+    Nightscape::Config::Asset.new(:$asset-code, :$costing, :%prices);
 }
 
 # return instantiated entity settings
-multi method gen_settings(
-    VarName:D :$entity_name!,
-    :$entity_data!
+multi method gen-settings(
+    VarName:D :$entity-name!,
+    :$entity-data!
 ) returns Nightscape::Config::Entity:D
 {
     # populate entity-specific asset settings
     my Nightscape::Config::Asset %assets{AssetCode};
-    my %assets_found = self.detoml_assets($entity_data);
-    if %assets_found
+    my %assets-found = self.detoml-assets($entity-data);
+    if %assets-found
     {
-        for %assets_found.kv -> $asset_code, $asset_data
+        for %assets-found.kv -> $asset-code, $asset-data
         {
-            %assets{$asset_code} = self.gen_settings(
-                :$asset_code,
-                :$asset_data
+            %assets{$asset-code} = self.gen-settings(
+                :$asset-code,
+                :$asset-data
             );
         }
     }
 
     # populate entity-specific base costing if found
-    my Costing $base_costing;
-    $base_costing = $entity_data<base-costing> if $entity_data<base-costing>;
+    my Costing $base-costing;
+    $base-costing = $entity-data<base-costing> if $entity-data<base-costing>;
 
     # populate entity-specific base currency if found
-    my AssetCode $base_currency;
-    $base_currency = $entity_data<base-currency> if $entity_data<base-currency>;
+    my AssetCode $base-currency;
+    $base-currency = $entity-data<base-currency> if $entity-data<base-currency>;
 
     # TODO: populate entity open dates if found
     my Range $open;
@@ -213,36 +213,36 @@ multi method gen_settings(
     # build entity settings
     Nightscape::Config::Entity.new(
         :%assets,
-        :$base_costing,
-        :$base_currency,
-        :$entity_name,
+        :$base-costing,
+        :$base-currency,
+        :$entity-name,
         :$open
     );
 }
 
 
 # return date-price hash by resolving price-file config option (NYI)
-sub read_price_file(Str:D :$price_file!) returns Hash[Price,DateTime]
+sub read-price-file(Str:D :$price-file!) returns Hash[Price,DateTime]
 {
-    say "Reading price file: $price_file…";
+    say "Reading price file: $price-file…";
 }
 
 # get entity's base currency or if not present, the default base-currency
-method resolve_base_currency(VarName:D $entity) returns AssetCode:D
+method resolve-base-currency(VarName:D $entity) returns AssetCode:D
 {
-    my AssetCode $base_currency;
+    my AssetCode $base-currency;
 
     # do entity's settings specify base currency?
-    if try {%.entities{$entity}.base_currency}
+    if try {%.entities{$entity}.base-currency}
     {
         # use entity's configured base currency
-        $base_currency = %.entities{$entity}.base_currency;
+        $base-currency = %.entities{$entity}.base-currency;
     }
     # is there a default base currency?
-    elsif $.base_currency
+    elsif $.base-currency
     {
         # use configured default base currency
-        $base_currency = $.base_currency;
+        $base-currency = $.base-currency;
     }
     else
     {
@@ -255,103 +255,103 @@ method resolve_base_currency(VarName:D $entity) returns AssetCode:D
         directive.
 
         entity: 「$entity」
-        config file: 「$.config_file」
+        config file: 「$.config-file」
         EOF
     }
 
     # base currency
-    $base_currency;
+    $base-currency;
 }
 
 # conf precedence: $PWD/nightscape.conf, $HOME/.nightscape.conf, $HOME/.nightscape/config.toml
-sub resolve_config_file() returns Str:D
+sub resolve-config-file() returns Str:D
 {
-    my Str $config_file;
+    my Str $config-file;
 
     # is nightscape.conf in CWD?
     if "nightscape.conf".IO.e
     {
-        $config_file = "nightscape.conf";
+        $config-file = "nightscape.conf";
     }
     # is nightscape.conf at $HOME/.nightscape.conf?
     elsif "%*ENV<HOME>/.nightscape.conf".IO.e
     {
 
-        $config_file = "%*ENV<HOME>/.nightscape.conf";
+        $config-file = "%*ENV<HOME>/.nightscape.conf";
     }
     else
     {
-        $config_file = "%*ENV<HOME>/.nightscape/config.toml";
+        $config-file = "%*ENV<HOME>/.nightscape/config.toml";
     }
 
-    $config_file;
+    $config-file;
 }
 
 # get inventory costing method
-method resolve_costing(
-    AssetCode:D :$asset_code!,
-    VarName:D :$entity_name!
+method resolve-costing(
+    AssetCode:D :$asset-code!,
+    VarName:D :$entity-name!
 ) returns Costing:D
 {
-    my Costing $costing_asset;
-    my Costing $costing_entity;
+    my Costing $costing-asset;
+    my Costing $costing-entity;
 
     # check for asset costing method settings
-    $costing_asset = try {%.assets{$asset_code}.costing};
+    $costing-asset = try {%.assets{$asset-code}.costing};
 
     # check for entity-specific asset costing method settings
-    $costing_entity =
-        try {%.entities{$entity_name}.assets{$asset_code}.costing};
+    $costing-entity =
+        try {%.entities{$entity-name}.assets{$asset-code}.costing};
 
     # entity-specific asset costing method settings?
-    if defined $costing_entity
+    if defined $costing-entity
     {
         # use entity-specific asset costing method settings
-        $costing_entity;
+        $costing-entity;
     }
     # asset costing method settings?
-    elsif defined $costing_asset
+    elsif defined $costing-asset
     {
         # use asset costing method settings
-        $costing_asset;
+        $costing-asset;
     }
     # default costing method?
-    elsif defined $.base_costing
+    elsif defined $.base-costing
     {
         # use default costing method settings
-        $.base_costing;
+        $.base-costing;
     }
     else
     {
         # error: costing method not found
         die qq:to/EOF/;
-        Sorry, could not find costing method for asset 「$asset_code」.
+        Sorry, could not find costing method for asset 「$asset-code」.
 
         Please check that the asset is configured with a costing method,
         or that the config file contains a toplevel base-costing
         directive.
 
-        config file: 「$.config_file」
-        asset: 「$asset_code」
-        entity: 「$entity_name」
+        config file: 「$.config-file」
+        asset: 「$asset-code」
+        entity: 「$entity-name」
         EOF
     }
 }
 
 # given posting asset code (aux), base asset code (base), and a date,
 # return price of aux in terms of base on date
-method resolve_price(
+method resolve-price(
     AssetCode:D :$aux!,
     AssetCode:D :$base!,
     DateTime:D :$date!,
-    VarName :$entity_name
+    VarName :$entity-name
 ) returns Price
 {
-    my Price $price_asset;
-    my Price $price_entity;
+    my Price $price-asset;
+    my Price $price-entity;
 
     # pricing for aux asset in terms of base on date
-    $price_asset = try {%.assets{$aux}.prices{$base}\
+    $price-asset = try {%.assets{$aux}.prices{$base}\
         .grep({ .keys[0].year ~~ $date.year })\
         .grep({ .keys[0].month ~~ $date.month })\
         .grep({ .keys[0].day ~~ $date.day })\
@@ -359,14 +359,14 @@ method resolve_price(
     }; # %.assets{$aux}.prices{$base}{$date} fails nom 2015-10-14
 
     # entity-specific pricing for aux asset in terms of base on date
-    if $entity_name
+    if $entity-name
     {
-        $price_entity =
-            try {%.entities{$entity_name}.assets{$aux}.prices{$base}{$date}};
+        $price-entity =
+            try {%.entities{$entity-name}.assets{$aux}.prices{$base}{$date}};
     }
 
     # return entity-specific asset pricing if available, else asset pricing
-    $price_entity ?? $price_entity !! $price_asset;
+    $price-entity ?? $price-entity !! $price-asset;
 }
 
 # vim: ft=perl6

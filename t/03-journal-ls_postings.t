@@ -11,7 +11,7 @@ my Nightscape::Entry @entries;
 
 if $file.IO.e
 {
-    @entries = Nightscape.ls_entries(:$file);
+    @entries = Nightscape.ls-entries(:$file);
 }
 else
 {
@@ -20,28 +20,28 @@ else
 
 {
     # get entries by entity Personal
-    my Nightscape::Entry @entries_by_entity_personal = Nightscape.ls_entries(
+    my Nightscape::Entry @entries-by-entity-personal = Nightscape.ls-entries(
         :@entries,
         :entity(/Personal/)
     );
 
     # get postings from entries by entity Personal
-    my Nightscape::Entry::Posting @postings = Nightscape::Entry.ls_postings(
-        :entries(@entries_by_entity_personal)
+    my Nightscape::Entry::Posting @postings = Nightscape::Entry.ls-postings(
+        :entries(@entries-by-entity-personal)
     );
 
     # filter postings by asset BTC, silo ASSETS
-    my Regex $asset_code = /BTC/;
+    my Regex $asset-code = /BTC/;
     my Silo $silo = ASSETS;
-    my Nightscape::Entry::Posting @postings_btc_assets =
-        Nightscape::Entry.ls_postings(:@postings, :$asset_code, :$silo);
+    my Nightscape::Entry::Posting @postings-btc-assets =
+        Nightscape::Entry.ls-postings(:@postings, :$asset-code, :$silo);
 
     # check that two postings are returned for asset BTC, silo ASSETS
     is(
-        @postings_btc_assets.elems,
+        @postings-btc-assets.elems,
         2,
         q:to/EOF/
-        ♪ [ls_postings] - 1 of 1
+        ♪ [ls-postings] - 1 of 1
         ┏━━━━━━━━━━━━━┓
         ┃             ┃  ∙ Passed argument of BTC:ASSETS returns 2 postings,
         ┃   Success   ┃    as expected.

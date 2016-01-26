@@ -3,43 +3,43 @@ use Nightscape::Entry::Posting::Amount::XE;
 use Nightscape::Types;
 unit class Nightscape::Entry::Posting::Amount;
 
-has AssetCode $.asset_code is required;
-has Quantity $.asset_quantity is required;
-has Str $.asset_symbol;
-has Str $.plus_or_minus;
-has Nightscape::Entry::Posting::Amount::XE $.exchange_rate;
+has AssetCode $.asset-code is required;
+has Quantity $.asset-quantity is required;
+has Str $.asset-symbol;
+has Str $.plus-or-minus;
+has Nightscape::Entry::Posting::Amount::XE $.exchange-rate;
 
 # update exchange rate in-place
 method mkxe(
-    AssetCode:D :$posting_entity_base_currency!,
+    AssetCode:D :$posting-entity-base-currency!,
     Quantity:D :$price!,
     Bool :$force
 )
 {
-    # instantiate XE and store in $.exchange_rate
+    # instantiate XE and store in $.exchange-rate
     sub init()
     {
-        $!exchange_rate = Nightscape::Entry::Posting::Amount::XE.new(
-            :asset_code($posting_entity_base_currency),
-            :asset_quantity($price)
+        $!exchange-rate = Nightscape::Entry::Posting::Amount::XE.new(
+            :asset-code($posting-entity-base-currency),
+            :asset-quantity($price)
         );
     }
 
     # was :force arg passed to the method?
     if $force
     {
-        # instantiate XE and store in $.exchange_rate overwriting XE if it exists
+        # instantiate XE and store in $.exchange-rate overwriting XE if it exists
         init();
     }
     # does XE exist?
-    elsif $.exchange_rate
+    elsif $.exchange-rate
     {
         # error: can't overwrite exchange rate
         die "Sorry, can't update existing exchange rate in-place";
     }
     else
     {
-        # no exchange rate exists, instantiate XE and store in $.exchange_rate
+        # no exchange rate exists, instantiate XE and store in $.exchange-rate
         init();
     }
 }

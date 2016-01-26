@@ -9,7 +9,7 @@ has Nightscape::Entry::Header $.header is required;
 has Nightscape::Entry::Posting @.postings is required;
 
 # check if entry is balanced
-method is_balanced() returns Bool:D
+method is-balanced() returns Bool:D
 {
     # Assets + Expenses = Income + Liabilities + Equity
     my Int %multiplier{Silo} =
@@ -23,7 +23,7 @@ method is_balanced() returns Bool:D
     my FatRat $total;
 
     # exchange rate consistency verification
-    my Array[Quantity] %xe_verify{AssetCode};
+    my Array[Quantity] %xe-verify{AssetCode};
 
     # entry date
     my DateTime $date = $.header.date;
@@ -33,18 +33,18 @@ method is_balanced() returns Bool:D
     for @.postings -> $posting
     {
         # get value of posting in entity base currency
-        my Quantity $posting_value = $posting.get_value(:$date);
+        my Quantity $posting-value = $posting.get-value(:$date);
 
         # is posting denominated in asset other than entity's base
         # currency?
-        my AssetCode $posting_entity_base_currency =
-            $GLOBAL::CONF.resolve_base_currency($posting.account.entity);
-        if $posting.amount.asset_code !eq $posting_entity_base_currency
+        my AssetCode $posting-entity-base-currency =
+            $GLOBAL::CONF.resolve-base-currency($posting.account.entity);
+        if $posting.amount.asset-code !eq $posting-entity-base-currency
         {
             # store posting exchange rate for comparison with other
             # postings affecting the same asset
-            push %xe_verify{$posting.amount.asset_code},
-                $posting.amount.exchange_rate.asset_quantity;
+            push %xe-verify{$posting.amount.asset-code},
+                $posting.amount.exchange-rate.asset-quantity;
         }
 
         # get posting silo
@@ -60,12 +60,12 @@ method is_balanced() returns Bool:D
         if $decinc
         {
             # increase running total
-            $total += $posting_value * $multiplier;
+            $total += $posting-value * $multiplier;
         }
         else
         {
             # decrease running total
-            $total -= $posting_value * $multiplier;
+            $total -= $posting-value * $multiplier;
         }
     }
 
@@ -73,17 +73,17 @@ method is_balanced() returns Bool:D
     #
     # if exchange rate does not remain consistent for a given asset
     # within the span of one entry, exit with an error
-    if %xe_verify
+    if %xe-verify
     {
         # for each asset code, process list of exchange rates seen
-        for %xe_verify.kv -> $asset_code, @exchange_rates
+        for %xe-verify.kv -> $asset-code, @exchange-rates
         {
             # was there more than one unique exchange rate seen?
-            unless @exchange_rates.unique.elems == 1
+            unless @exchange-rates.unique.elems == 1
             {
                 # error: exchange rate mismatch detected
                 say qq:to/EOF/;
-                Sorry, exchange rate for asset 「$asset_code」 does
+                Sorry, exchange rate for asset 「$asset-code」 does
                 not remain consistent in entry id 「{$.id.canonical}」.
 
                 To debug, verify transaction journal entry contains
@@ -91,7 +91,7 @@ method is_balanced() returns Bool:D
                 from config, check that configured exchange rate is
                 correct.
                 EOF
-                die X::Nightscape::Entry::XEMismatch.new(:entry_id($.id));
+                die X::Nightscape::Entry::XEMismatch.new(:entry-id($.id));
             }
         }
     }
@@ -116,20 +116,20 @@ method is_balanced() returns Bool:D
 }
 
 # list unique asset codes in postings
-method ls_asset_codes(
+method ls-asset-codes(
     Nightscape::Entry::Posting:D :@postings is readonly = @.postings
 ) returns Array[AssetCode:D]
 {
-    my AssetCode:D @asset_codes;
+    my AssetCode:D @asset-codes;
     for @postings -> $posting
     {
-        push @asset_codes, $_ for $posting.amount.asset_code;
+        push @asset-codes, $_ for $posting.amount.asset-code;
     }
-    @asset_codes .= unique;
+    @asset-codes .= unique;
 }
 
 # list postings from entries
-multi method ls_postings(
+multi method ls-postings(
     Nightscape::Entry:D :@entries! is readonly
 ) returns Array[Nightscape::Entry::Posting:D]
 {
@@ -142,33 +142,33 @@ multi method ls_postings(
 }
 
 # filter postings
-multi method ls_postings(
+multi method ls-postings(
     Nightscape::Entry::Posting:D :@postings is readonly = @.postings,
-    Regex :$asset_code,
+    Regex :$asset-code,
     Silo :$silo,
-    PostingID :$posting_id
+    PostingID :$posting-id
 ) returns Array[Nightscape::Entry::Posting]
 {
     my Nightscape::Entry::Posting @p = @postings;
-    @p = self._ls_postings(:postings(@p), :$asset_code) if defined $asset_code;
-    @p = self._ls_postings(:postings(@p), :$silo) if defined $silo;
-    @p = self._ls_postings(:postings(@p), :$posting_id) if $posting_id;
+    @p = self._ls-postings(:postings(@p), :$asset-code) if defined $asset-code;
+    @p = self._ls-postings(:postings(@p), :$silo) if defined $silo;
+    @p = self._ls-postings(:postings(@p), :$posting-id) if $posting-id;
     @p;
 }
 
 # list postings by asset code
-multi method _ls_postings(
+multi method _ls-postings(
     Nightscape::Entry::Posting:D :@postings! is readonly,
-    Regex:D :$asset_code!
+    Regex:D :$asset-code!
 ) returns Array[Nightscape::Entry::Posting]
 {
     my Nightscape::Entry::Posting @p = @postings.grep({
-        .amount.asset_code ~~ $asset_code
+        .amount.asset-code ~~ $asset-code
     });
 }
 
 # list postings by silo
-multi method _ls_postings(
+multi method _ls-postings(
     Nightscape::Entry::Posting:D :@postings! is readonly,
     Silo:D :$silo!
 ) returns Array[Nightscape::Entry::Posting]
@@ -179,12 +179,12 @@ multi method _ls_postings(
 }
 
 # list postings by PostingID
-multi method _ls_postings(
+multi method _ls-postings(
     Nightscape::Entry::Posting:D :@postings! is readonly,
-    PostingID:D :$posting_id!
+    PostingID:D :$posting-id!
 ) returns Array[Nightscape::Entry::Posting]
 {
-    my Nightscape::Entry::Posting @p = @postings.grep({ .id == $posting_id });
+    my Nightscape::Entry::Posting @p = @postings.grep({ .id == $posting-id });
 }
 
 # vim: ft=perl6

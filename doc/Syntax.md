@@ -94,19 +94,19 @@ Metainfo
 ###### Unacceptable (invalid variable name)
 
 ```transactions
-@for$za             # invalid: contains invalid var_char dollar sign (`$`)
-@CanIDeductThis?    # invalid: contains invalid var_char question mark (`?`)
+@for$za             # invalid: contains invalid var-char dollar sign (`$`)
+@CanIDeductThis?    # invalid: contains invalid var-char question mark (`?`)
 @                   # invalid: missing tag name
 ```
 
 ###### Acceptable
 
 ```transactions
-@for_business_luncheon
+@for-business-luncheon
 ```
 
 ```transactions
-@for_business_luncheon @deductible
+@for-business-luncheon @deductible
 ```
 
 #### Exclamation Marks

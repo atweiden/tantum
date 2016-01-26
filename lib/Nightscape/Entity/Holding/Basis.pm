@@ -4,7 +4,7 @@ use Nightscape::Types;
 unit class Nightscape::Entity::Holding::Basis;
 
 # causal EntryID
-has EntryID $.entry_id is required;
+has EntryID $.entry-id is required;
 
 # date, price, quantity
 has DateTime $.date is required;
@@ -19,12 +19,12 @@ has Nightscape::Entity::Holding::Basis::Depletion %.depletions{EntryID};
 # decrease units held in this basis lot
 method deplete(
     GreaterThanZero:D :$quantity!,
-    EntryID:D :$entry_id!,
-    DateTime:D :$acquisition_date!,
-    Price:D :$acquisition_price!,
-    AssetCode:D :$acquisition_price_asset_code!,
-    Price:D :$avco_at_expenditure!,
-    DateTime:D :$date_of_expenditure!
+    EntryID:D :$entry-id!,
+    DateTime:D :$acquisition-date!,
+    Price:D :$acquisition-price!,
+    AssetCode:D :$acquisition-price-asset-code!,
+    Price:D :$avco-at-expenditure!,
+    DateTime:D :$date-of-expenditure!
 )
 {
     # check for sufficient unit quantity of asset in holdings
@@ -35,7 +35,7 @@ method deplete(
 
     # check to make sure this EntryID hasn't previously expended this basis
     # lot, deplete should only be possible once per entry
-    if %.depletions{$entry_id}
+    if %.depletions{$entry-id}
     {
         die "Sorry, same EntryID previously depleted this basis lot.";
     }
@@ -44,13 +44,13 @@ method deplete(
     $!quantity -= $quantity;
 
     # record causal EntryID of depletion with quantity depleted
-    %!depletions{$entry_id} = Nightscape::Entity::Holding::Basis::Depletion.new(
-        :$entry_id,
-        :$acquisition_date,
-        :$acquisition_price,
-        :$acquisition_price_asset_code,
-        :$avco_at_expenditure,
-        :$date_of_expenditure,
+    %!depletions{$entry-id} = Nightscape::Entity::Holding::Basis::Depletion.new(
+        :$entry-id,
+        :$acquisition-date,
+        :$acquisition-price,
+        :$acquisition-price-asset-code,
+        :$avco-at-expenditure,
+        :$date-of-expenditure,
         :$quantity
     );
 }

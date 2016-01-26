@@ -5,7 +5,7 @@ use Nightscape::Types;
 unit class Nightscape::Entity::Holding;
 
 # asset code
-has AssetCode $.asset_code is required;
+has AssetCode $.asset-code is required;
 
 # average cost of units held
 has Price $.avco;
@@ -18,7 +18,7 @@ has Array[Nightscape::Entity::Holding::Taxes] %.taxes{EntryID};
 
 # increase entity's holdings
 method acquire(
-    EntryID:D :$entry_id!,
+    EntryID:D :$entry-id!,
     DateTime:D :$date!,
     Price:D :$price!,
     Quantity:D :$quantity! where * > 0
@@ -26,42 +26,42 @@ method acquire(
 {
     # add to holdings
     push @!basis, Nightscape::Entity::Holding::Basis.new(
-        :$entry_id,
+        :$entry-id,
         :$date,
         :$price,
         :$quantity
     );
 
     # update average cost
-    $!avco = self.gen_avco;
+    $!avco = self.gen-avco;
 }
 
 # decrease entity's holdings via AVCO/FIFO/LIFO inventory costing method
 method expend(
-    AssetCode:D :$asset_code!,
-    EntryID:D :$entry_id!,
+    AssetCode:D :$asset-code!,
+    EntryID:D :$entry-id!,
     DateTime:D :$date!,
     Costing:D :$costing!,
     Price:D :$price!,
-    AssetCode:D :$acquisition_price_asset_code!,
+    AssetCode:D :$acquisition-price-asset-code!,
     Quantity:D :$quantity! where * > 0
 )
 {
     # check for sufficient unit quantity of asset in holdings
-    unless self.in_stock($quantity)
+    unless self.in-stock($quantity)
     {
         say qq:to/EOF/;
         Sorry, cannot expend: found insufficient quantity of asset
         in holdings.
         EOF
-        die X::Nightscape::Entity::Holding::Expend::OutOfStock.new(:$entry_id);
+        die X::Nightscape::Entity::Holding::Expend::OutOfStock.new(:$entry-id);
     }
 
     # find array indices of Basis with sufficient units to expend,
     # starting from the beginning of the list for AVCO/FIFO, end of
     # the list for LIFO, along with the number of units to expend per
     # array index
-    my Quantity @targets = self.find_targets(:$costing, :$quantity);
+    my Quantity @targets = self.find-targets(:$costing, :$quantity);
 
     # deplete units in targeted basis lots
     # has side effect of recording capital gains/losses to %.taxes
@@ -83,20 +83,20 @@ method expend(
             my Nightscape::Entity::Holding::Basis $basis := @!basis[$i];
 
             # acquisition date
-            my DateTime $acquisition_date = $basis.date;
+            my DateTime $acquisition-date = $basis.date;
 
             # date of expenditure
-            my DateTime $date_of_expenditure = $date;
+            my DateTime $date-of-expenditure = $date;
 
             # try decreasing units by quantity
             $basis.deplete(
-                :$entry_id,
+                :$entry-id,
                 :quantity($qty),
-                :$acquisition_date,
-                :acquisition_price($basis.price),
-                :$acquisition_price_asset_code,
-                :avco_at_expenditure($.avco),
-                :$date_of_expenditure
+                :$acquisition-date,
+                :acquisition-price($basis.price),
+                :$acquisition-price-asset-code,
+                :avco-at-expenditure($.avco),
+                :$date-of-expenditure
             );
 
             # for calculating capital gains/losses
@@ -118,47 +118,47 @@ method expend(
             if $d > 0
             {
                 # record capital gains
-                my Quantity $capital_gains = FatRat($d.abs);
-                push %!taxes{$entry_id}, Nightscape::Entity::Holding::Taxes.new(
-                    :$entry_id,
-                    :$acquisition_date,
-                    :acquisition_price($basis.price),
-                    :$acquisition_price_asset_code,
-                    :avco_at_expenditure($.avco),
-                    :$date_of_expenditure,
-                    :$capital_gains,
-                    :quantity_expended($qty),
-                    :quantity_expended_asset_code($.asset_code)
+                my Quantity $capital-gains = FatRat($d.abs);
+                push %!taxes{$entry-id}, Nightscape::Entity::Holding::Taxes.new(
+                    :$entry-id,
+                    :$acquisition-date,
+                    :acquisition-price($basis.price),
+                    :$acquisition-price-asset-code,
+                    :avco-at-expenditure($.avco),
+                    :$date-of-expenditure,
+                    :$capital-gains,
+                    :quantity-expended($qty),
+                    :quantity-expended-asset-code($.asset-code)
                 );
             }
             elsif $d < 0
             {
                 # record capital losses
-                my Quantity $capital_losses = FatRat($d.abs);
-                push %!taxes{$entry_id}, Nightscape::Entity::Holding::Taxes.new(
-                    :$entry_id,
-                    :$acquisition_date,
-                    :acquisition_price($basis.price),
-                    :$acquisition_price_asset_code,
-                    :avco_at_expenditure($.avco),
-                    :$date_of_expenditure,
-                    :$capital_losses,
-                    :quantity_expended($qty),
-                    :quantity_expended_asset_code($.asset_code)
+                my Quantity $capital-losses = FatRat($d.abs);
+                push %!taxes{$entry-id}, Nightscape::Entity::Holding::Taxes.new(
+                    :$entry-id,
+                    :$acquisition-date,
+                    :acquisition-price($basis.price),
+                    :$acquisition-price-asset-code,
+                    :avco-at-expenditure($.avco),
+                    :$date-of-expenditure,
+                    :$capital-losses,
+                    :quantity-expended($qty),
+                    :quantity-expended-asset-code($.asset-code)
                 );
             }
             else
             {
                 # no gains or losses to report
-                push %!taxes{$entry_id}, Nightscape::Entity::Holding::Taxes.new(
-                    :$entry_id,
-                    :$acquisition_date,
-                    :acquisition_price($basis.price),
-                    :$acquisition_price_asset_code,
-                    :avco_at_expenditure($.avco),
-                    :$date_of_expenditure,
-                    :quantity_expended($qty),
-                    :quantity_expended_asset_code($.asset_code)
+                push %!taxes{$entry-id}, Nightscape::Entity::Holding::Taxes.new(
+                    :$entry-id,
+                    :$acquisition-date,
+                    :acquisition-price($basis.price),
+                    :$acquisition-price-asset-code,
+                    :avco-at-expenditure($.avco),
+                    :$date-of-expenditure,
+                    :quantity-expended($qty),
+                    :quantity-expended-asset-code($.asset-code)
                 );
             }
         }
@@ -169,7 +169,7 @@ method expend(
 }
 
 # identify unit quantities to be expended, indexed by @.basis array index
-method find_targets(
+method find-targets(
     Costing:D :$costing!,
     Quantity:D :$quantity! where * > 0
 ) returns Array[Quantity] # returned Quantity can be undefined in cases where basis array index is skipped
@@ -229,20 +229,20 @@ method find_targets(
 }
 
 # calculate average cost of current holdings
-method gen_avco() returns Price:D
+method gen-avco() returns Price:D
 {
     # calculate total value of units held
-    my Price $value = self.get_total_value;
+    my Price $value = self.get-total-value;
 
     # calculate total quantity of units held
-    my Quantity $quantity = self.get_total_quantity;
+    my Quantity $quantity = self.get-total-quantity;
 
     # weighted average cost
     my Price $avco = FatRat($value / $quantity);
 }
 
 # calculate total quantity of units held
-method get_total_quantity(
+method get-total-quantity(
     Nightscape::Entity::Holding::Basis:D :@basis is readonly = @.basis
 ) returns Quantity:D
 {
@@ -253,7 +253,7 @@ method get_total_quantity(
 # calculate total value of units held
 # by default assumes price paid at acquisition
 # pass :market for market price (NYI)
-method get_total_value(
+method get-total-value(
     Nightscape::Entity::Holding::Basis:D :@basis is readonly = @.basis,
     Bool :$market
 ) returns Price:D
@@ -263,9 +263,9 @@ method get_total_value(
 }
 
 # check for sufficient unit quantity of asset in holdings
-method in_stock(Quantity:D $quantity) returns Bool:D
+method in-stock(Quantity:D $quantity) returns Bool:D
 {
-    $quantity <= self.get_total_quantity ?? True !! False;
+    $quantity <= self.get-total-quantity ?? True !! False;
 }
 
 # vim: ft=perl6

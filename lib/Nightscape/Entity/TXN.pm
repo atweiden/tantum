@@ -8,26 +8,26 @@ unit class Nightscape::Entity::TXN;
 has VarName $.entity is required;
 
 # causal EntryID
-has EntryID $.entry_id is required;
+has EntryID $.entry-id is required;
 
 # transaction drift (error margin)
-has FatRat $.drift = self.get_drift.keys[0];
+has FatRat $.drift = self.get-drift.keys[0];
 
 # holdings acquisitions and expenditures indexed by asset, in entry
-has Nightscape::Entity::TXN::ModHolding %.mod_holdings{AssetCode};
+has Nightscape::Entity::TXN::ModHolding %.mod-holdings{AssetCode};
 
 # wallet balance modification instructions per posting, in entry
-has Nightscape::Entity::TXN::ModWallet @.mod_wallet is required;
+has Nightscape::Entity::TXN::ModWallet @.mod-wallet is required;
 
 # calculate drift (error margin) present in this TXN's ModWallet array
-method get_drift(
-    Nightscape::Entity::TXN::ModWallet:D :@mod_wallet is readonly =
-        @.mod_wallet
+method get-drift(
+    Nightscape::Entity::TXN::ModWallet:D :@mod-wallet is readonly =
+        @.mod-wallet
 ) returns Hash[Hash[FatRat:D,AcctName:D],FatRat:D]
 {
     my Hash[FatRat:D,AcctName:D] %drift{FatRat:D};
     my FatRat:D $drift = FatRat(0.0);
-    my FatRat:D %raw_value_by_acct_name{AcctName:D};
+    my FatRat:D %raw-value-by-acct-name{AcctName:D};
 
     # Assets + Expenses = Income + Liabilities + Equity
     my Int %multiplier{Silo} =
@@ -37,25 +37,25 @@ method get_drift(
         ::(LIABILITIES) => -1,
         ::(EQUITY) => -1;
 
-    for @mod_wallet -> $mod_wallet
+    for @mod-wallet -> $mod-wallet
     {
         # get AcctName
-        my AcctName $acct_name = $mod_wallet.get_acct_name;
+        my AcctName $acct-name = $mod-wallet.get-acct-name;
 
         # get Silo
-        my Silo $silo = $mod_wallet.silo;
+        my Silo $silo = $mod-wallet.silo;
 
         # get subtotal raw value
-        my FatRat $raw_value = $mod_wallet.get_raw_value;
+        my FatRat $raw-value = $mod-wallet.get-raw-value;
 
         # add subtotal raw value to causal acct name index
-        %raw_value_by_acct_name{$acct_name} += $raw_value;
+        %raw-value-by-acct-name{$acct-name} += $raw-value;
 
         # add subtotal raw value to drift
-        $drift += $raw_value * %multiplier{$silo};
+        $drift += $raw-value * %multiplier{$silo};
     }
 
-    %drift{$drift} = $%raw_value_by_acct_name;
+    %drift{$drift} = $%raw-value-by-acct-name;
     %drift;
 }
 

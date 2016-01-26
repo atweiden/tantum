@@ -6,62 +6,62 @@ unit class Nightscape::Entity::TXN::ModWallet;
 has VarName $.entity is required;
 
 # causal EntryID
-has EntryID $.entry_id is required;
+has EntryID $.entry-id is required;
 
 # causal PostingID
-has PostingID $.posting_id is required;
+has PostingID $.posting-id is required;
 
 # account
 has Silo $.silo is required;
 has VarName @.subwallet;
 
 # amount
-has AssetCode $.asset_code is required;
+has AssetCode $.asset-code is required;
 has DecInc $.decinc is required;
 has Quantity $.quantity is required;
 
 # xe
-has AssetCode $.xe_asset_code;
-has Quantity $.xe_asset_quantity;
+has AssetCode $.xe-asset-code;
+has Quantity $.xe-asset-quantity;
 
 # get AcctName
-method get_acct_name() returns AcctName:D
+method get-acct-name() returns AcctName:D
 {
     my VarName @path = ~$.silo, |@.subwallet.grep({.defined});
-    my AcctName $acct_name = @path.join(':');
+    my AcctName $acct-name = @path.join(':');
 }
 
 # get value of TXN::ModWallet in entity base currency
-method get_value() returns Quantity:D
+method get-value() returns Quantity:D
 {
     # TXN::ModWallet value in entity base currency
     my Quantity $value;
 
     # entity base currency
-    my AssetCode $entity_base_currency = $GLOBAL::CONF.resolve_base_currency(
+    my AssetCode $entity-base-currency = $GLOBAL::CONF.resolve-base-currency(
         $.entity
     );
 
     # is it necessary to search for an exchange rate?
-    if $.asset_code !eq $entity_base_currency
+    if $.asset-code !eq $entity-base-currency
     {
         # is an exchange rate given in the TXN?
-        if $.xe_asset_quantity
+        if $.xe-asset-quantity
         {
             # try calculating value in base currency
-            if $.xe_asset_code eq $entity_base_currency
+            if $.xe-asset-code eq $entity-base-currency
             {
-                $value = $.quantity * $.xe_asset_quantity;
+                $value = $.quantity * $.xe-asset-quantity;
             }
             else
             {
-                die "Sorry, TXN::ModWallet xe_asset_code did not match
+                die "Sorry, TXN::ModWallet xe-asset-code did not match
                      entity base currency asset code";
             }
         }
         else
         {
-            die "Sorry, missing xe_asset_quantity in TXN::ModWallet of
+            die "Sorry, missing xe-asset-quantity in TXN::ModWallet of
                  aux asset";
         }
     }
@@ -75,16 +75,16 @@ method get_value() returns Quantity:D
 }
 
 # deconstruct value of TXN::ModWallet into ٍ± FatRat
-method get_raw_value() returns FatRat:D
+method get-raw-value() returns FatRat:D
 {
     # get DecInc
     my DecInc $decinc = $.decinc;
 
     # get value
-    my Quantity $value = self.get_value;
+    my Quantity $value = self.get-value;
 
     # convert to raw FatRat value
-    my FatRat $raw_value = $decinc ~~ INC ?? $value !! -$value;
+    my FatRat $raw-value = $decinc ~~ INC ?? $value !! -$value;
 }
 
 # vim: ft=perl6

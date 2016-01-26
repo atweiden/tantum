@@ -3,75 +3,75 @@ use Nightscape::Types;
 unit class Nightscape::Entity::Wallet::Changeset;
 
 # Δ ± balance
-has FatRat $.balance_delta is required;
+has FatRat $.balance-delta is required;
 
 # self-referential asset code of this balance delta
-has AssetCode $.balance_delta_asset_code is required;
+has AssetCode $.balance-delta-asset-code is required;
 
 # causal EntryID
-has EntryID $.entry_id is required;
+has EntryID $.entry-id is required;
 
 # causal PostingID
-has PostingID $.posting_id is required;
+has PostingID $.posting-id is required;
 
 # causal posting's exchange rate asset code, if given
-has AssetCode $.xe_asset_code;
+has AssetCode $.xe-asset-code;
 
 # causal posting's exchange rate asset quantity, if given
-has Quantity $.xe_asset_quantity;
+has Quantity $.xe-asset-quantity;
 
-# update balance_delta in-place
-method mkbalance_delta(FatRat:D :$balance_delta!, Bool :$force)
+# update balance-delta in-place
+method mkbalance-delta(FatRat:D :$balance-delta!, Bool :$force)
 {
-    # update $.balance_delta in-place
+    # update $.balance-delta in-place
     sub init()
     {
-        $!balance_delta = $balance_delta;
+        $!balance-delta = $balance-delta;
     }
 
     # was :force arg passed to the method?
     if $force
     {
-        # update $.balance_delta in-place
+        # update $.balance-delta in-place
         init();
     }
-    # does $.balance_delta exist?
-    elsif $.balance_delta
+    # does $.balance-delta exist?
+    elsif $.balance-delta
     {
-        # error: balance_delta exists, pass :force arg to overwrite
-        die "Sorry, can't overwrite existing balance_delta";
+        # error: balance-delta exists, pass :force arg to overwrite
+        die "Sorry, can't overwrite existing balance-delta";
     }
     else
     {
-        # update $.balance_delta in-place
+        # update $.balance-delta in-place
         init();
     }
 }
 
-# update xe_asset_quantity in-place
-method mkxeaq(Quantity:D :$xe_asset_quantity!, Bool :$force)
+# update xe-asset-quantity in-place
+method mkxeaq(Quantity:D :$xe-asset-quantity!, Bool :$force)
 {
-    # update $.xe_asset_quantity in-place
+    # update $.xe-asset-quantity in-place
     sub init()
     {
-        $!xe_asset_quantity = $xe_asset_quantity;
+        $!xe-asset-quantity = $xe-asset-quantity;
     }
 
     # was :force arg passed to the method?
     if $force
     {
-        # update $.xe_asset_quantity in-place
+        # update $.xe-asset-quantity in-place
         init();
     }
-    # does $.xe_asset_quantity exist?
-    elsif $.xe_asset_quantity
+    # does $.xe-asset-quantity exist?
+    elsif $.xe-asset-quantity
     {
-        # error: xe_asset_quantity exists, pass :force arg to overwrite
-        die "Sorry, can't overwrite existing xe_asset_quantity";
+        # error: xe-asset-quantity exists, pass :force arg to overwrite
+        die "Sorry, can't overwrite existing xe-asset-quantity";
     }
     else
     {
-        # update $.xe_asset_quantity in-place
+        # update $.xe-asset-quantity in-place
         init();
     }
 }

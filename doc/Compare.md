@@ -113,10 +113,10 @@ The most active and innovative reimplementation of Ledger.
       sources, e.g.:
 
     [Price Feed]
-    currency_pair
-    data_location
-    data_source (optional)
-    date_range (optional)
+    currency-pair
+    data-location
+    data-source (optional)
+    date-range (optional)
     tag (optional)
 
 - Other options that should be recorded in INI config file

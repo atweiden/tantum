@@ -7,8 +7,8 @@ use Nightscape::Types;
 
 plan 2;
 
-my Str $config_file = "t/data/sample.conf";
-our $CONF = Nightscape::Config.new(:$config_file);
+my Str $config-file = "t/data/sample.conf";
+our $CONF = Nightscape::Config.new(:$config-file);
 
 # prepare assets and entities for transaction journal parsing
 {
@@ -17,45 +17,45 @@ our $CONF = Nightscape::Config.new(:$config_file);
     try
     {
         use Config::TOML;
-        my Str $toml_text = slurp $CONF.config_file
-            or die "Sorry, couldn't read config file: ", $CONF.config_file;
+        my Str $toml-text = slurp $CONF.config-file
+            or die "Sorry, couldn't read config file: ", $CONF.config-file;
         # assume UTC when local offset unspecified in TOML dates
-        %toml = from-toml($toml_text, :date-local-offset(0));
+        %toml = from-toml($toml-text, :date-local-offset(0));
         CATCH
         {
             say "Sorry, couldn't parse TOML syntax in config file: ",
-                $CONF.config_file;
+                $CONF.config-file;
         }
     }
 
     # set base currency
-    $CONF.base_currency = %toml<base-currency> if %toml<base-currency>;
+    $CONF.base-currency = %toml<base-currency> if %toml<base-currency>;
 
     # set base costing method
-    $CONF.base_costing = %toml<base-costing> if %toml<base-costing>;
+    $CONF.base-costing = %toml<base-costing> if %toml<base-costing>;
 
     # populate asset settings
-    my %assets_found = Nightscape::Config.detoml_assets(%toml);
-    if %assets_found
+    my %assets-found = Nightscape::Config.detoml-assets(%toml);
+    if %assets-found
     {
-        for %assets_found.kv -> $asset_code, $asset_data
+        for %assets-found.kv -> $asset-code, $asset-data
         {
-            $CONF.assets{$asset_code} = Nightscape::Config.gen_settings(
-                :$asset_code,
-                :$asset_data
+            $CONF.assets{$asset-code} = Nightscape::Config.gen-settings(
+                :$asset-code,
+                :$asset-data
             );
         }
     }
 
     # populate entity settings
-    my %entities_found = Nightscape::Config.detoml_entities(%toml);
-    if %entities_found
+    my %entities-found = Nightscape::Config.detoml-entities(%toml);
+    if %entities-found
     {
-        for %entities_found.kv -> $entity_name, $entity_data
+        for %entities-found.kv -> $entity-name, $entity-data
         {
-            $CONF.entities{$entity_name} = Nightscape::Config.gen_settings(
-                :$entity_name,
-                :$entity_data
+            $CONF.entities{$entity-name} = Nightscape::Config.gen-settings(
+                :$entity-name,
+                :$entity-data
             );
         }
     }
@@ -67,7 +67,7 @@ my Nightscape::Entry @entries;
 
 if $file.IO.e
 {
-    @entries = Nightscape.ls_entries(:$file, :sort);
+    @entries = Nightscape.ls-entries(:$file, :sort);
 }
 else
 {
@@ -76,19 +76,19 @@ else
 
 {
     # list unique entity names
-    my VarName @entity_names = Nightscape.ls_entity_names(:@entries);
-    for @entity_names -> $entity_name
+    my VarName @entity-names = Nightscape.ls-entity-names(:@entries);
+    for @entity-names -> $entity-name
     {
         # get entries by Entity
-        my Nightscape::Entry @entries_entity = Nightscape.ls_entries(
+        my Nightscape::Entry @entries-entity = Nightscape.ls-entries(
             :@entries,
-            :entity(/$entity_name/)
+            :entity(/$entity-name/)
         );
 
         # instantiate Entity
         my Nightscape::Entity $entity .= new(
-            :$entity_name,
-            :entries(@entries_entity)
+            :$entity-name,
+            :entries(@entries-entity)
         );
 
         # instantiate transactions by Entity
@@ -105,97 +105,97 @@ else
 
         # say 'Entity.wallet';
         # say '[Assets]';
-        # say 'Assets.USD: USD ', $entity.wallet{ASSETS}.get_balance(
-        #     :asset_code("USD"),
+        # say 'Assets.USD: USD ', $entity.wallet{ASSETS}.get-balance(
+        #     :asset-code("USD"),
         #     :recursive
         # );
-        # say 'Assets.LTC: USD ', $entity.wallet{ASSETS}.get_balance(
-        #     :asset_code("LTC"),
-        #     :base_currency("USD"),
+        # say 'Assets.LTC: USD ', $entity.wallet{ASSETS}.get-balance(
+        #     :asset-code("LTC"),
+        #     :base-currency("USD"),
         #     :recursive
-        # ), ' 「LTC ', $entity.wallet{ASSETS}.get_balance(
-        #     :asset_code("LTC"),
+        # ), ' 「LTC ', $entity.wallet{ASSETS}.get-balance(
+        #     :asset-code("LTC"),
         #     :recursive
         # ), '」';
 
         # say '';
         # say '[Income]';
-        # say 'Income.USD: USD ', $entity.wallet{INCOME}.get_balance(
-        #     :asset_code("USD"),
+        # say 'Income.USD: USD ', $entity.wallet{INCOME}.get-balance(
+        #     :asset-code("USD"),
         #     :recursive
         # );
-        # say 'Income.LTC: USD ', $entity.wallet{INCOME}.get_balance(
-        #     :asset_code("LTC"),
-        #     :base_currency("USD"),
+        # say 'Income.LTC: USD ', $entity.wallet{INCOME}.get-balance(
+        #     :asset-code("LTC"),
+        #     :base-currency("USD"),
         #     :recursive
-        # ), ' 「LTC ', $entity.wallet{INCOME}.get_balance(
-        #     :asset_code("LTC"),
+        # ), ' 「LTC ', $entity.wallet{INCOME}.get-balance(
+        #     :asset-code("LTC"),
         #     :recursive
         # ), '」';
 
         # say '';
         # say '[Equity]';
-        # say 'Equity.USD: USD ', $entity.wallet{EQUITY}.get_balance(
-        #     :asset_code("USD"),
+        # say 'Equity.USD: USD ', $entity.wallet{EQUITY}.get-balance(
+        #     :asset-code("USD"),
         #     :recursive
         # );
-        # say 'Equity.LTC: USD ', $entity.wallet{EQUITY}.get_balance(
-        #     :asset_code("LTC"),
-        #     :base_currency("USD"),
+        # say 'Equity.LTC: USD ', $entity.wallet{EQUITY}.get-balance(
+        #     :asset-code("LTC"),
+        #     :base-currency("USD"),
         #     :recursive
-        # ), ' 「LTC ', $entity.wallet{EQUITY}.get_balance(
-        #     :asset_code("LTC"),
+        # ), ' 「LTC ', $entity.wallet{EQUITY}.get-balance(
+        #     :asset-code("LTC"),
         #     :recursive
         # ), '」';
 
         # say "\n" x 3;
         # say '[Assets]';
-        # say 'Assets.USD: USD ', $entity.coa.wllt{ASSETS}.get_balance(
-        #     :asset_code("USD"),
+        # say 'Assets.USD: USD ', $entity.coa.wllt{ASSETS}.get-balance(
+        #     :asset-code("USD"),
         #     :recursive
         # );
-        # say 'Assets.LTC: USD ', $entity.coa.wllt{ASSETS}.get_balance(
-        #     :asset_code("LTC"),
-        #     :base_currency("USD"),
+        # say 'Assets.LTC: USD ', $entity.coa.wllt{ASSETS}.get-balance(
+        #     :asset-code("LTC"),
+        #     :base-currency("USD"),
         #     :recursive
-        # ), ' 「LTC ', $entity.coa.wllt{ASSETS}.get_balance(
-        #     :asset_code("LTC"),
+        # ), ' 「LTC ', $entity.coa.wllt{ASSETS}.get-balance(
+        #     :asset-code("LTC"),
         #     :recursive
         # ), '」';
 
         # say '';
         # say '[Income]';
-        # say 'Income.USD: USD ', $entity.coa.wllt{INCOME}.get_balance(
-        #     :asset_code("USD"),
+        # say 'Income.USD: USD ', $entity.coa.wllt{INCOME}.get-balance(
+        #     :asset-code("USD"),
         #     :recursive
         # );
-        # say 'Income.LTC: USD ', $entity.coa.wllt{INCOME}.get_balance(
-        #     :asset_code("LTC"),
-        #     :base_currency("USD"),
+        # say 'Income.LTC: USD ', $entity.coa.wllt{INCOME}.get-balance(
+        #     :asset-code("LTC"),
+        #     :base-currency("USD"),
         #     :recursive
-        # ), ' 「LTC ', $entity.coa.wllt{INCOME}.get_balance(
-        #     :asset_code("LTC"),
+        # ), ' 「LTC ', $entity.coa.wllt{INCOME}.get-balance(
+        #     :asset-code("LTC"),
         #     :recursive
         # ), '」';
 
         # say '';
         # say '[Equity]';
-        # say 'Equity.USD: USD ', $entity.coa.wllt{EQUITY}.get_balance(
-        #     :asset_code("USD"),
+        # say 'Equity.USD: USD ', $entity.coa.wllt{EQUITY}.get-balance(
+        #     :asset-code("USD"),
         #     :recursive
         # );
-        # say 'Equity.LTC: USD ', $entity.coa.wllt{EQUITY}.get_balance(
-        #     :asset_code("LTC"),
-        #     :base_currency("USD"),
+        # say 'Equity.LTC: USD ', $entity.coa.wllt{EQUITY}.get-balance(
+        #     :asset-code("LTC"),
+        #     :base-currency("USD"),
         #     :recursive
-        # ), ' 「LTC ', $entity.coa.wllt{EQUITY}.get_balance(
-        #     :asset_code("LTC"),
+        # ), ' 「LTC ', $entity.coa.wllt{EQUITY}.get-balance(
+        #     :asset-code("LTC"),
         #     :recursive
         # ), '」';
     }
 }
 
-# say "Entity: ", @entities[0].entity_name;
+# say "Entity: ", @entities[0].entity-name;
 # say $_.perl for @entities[0].tree(:wallet(@entities[0].coa.wllt));
 
 # if drift is negative, then INCOME + LIABILITIES + EQUITY outweighs
@@ -203,22 +203,22 @@ else
 # -1 multiplier
 my FatRat $drift = [+] (.drift for @entities[0].transactions);
 
-my FatRat %balance{Silo} = @entities[0].get_eqbal(
+my FatRat %balance{Silo} = @entities[0].get-eqbal(
     :wallet(@entities[0].coa.wllt)
     :acct(@entities[0].coa.acct)
 );
 # say "Entity.coa.wllt eqbal: ", %balance.perl;
 
-# my FatRat %balance_orig{Silo} = @entities[0].get_eqbal(
+# my FatRat %balance-orig{Silo} = @entities[0].get-eqbal(
 #     :wallet(@entities[0].wallet)
 # );
-# say "Entity.wallet eqbal: ", %balance_orig.perl;
+# say "Entity.wallet eqbal: ", %balance-orig.perl;
 
 is(
     %balance{ASSETS} + %balance{EXPENSES},
     %balance{INCOME} + %balance{LIABILITIES} + %balance{EQUITY},
     q:to/EOF/
-    ♪ [get_eqbal] - 1 of 2
+    ♪ [get-eqbal] - 1 of 2
     ┏━━━━━━━━━━━━━┓
     ┃             ┃  ∙ Fundamental accounting equation balances,
     ┃   Success   ┃    as expected.
@@ -232,36 +232,36 @@ is(
 # say "\n" x 3;
 # say @entities[0].coa.wllt.perl;
 
-my Str $file_advanced = "t/data/bad-form-multi-topic.txn";
-my Nightscape::Entity @entities_advanced;
-my Nightscape::Entry @entries_advanced;
+my Str $file-advanced = "t/data/bad-form-multi-topic.txn";
+my Nightscape::Entity @entities-advanced;
+my Nightscape::Entry @entries-advanced;
 
-if $file_advanced.IO.e
+if $file-advanced.IO.e
 {
-    @entries_advanced = Nightscape.ls_entries(:file($file_advanced), :sort);
+    @entries-advanced = Nightscape.ls-entries(:file($file-advanced), :sort);
 }
 else
 {
-    die "Sorry, couldn't locate file: $file_advanced";
+    die "Sorry, couldn't locate file: $file-advanced";
 }
 
 {
     # list unique entity names
-    my VarName @entity_names = Nightscape.ls_entity_names(
-        :entries(@entries_advanced)
+    my VarName @entity-names = Nightscape.ls-entity-names(
+        :entries(@entries-advanced)
     );
-    for @entity_names -> $entity_name
+    for @entity-names -> $entity-name
     {
         # get entries by Entity
-        my Nightscape::Entry @entries_entity = Nightscape.ls_entries(
-            :entries(@entries_advanced),
-            :entity(/$entity_name/)
+        my Nightscape::Entry @entries-entity = Nightscape.ls-entries(
+            :entries(@entries-advanced),
+            :entity(/$entity-name/)
         );
 
         # instantiate Entity
         my Nightscape::Entity $entity .= new(
-            :$entity_name,
-            :entries(@entries_entity)
+            :$entity-name,
+            :entries(@entries-entity)
         );
 
         # instantiate transactions by Entity
@@ -274,120 +274,120 @@ else
         $entity.mkcoa;
 
         # store entity
-        push @entities_advanced, $entity;
+        push @entities-advanced, $entity;
 
         # say 'Entity.wallet';
         # say '[Assets]';
-        # say 'Assets.USD: USD ', $entity.wallet{ASSETS}.get_balance(
-        #     :asset_code("USD"),
+        # say 'Assets.USD: USD ', $entity.wallet{ASSETS}.get-balance(
+        #     :asset-code("USD"),
         #     :recursive
         # );
-        # say 'Assets.BTC: USD ', $entity.wallet{ASSETS}.get_balance(
-        #     :asset_code("BTC"),
-        #     :base_currency("USD"),
+        # say 'Assets.BTC: USD ', $entity.wallet{ASSETS}.get-balance(
+        #     :asset-code("BTC"),
+        #     :base-currency("USD"),
         #     :recursive
-        # ), ' 「BTC ', $entity.wallet{ASSETS}.get_balance(
-        #     :asset_code("BTC"),
+        # ), ' 「BTC ', $entity.wallet{ASSETS}.get-balance(
+        #     :asset-code("BTC"),
         #     :recursive
         # ), '」';
 
         # say '';
         # say '[Income]';
-        # say 'Income.USD: USD ', $entity.wallet{INCOME}.get_balance(
-        #     :asset_code("USD"),
+        # say 'Income.USD: USD ', $entity.wallet{INCOME}.get-balance(
+        #     :asset-code("USD"),
         #     :recursive
         # );
-        # say 'Income.BTC: USD ', $entity.wallet{INCOME}.get_balance(
-        #     :asset_code("BTC"),
-        #     :base_currency("USD"),
+        # say 'Income.BTC: USD ', $entity.wallet{INCOME}.get-balance(
+        #     :asset-code("BTC"),
+        #     :base-currency("USD"),
         #     :recursive
-        # ), ' 「BTC ', $entity.wallet{INCOME}.get_balance(
-        #     :asset_code("BTC"),
+        # ), ' 「BTC ', $entity.wallet{INCOME}.get-balance(
+        #     :asset-code("BTC"),
         #     :recursive
         # ), '」';
 
         # say '';
         # say '[Equity]';
-        # say 'Equity.USD: USD ', $entity.wallet{EQUITY}.get_balance(
-        #     :asset_code("USD"),
+        # say 'Equity.USD: USD ', $entity.wallet{EQUITY}.get-balance(
+        #     :asset-code("USD"),
         #     :recursive
         # );
-        # say 'Equity.BTC: USD ', $entity.wallet{EQUITY}.get_balance(
-        #     :asset_code("BTC"),
-        #     :base_currency("USD"),
+        # say 'Equity.BTC: USD ', $entity.wallet{EQUITY}.get-balance(
+        #     :asset-code("BTC"),
+        #     :base-currency("USD"),
         #     :recursive
-        # ), ' 「BTC ', $entity.wallet{EQUITY}.get_balance(
-        #     :asset_code("BTC"),
+        # ), ' 「BTC ', $entity.wallet{EQUITY}.get-balance(
+        #     :asset-code("BTC"),
         #     :recursive
         # ), '」';
 
         # say "\n" x 3;
         # say '[Assets]';
-        # say 'Assets.USD: USD ', $entity.coa.wllt{ASSETS}.get_balance(
-        #     :asset_code("USD"),
+        # say 'Assets.USD: USD ', $entity.coa.wllt{ASSETS}.get-balance(
+        #     :asset-code("USD"),
         #     :recursive
         # );
-        # say 'Assets.BTC: USD ', $entity.coa.wllt{ASSETS}.get_balance(
-        #     :asset_code("BTC"),
-        #     :base_currency("USD"),
+        # say 'Assets.BTC: USD ', $entity.coa.wllt{ASSETS}.get-balance(
+        #     :asset-code("BTC"),
+        #     :base-currency("USD"),
         #     :recursive
-        # ), ' 「BTC ', $entity.coa.wllt{ASSETS}.get_balance(
-        #     :asset_code("BTC"),
+        # ), ' 「BTC ', $entity.coa.wllt{ASSETS}.get-balance(
+        #     :asset-code("BTC"),
         #     :recursive
         # ), '」';
 
         # say '';
         # say '[Income]';
-        # say 'Income.USD: USD ', $entity.coa.wllt{INCOME}.get_balance(
-        #     :asset_code("USD"),
+        # say 'Income.USD: USD ', $entity.coa.wllt{INCOME}.get-balance(
+        #     :asset-code("USD"),
         #     :recursive
         # );
-        # say 'Income.BTC: USD ', $entity.coa.wllt{INCOME}.get_balance(
-        #     :asset_code("BTC"),
-        #     :base_currency("USD"),
+        # say 'Income.BTC: USD ', $entity.coa.wllt{INCOME}.get-balance(
+        #     :asset-code("BTC"),
+        #     :base-currency("USD"),
         #     :recursive
-        # ), ' 「BTC ', $entity.coa.wllt{INCOME}.get_balance(
-        #     :asset_code("BTC"),
+        # ), ' 「BTC ', $entity.coa.wllt{INCOME}.get-balance(
+        #     :asset-code("BTC"),
         #     :recursive
         # ), '」';
 
         # say '';
         # say '[Equity]';
-        # say 'Equity.USD: USD ', $entity.coa.wllt{EQUITY}.get_balance(
-        #     :asset_code("USD"),
+        # say 'Equity.USD: USD ', $entity.coa.wllt{EQUITY}.get-balance(
+        #     :asset-code("USD"),
         #     :recursive
         # );
-        # say 'Equity.BTC: USD ', $entity.coa.wllt{EQUITY}.get_balance(
-        #     :asset_code("BTC"),
-        #     :base_currency("USD"),
+        # say 'Equity.BTC: USD ', $entity.coa.wllt{EQUITY}.get-balance(
+        #     :asset-code("BTC"),
+        #     :base-currency("USD"),
         #     :recursive
-        # ), ' 「BTC ', $entity.coa.wllt{EQUITY}.get_balance(
-        #     :asset_code("BTC"),
+        # ), ' 「BTC ', $entity.coa.wllt{EQUITY}.get-balance(
+        #     :asset-code("BTC"),
         #     :recursive
         # ), '」';
     }
 }
 
-# say $_.perl for @entities_advanced[0].tree(:wallet(@entities_advanced[0].coa.wllt));
+# say $_.perl for @entities-advanced[0].tree(:wallet(@entities-advanced[0].coa.wllt));
 
-my FatRat $drift_advanced = [+] (.drift for @entities_advanced[0].transactions);
-my FatRat %balance_advanced{Silo} = @entities_advanced[0].get_eqbal(
-    :wallet(@entities_advanced[0].coa.wllt)
-    :acct(@entities_advanced[0].coa.acct)
+my FatRat $drift-advanced = [+] (.drift for @entities-advanced[0].transactions);
+my FatRat %balance-advanced{Silo} = @entities-advanced[0].get-eqbal(
+    :wallet(@entities-advanced[0].coa.wllt)
+    :acct(@entities-advanced[0].coa.acct)
 );
-# say "Entity.coa.wllt eqbal: ", %balance_advanced.perl;
+# say "Entity.coa.wllt eqbal: ", %balance-advanced.perl;
 
-# my FatRat %balance_advanced_orig{Silo} = @entities_advanced[0].get_eqbal(
-#     :wallet(@entities_advanced[0].wallet)
+# my FatRat %balance-advanced-orig{Silo} = @entities-advanced[0].get-eqbal(
+#     :wallet(@entities-advanced[0].wallet)
 # );
-# say "Entity.wallet eqbal: ", %balance_advanced_orig.perl;
+# say "Entity.wallet eqbal: ", %balance-advanced-orig.perl;
 
 is(
-    %balance_advanced{ASSETS} + %balance_advanced{EXPENSES},
-    %balance_advanced{INCOME} + %balance_advanced{LIABILITIES}
-        + %balance_advanced{EQUITY} + $drift_advanced,
+    %balance-advanced{ASSETS} + %balance-advanced{EXPENSES},
+    %balance-advanced{INCOME} + %balance-advanced{LIABILITIES}
+        + %balance-advanced{EQUITY} + $drift-advanced,
     q:to/EOF/
-    ♪ [get_eqbal] - 2 of 2
+    ♪ [get-eqbal] - 2 of 2
     ┏━━━━━━━━━━━━━┓
     ┃             ┃  ∙ Fundamental accounting equation balances,
     ┃   Success   ┃    as expected.
@@ -396,8 +396,8 @@ is(
     EOF
 );
 
-# say @entities_advanced[0].wallet.perl;
+# say @entities-advanced[0].wallet.perl;
 # say "\n" x 3;
-# say @entities_advanced[0].coa.wllt.perl;
+# say @entities-advanced[0].coa.wllt.perl;
 
 # vim: ft=perl6

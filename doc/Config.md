@@ -134,7 +134,7 @@ foreign currencies or cryptocurrencies that appear in the transaction
 journal.
 
 Each `Assets` config section header must be written in the form `Assets`
-`.` `asset_code_1` `.` `Prices` `.` `asset_code_2`. For example,
+`.` `asset-code-1` `.` `Prices` `.` `asset-code-2`. For example,
 `Assets.BTC.Prices.USD` reads:
 
 > The asset BTC, with prices in USD

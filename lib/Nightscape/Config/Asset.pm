@@ -3,7 +3,7 @@ use Nightscape::Types;
 unit class Nightscape::Config::Asset;
 
 # asset code
-has AssetCode $.asset_code is required;
+has AssetCode $.asset-code is required;
 
 # inventory valuation method (AVCO, FIFO, LIFO)
 has Costing $.costing;

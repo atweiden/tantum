@@ -4,13 +4,13 @@ use Nightscape::Types;
 unit class Nightscape::Config::Entity;
 
 # entity name
-has VarName $.entity_name is required;
+has VarName $.entity-name is required;
 
 # entity base asset costing method
-has Costing $.base_costing;
+has Costing $.base-costing;
 
 # entity base currency
-has AssetCode $.base_currency;
+has AssetCode $.base-currency;
 
 # open date range
 has Range $.open;

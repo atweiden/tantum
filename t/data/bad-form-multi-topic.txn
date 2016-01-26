@@ -25,7 +25,7 @@
   ASSETS:Personal:BitBrokerC           -18 BTC @ 0.3 USD
 
 # asset sale in transaction journal entry
-# this transaction journal EntryID == $tax_id
+# this transaction journal EntryID == $tax-id
 2012-10-26 "I sold 48 BTC at a price of $10.00 USD/BTC"
   ASSETS:Personal:Bankwest:Cheque       480 USD
   ASSETS:Personal:ColdStorage:Bread    -8 BTC @ 10 USD

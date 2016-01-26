@@ -6,12 +6,12 @@ has AcctName $.name is required;
 has VarName @.path is required;
 
 # which assets were handled?
-has AssetCode:D @.assets_handled;                          # Wallet.ls_assets();
+has AssetCode:D @.assets-handled;                          # Wallet.ls-assets();
 
 # which IDs were handled?
-has Array[EntryID:D] %.entry_ids_by_asset{AssetCode};      # Wallet.ls_assets_with_ids();
-has EntryID:D @.entry_ids_handled;                         # Wallet.ls_ids();
-has Array[PostingID] %.posting_ids_by_asset{AssetCode};    # Wallet.ls_assets_with_ids(:posting);
-has PostingID @.posting_ids_handled;                       # Wallet.ls_ids(:posting);
+has Array[EntryID:D] %.entry-ids-by-asset{AssetCode};      # Wallet.ls-assets-with-ids();
+has EntryID:D @.entry-ids-handled;                         # Wallet.ls-ids();
+has Array[PostingID] %.posting-ids-by-asset{AssetCode};    # Wallet.ls-assets-with-ids(:posting);
+has PostingID @.posting-ids-handled;                       # Wallet.ls-ids(:posting);
 
 # vim: ft=perl6

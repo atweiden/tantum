@@ -10,7 +10,7 @@ my Nightscape::Entry @entries;
 
 if $file.IO.e
 {
-    @entries = Nightscape.ls_entries(:$file, :sort);
+    @entries = Nightscape.ls-entries(:$file, :sort);
 }
 else
 {
@@ -19,21 +19,21 @@ else
 
 {
     # make entity Personal
-    my Nightscape::Entity $entity_personal .= new(:entity_name("Personal"));
+    my Nightscape::Entity $entity-personal .= new(:entity-name("Personal"));
 
     # get entries by entity Personal
-    my Nightscape::Entry @entries_by_entity_personal = Nightscape.ls_entries(
+    my Nightscape::Entry @entries-by-entity-personal = Nightscape.ls-entries(
         :@entries,
         :entity(/Personal/)
     );
 
     # check that entry id 3 of data/invalid.txn causes exchange rate
     # mismatch error
-    dies-ok { @entries_by_entity_personal[3].is_balanced },
+    dies-ok { @entries-by-entity-personal[3].is-balanced },
             q:to/EOF/;
-            ♪ [is_balanced-mismatch] - 1 of 2
+            ♪ [is-balanced-mismatch] - 1 of 2
             ┏━━━━━━━━━━━━━┓
-            ┃             ┃  ∙ Passed argument of @entries_by_entity_personal[3]
+            ┃             ┃  ∙ Passed argument of @entries-by-entity-personal[3]
             ┃   Success   ┃    causes exchange rate mismatch error, as expected.
             ┃             ┃
             ┗━━━━━━━━━━━━━┛
@@ -41,11 +41,11 @@ else
 
     # check that entry id 4 of data/invalid.txn causes exchange rate
     # mismatch error
-    dies-ok { @entries_by_entity_personal[4].is_balanced },
+    dies-ok { @entries-by-entity-personal[4].is-balanced },
             q:to/EOF/;
-            ♪ [is_balanced-mismatch] - 2 of 2
+            ♪ [is-balanced-mismatch] - 2 of 2
             ┏━━━━━━━━━━━━━┓
-            ┃             ┃  ∙ Passed argument of @entries_by_entity_personal[4]
+            ┃             ┃  ∙ Passed argument of @entries-by-entity-personal[4]
             ┃   Success   ┃    causes exchange rate mismatch error, as expected.
             ┃             ┃
             ┗━━━━━━━━━━━━━┛

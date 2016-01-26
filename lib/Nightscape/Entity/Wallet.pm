@@ -13,7 +13,7 @@ has Nightscape::Entity::Wallet:D %.subwallet{VarName:D};
 method clone() returns Nightscape::Entity::Wallet:D
 {
     my Array[Nightscape::Entity::Wallet::Changeset:D] %balance{AssetCode:D} =
-        self.clone_balance;
+        self.clone-balance;
     my Nightscape::Entity::Wallet:D %subwallet{VarName:D} =
         %.subwallet.deepmap(*.clone);
     my Nightscape::Entity::Wallet $wallet .= new(:%balance, :%subwallet);
@@ -21,22 +21,22 @@ method clone() returns Nightscape::Entity::Wallet:D
 }
 
 # clone changesets indexed by asset code with explicit instantiation
-method clone_balance(
+method clone-balance(
 ) returns Hash[Array[Nightscape::Entity::Wallet::Changeset:D],AssetCode:D]
 {
     my Array[Nightscape::Entity::Wallet::Changeset:D] %balance{AssetCode:D};
-    for %.balance.keys -> $asset_code
+    for %.balance.keys -> $asset-code
     {
-        for %.balance{$asset_code}.list -> $changeset
+        for %.balance{$asset-code}.list -> $changeset
         {
-            push %balance{$asset_code},
+            push %balance{$asset-code},
                 Nightscape::Entity::Wallet::Changeset.new(
-                    :balance_delta($changeset.balance_delta),
-                    :balance_delta_asset_code($changeset.balance_delta_asset_code),
-                    :entry_id($changeset.entry_id),
-                    :posting_id($changeset.posting_id),
-                    :xe_asset_code($changeset.xe_asset_code),
-                    :xe_asset_quantity($changeset.xe_asset_quantity)
+                    :balance-delta($changeset.balance-delta),
+                    :balance-delta-asset-code($changeset.balance-delta-asset-code),
+                    :entry-id($changeset.entry-id),
+                    :posting-id($changeset.posting-id),
+                    :xe-asset-code($changeset.xe-asset-code),
+                    :xe-asset-quantity($changeset.xe-asset-quantity)
                 )
         }
     }
@@ -44,9 +44,9 @@ method clone_balance(
 }
 
 # get wallet balance
-method get_balance(
-    AssetCode:D :$asset_code!,    # get wallet balance for this asset code
-    AssetCode :$base_currency,    # (optional) request results in $base_currency
+method get-balance(
+    AssetCode:D :$asset-code!,    # get wallet balance for this asset code
+    AssetCode :$base-currency,    # (optional) request results in $base-currency
     Bool :$recursive              # (optional) recursively query subwallets
 ) returns FatRat:D                # returns 0.0 if asset code does not exist
 {
@@ -54,26 +54,26 @@ method get_balance(
     my FatRat @deltas;
 
     # does this wallet have a balance for asset code?
-    if try {%.balance{$asset_code}}
+    if try {%.balance{$asset-code}}
     {
         # calculate balance (sum changeset balance deltas)
-        for %.balance{$asset_code}.list -> $changeset
+        for %.balance{$asset-code}.list -> $changeset
         {
-            # convert balance into $base_currency?
-            if defined $base_currency
+            # convert balance into $base-currency?
+            if defined $base-currency
             {
                 # does posting's asset code match the requested base currency?
-                if $changeset.balance_delta_asset_code ~~ $base_currency
+                if $changeset.balance-delta-asset-code ~~ $base-currency
                 {
                     # use posting's main asset code instead of looking up xe
-                    push @deltas, $changeset.balance_delta;
+                    push @deltas, $changeset.balance-delta;
                 }
                 else
                 {
                     # does delta exchange rate's asset code match the
                     # requested base currency?
-                    my AssetCode $xeac = $changeset.xe_asset_code;
-                    unless $xeac ~~ $base_currency
+                    my AssetCode $xeac = $changeset.xe-asset-code;
+                    unless $xeac ~~ $base-currency
                     {
                         # error: exchange rate data missing from changeset
                         die qq:to/EOF/;
@@ -82,9 +82,9 @@ method get_balance(
 
                         「{$changeset.perl}」
 
-                        Changeset defaults to balance delta for asset code: 「$asset_code」
+                        Changeset defaults to balance delta for asset code: 「$asset-code」
                         Changeset includes exchange rate for asset code: 「$xeac」
-                        but you requested a result in asset code: 「$base_currency」
+                        but you requested a result in asset code: 「$base-currency」
 
                         Asset code $xeac exchange rate data is sourced from
                         transaction journal entry posting's exchange rate.
@@ -95,19 +95,19 @@ method get_balance(
                     }
 
                     # multiply changeset default balance delta by exchange rate
-                    my FatRat $balance_delta =
-                        $changeset.balance_delta * $changeset.xe_asset_quantity;
+                    my FatRat $balance-delta =
+                        $changeset.balance-delta * $changeset.xe-asset-quantity;
 
-                    # use balance figure converted to $base_currency
-                    push @deltas, $balance_delta;
+                    # use balance figure converted to $base-currency
+                    push @deltas, $balance-delta;
                 }
 
             }
             else
             {
                 # default to using changeset's main balance delta
-                # in asset code: 「Posting.amount.asset_code」
-                push @deltas, $changeset.balance_delta;
+                # in asset code: 「Posting.amount.asset-code」
+                push @deltas, $changeset.balance-delta;
             }
         }
 
@@ -127,16 +127,16 @@ method get_balance(
         # is there a subwallet?
         if try {defined(%.subwallet)}
         {
-            # the :base_currency parameter must always be passed to
-            # Wallet.get_balance
-            my AssetCode $bc = defined($base_currency) ?? $base_currency !! Nil;
+            # the :base-currency parameter must always be passed to
+            # Wallet.get-balance
+            my AssetCode $bc = defined($base-currency) ?? $base-currency !! Nil;
 
             # add subwallet balance to $balance
             for %.subwallet.kv -> $name, $subwallet
             {
-                $balance += $subwallet.get_balance(
-                    :$asset_code,
-                    :base_currency($bc),
+                $balance += $subwallet.get-balance(
+                    :$asset-code,
+                    :base-currency($bc),
                     :recursive
                 );
             }
@@ -147,251 +147,251 @@ method get_balance(
 }
 
 # list all assets handled
-method ls_assets() returns Array[AssetCode:D]
+method ls-assets() returns Array[AssetCode:D]
 {
-    my AssetCode:D @assets_handled = %.balance.keys;
+    my AssetCode:D @assets-handled = %.balance.keys;
 }
 
 # list EntryIDs handled, indexed by asset code
-multi method ls_assets_with_ids() returns Hash[Array[EntryID:D],AssetCode:D]
+multi method ls-assets-with-ids() returns Hash[Array[EntryID:D],AssetCode:D]
 {
     # store EntryIDs handled, indexed by asset code
-    my Array[EntryID:D] %entry_ids_handled_by_asset_code{AssetCode:D};
+    my Array[EntryID:D] %entry-ids-handled-by-asset-code{AssetCode:D};
 
     # list all assets handled
-    my AssetCode:D @assets_handled = self.ls_assets;
+    my AssetCode:D @assets-handled = self.ls-assets;
 
     # for each asset code handled
-    for @assets_handled -> $asset_code
+    for @assets-handled -> $asset-code
     {
         # get EntryIDs handled by asset code
-        %entry_ids_handled_by_asset_code{$asset_code} = self.ls_ids_by_asset(
-            :$asset_code
+        %entry-ids-handled-by-asset-code{$asset-code} = self.ls-ids-by-asset(
+            :$asset-code
         );
     }
 
-    %entry_ids_handled_by_asset_code;
+    %entry-ids-handled-by-asset-code;
 }
 
 # list PostingIDs handled, indexed by asset code
-multi method ls_assets_with_ids(
+multi method ls-assets-with-ids(
     Bool:D :$posting! where *.so
 ) returns Hash[Array[PostingID],AssetCode:D]
 {
     # store PostingIDs handled, indexed by asset code
-    my Array[PostingID] %posting_ids_handled_by_asset_code{AssetCode:D};
+    my Array[PostingID] %posting-ids-handled-by-asset-code{AssetCode:D};
 
     # list all assets handled
-    my AssetCode:D @assets_handled = self.ls_assets;
+    my AssetCode:D @assets-handled = self.ls-assets;
 
     # for each asset code handled
-    for @assets_handled -> $asset_code
+    for @assets-handled -> $asset-code
     {
         # get PostingIDs handled by asset code
-        %posting_ids_handled_by_asset_code{$asset_code} =
-            self.ls_ids_by_asset(:$asset_code, :posting);
+        %posting-ids-handled-by-asset-code{$asset-code} =
+            self.ls-ids-by-asset(:$asset-code, :posting);
     }
 
-    %posting_ids_handled_by_asset_code;
+    %posting-ids-handled-by-asset-code;
 }
 
 # list changesets
-method ls_changesets(
-    AssetCode:D :$asset_code!,
-    EntryID :$entry_id,
-    PostingID :$posting_id
+method ls-changesets(
+    AssetCode:D :$asset-code!,
+    EntryID :$entry-id,
+    PostingID :$posting-id
 ) returns Array[Nightscape::Entity::Wallet::Changeset]
 {
-    my Nightscape::Entity::Wallet::Changeset @c = %.balance{$asset_code}.list;
-    @c = self._ls_changesets(:changesets(@c), :$entry_id) if $entry_id;
-    @c = self._ls_changesets(:changesets(@c), :$posting_id) if $posting_id;
+    my Nightscape::Entity::Wallet::Changeset @c = %.balance{$asset-code}.list;
+    @c = self._ls-changesets(:changesets(@c), :$entry-id) if $entry-id;
+    @c = self._ls-changesets(:changesets(@c), :$posting-id) if $posting-id;
     @c;
 }
 
-multi method _ls_changesets(
+multi method _ls-changesets(
     Nightscape::Entity::Wallet::Changeset:D :@changesets! is readonly,
-    EntryID:D :$entry_id!
+    EntryID:D :$entry-id!
 ) returns Array[Nightscape::Entity::Wallet::Changeset]
 {
     my Nightscape::Entity::Wallet::Changeset @c = @changesets.grep({
-        .entry_id == $entry_id
+        .entry-id == $entry-id
     });
 }
 
-multi method _ls_changesets(
+multi method _ls-changesets(
     Nightscape::Entity::Wallet::Changeset:D :@changesets! is readonly,
-    PostingID:D :$posting_id!
+    PostingID:D :$posting-id!
 ) returns Array[Nightscape::Entity::Wallet::Changeset]
 {
     my Nightscape::Entity::Wallet::Changeset @c = @changesets.grep({
-        .posting_id == $posting_id
+        .posting-id == $posting-id
     });
 }
 
 # list EntryIDs handled, all asset codes
-multi method ls_ids() returns Array[EntryID:D]
+multi method ls-ids() returns Array[EntryID:D]
 {
     # populate assets handled
-    my AssetCode @assets_handled = self.ls_assets;
+    my AssetCode @assets-handled = self.ls-assets;
 
     # store EntryIDs handled
-    my EntryID:D @entry_ids_handled;
+    my EntryID:D @entry-ids-handled;
 
     # fetch EntryIDs handled
-    for @assets_handled -> $asset_code
+    for @assets-handled -> $asset-code
     {
-        push @entry_ids_handled, |self.ls_ids_by_asset(:$asset_code);
+        push @entry-ids-handled, |self.ls-ids-by-asset(:$asset-code);
     }
 
-    @entry_ids_handled;
+    @entry-ids-handled;
 }
 
 # list PostingIDs handled, all asset codes
-multi method ls_ids(Bool:D :$posting! where *.so) returns Array[PostingID]
+multi method ls-ids(Bool:D :$posting! where *.so) returns Array[PostingID]
 {
     # populate assets handled
-    my AssetCode @assets_handled = self.ls_assets;
+    my AssetCode @assets-handled = self.ls-assets;
 
     # store PostingIDs handled
-    my PostingID @posting_ids_handled;
+    my PostingID @posting-ids-handled;
 
     # fetch PostingIDs handled
-    for @assets_handled -> $asset_code
+    for @assets-handled -> $asset-code
     {
-        push @posting_ids_handled,
-            |self.ls_ids_by_asset(:$asset_code, :$posting);
+        push @posting-ids-handled,
+            |self.ls-ids-by-asset(:$asset-code, :$posting);
     }
 
-    @posting_ids_handled;
+    @posting-ids-handled;
 }
 
 # list EntryIDs handled, single asset code
-multi method ls_ids_by_asset(
-    AssetCode:D :$asset_code!,
+multi method ls-ids-by-asset(
+    AssetCode:D :$asset-code!,
     Bool:U :$posting
 ) returns Array[EntryID:D]
 {
     # store EntryIDs handled
-    my EntryID:D @entry_ids_handled;
+    my EntryID:D @entry-ids-handled;
 
     # fetch EntryIDs handled
-    for %.balance{$asset_code} -> @changesets
+    for %.balance{$asset-code} -> @changesets
     {
         for @changesets -> $changeset
         {
-            push @entry_ids_handled, $changeset.entry_id;
+            push @entry-ids-handled, $changeset.entry-id;
         }
     }
 
-    @entry_ids_handled;
+    @entry-ids-handled;
 }
 
 # list PostingIDs handled, single asset code
-multi method ls_ids_by_asset(
-    AssetCode:D :$asset_code!,
+multi method ls-ids-by-asset(
+    AssetCode:D :$asset-code!,
     Bool:D :$posting! where *.so
 ) returns Array[PostingID]
 {
     # store PostingIDs handled
-    my PostingID @posting_ids_handled;
+    my PostingID @posting-ids-handled;
 
     # fetch PostingIDs handled
-    for %.balance{$asset_code} -> @changesets
+    for %.balance{$asset-code} -> @changesets
     {
         for @changesets -> $changeset
         {
-            push @posting_ids_handled, $changeset.posting_id;
+            push @posting-ids-handled, $changeset.posting-id;
         }
     }
 
-    @posting_ids_handled;
+    @posting-ids-handled;
 }
 
 # record balance update instruction, the final executor (standard mode)
 multi method mkchangeset(
-    EntryID:D :$entry_id!,
-    PostingID :$posting_id!,           # is undefined for NSAutoCapitalGains
-    AssetCode:D :$asset_code!,
+    EntryID:D :$entry-id!,
+    PostingID :$posting-id!,           # is undefined for NSAutoCapitalGains
+    AssetCode:D :$asset-code!,
     DecInc:D :$decinc!,
     Quantity:D :$quantity!,
-    AssetCode :$xe_asset_code,
-    Quantity :$xe_asset_quantity
+    AssetCode :$xe-asset-code,
+    Quantity :$xe-asset-quantity
 )
 {
     # store delta by which to change wallet balance of asset code
-    my FatRat $balance_delta;
+    my FatRat $balance-delta;
 
     # store asset code of balance delta
-    my AssetCode $balance_delta_asset_code = $asset_code;
+    my AssetCode $balance-delta-asset-code = $asset-code;
 
     # INC?
     if $decinc ~~ INC
     {
         # balance +
-        $balance_delta = $quantity;
+        $balance-delta = $quantity;
     }
     # DEC?
     elsif $decinc ~~ DEC
     {
         # balance -
-        $balance_delta = -$quantity;
+        $balance-delta = -$quantity;
     }
 
-    # instantiate changeset and append to list %.balance{$asset_code}
-    push %!balance{$asset_code}, Nightscape::Entity::Wallet::Changeset.new(
-        :$balance_delta,
-        :$balance_delta_asset_code,
-        :$entry_id,
-        :$posting_id,
-        :$xe_asset_code,
-        :$xe_asset_quantity
+    # instantiate changeset and append to list %.balance{$asset-code}
+    push %!balance{$asset-code}, Nightscape::Entity::Wallet::Changeset.new(
+        :$balance-delta,
+        :$balance-delta-asset-code,
+        :$entry-id,
+        :$posting-id,
+        :$xe-asset-code,
+        :$xe-asset-quantity
     );
 }
 
 # record balance update instruction, the final executor (splice mode)
 multi method mkchangeset(
-    EntryID:D :$entry_id!,
-    PostingID:D :$posting_id!,
-    AssetCode:D :$asset_code!,
+    EntryID:D :$entry-id!,
+    PostingID:D :$posting-id!,
+    AssetCode:D :$asset-code!,
     DecInc:D :$decinc!,
     Quantity:D :$quantity!,
-    AssetCode :$xe_asset_code,
-    Quantity :$xe_asset_quantity,
+    AssetCode :$xe-asset-code,
+    Quantity :$xe-asset-quantity,
     Bool:D :$splice! where *.so, # :splice arg must be explicitly passed
     Int:D :$index! # index at which to insert new Changeset in changesets list
 )
 {
     # store delta by which to change wallet balance of asset code
-    my FatRat $balance_delta;
+    my FatRat $balance-delta;
 
     # store asset code of balance delta
-    my AssetCode $balance_delta_asset_code = $asset_code;
+    my AssetCode $balance-delta-asset-code = $asset-code;
 
     # INC?
     if $decinc ~~ INC
     {
         # balance +
-        $balance_delta = $quantity;
+        $balance-delta = $quantity;
     }
     # DEC?
     elsif $decinc ~~ DEC
     {
         # balance -
-        $balance_delta = -$quantity;
+        $balance-delta = -$quantity;
     }
 
     # instantiate changeset
     my Nightscape::Entity::Wallet::Changeset $changeset .= new(
-        :$balance_delta,
-        :$balance_delta_asset_code,
-        :$entry_id,
-        :$posting_id,
-        :$xe_asset_code,
-        :$xe_asset_quantity
+        :$balance-delta,
+        :$balance-delta-asset-code,
+        :$entry-id,
+        :$posting-id,
+        :$xe-asset-code,
+        :$xe-asset-quantity
     );
 
     # splice changeset
-    %!balance{$asset_code}.splice($index, 0, $changeset);
+    %!balance{$asset-code}.splice($index, 0, $changeset);
 }
 
 # modify existing changeset given asset code, EntryID, PostingID and
@@ -400,31 +400,31 @@ multi method mkchangeset(
 #     MOD | AcctName | QuantityToDebit | XE
 #
 multi method mkchangeset(
-    AssetCode:D :$asset_code!,
-    AssetCode:D :$xe_asset_code!,
-    EntryID:D :$entry_id!,
-    PostingID:D :$posting_id!, # PostingID of which to modify
+    AssetCode:D :$asset-code!,
+    AssetCode:D :$xe-asset-code!,
+    EntryID:D :$entry-id!,
+    PostingID:D :$posting-id!, # PostingID of which to modify
     Instruction:D :$instruction! (
         # deconstruct instruction
-        AssetsAcctName:D :$acct_name!,
+        AssetsAcctName:D :$acct-name!,
         NewMod:D :$newmod! where * ~~ MOD,
-        PostingID:D :posting_id($posting_id_instr)!,
-        Quantity:D :$quantity_to_debit!,
-        Quantity :xe($xe_asset_quantity) # optional in certain cases
+        PostingID:D :posting-id($posting-id-instr)!,
+        Quantity:D :$quantity-to-debit!,
+        Quantity :xe($xe-asset-quantity) # optional in certain cases
     )
 )
 {
     # ensure Instruction PostingID matches the causal PostingID
-    unless $posting_id == $posting_id_instr
+    unless $posting-id == $posting-id-instr
     {
         # error: Instruction PostingID does not match causal PostingID
         die "Sorry, Instruction PostingID does not match causal PostingID";
     }
 
     # changesets matching PostingID under asset code
-    my Nightscape::Entity::Wallet::Changeset @changesets = self.ls_changesets(
-        :$asset_code,
-        :$posting_id
+    my Nightscape::Entity::Wallet::Changeset @changesets = self.ls-changesets(
+        :$asset-code,
+        :$posting-id
     );
 
     # was there not exactly one matching changeset?
@@ -447,18 +447,18 @@ multi method mkchangeset(
     # choose only element in the list of changesets
     my Nightscape::Entity::Wallet::Changeset $changeset := @changesets[0];
 
-    # new Changeset.balance_delta
+    # new Changeset.balance-delta
     # negated because we're debiting ASSETS silo
-    my FatRat $balance_delta = -$quantity_to_debit;
+    my FatRat $balance-delta = -$quantity-to-debit;
 
-    # update this Changeset.balance_delta
-    $changeset.mkbalance_delta(:$balance_delta, :force);
+    # update this Changeset.balance-delta
+    $changeset.mkbalance-delta(:$balance-delta, :force);
 
-    # update this Changeset.xe_asset_code
+    # update this Changeset.xe-asset-code
     #
     # `if` supports cases where a Bucket has part of its original capacity
-    # remaining, which entails only adjusting the Changeset.balance_delta
-    $changeset.mkxeaq(:$xe_asset_quantity, :force) if $xe_asset_quantity;
+    # remaining, which entails only adjusting the Changeset.balance-delta
+    $changeset.mkxeaq(:$xe-asset-quantity, :force) if $xe-asset-quantity;
 }
 
 # create changeset given asset code, EntryID, PostingID and instruction:
@@ -466,35 +466,35 @@ multi method mkchangeset(
 #     NEW | AcctName | QuantityToDebit | XE
 #
 multi method mkchangeset(
-    AssetCode:D :$asset_code!,
-    AssetCode:D :$xe_asset_code!,
-    EntryID:D :$entry_id!,
-    PostingID:D :$posting_id!, # parent PostingID, needed for calculating $index
+    AssetCode:D :$asset-code!,
+    AssetCode:D :$xe-asset-code!,
+    EntryID:D :$entry-id!,
+    PostingID:D :$posting-id!, # parent PostingID, needed for calculating $index
     Instruction:D :$instruction! (
         # deconstruct instruction
-        AssetsAcctName:D :$acct_name!,
+        AssetsAcctName:D :$acct-name!,
         NewMod:D :$newmod! where * ~~ NEW,
-        PostingID:D :posting_id($posting_id_instr)!,
-        Quantity:D :quantity_to_debit($quantity)!,
-        Quantity:D :xe($xe_asset_quantity)! # required for NEW Instructions
+        PostingID:D :posting-id($posting-id-instr)!,
+        Quantity:D :quantity-to-debit($quantity)!,
+        Quantity:D :xe($xe-asset-quantity)! # required for NEW Instructions
     )
 )
 {
     # ensure Instruction PostingID matches the causal PostingID
-    unless $posting_id == $posting_id_instr
+    unless $posting-id == $posting-id-instr
     {
         # error: Instruction PostingID does not match causal PostingID
         die "Sorry, Instruction PostingID does not match causal PostingID";
     }
 
-    # we always need to have an $xe_asset_quantity here because this
+    # we always need to have an $xe-asset-quantity here because this
     # method is for balancing silo ASSETS wallet
-    # C<Changeset.balance_delta>s and C<Changeset.xe_asset_quantity>s
+    # C<Changeset.balance-delta>s and C<Changeset.xe-asset-quantity>s
     # to allow for incising INCOME:NSAutoCapitalGains
-    unless $xe_asset_quantity
+    unless $xe-asset-quantity
     {
-        # error: missing xe_asset_quantity for NEW Instruction
-        die "Sorry, missing xe_asset_quantity for NewMod::NEW Instruction";
+        # error: missing xe-asset-quantity for NEW Instruction
+        die "Sorry, missing xe-asset-quantity for NewMod::NEW Instruction";
     }
 
     # it must be a DEC, since only those postings with net outflow of
@@ -503,27 +503,27 @@ multi method mkchangeset(
     my DecInc $decinc = DEC;
 
     # target index is after parent PostingID index
-    my Int $index = 1 + %.balance{$asset_code}.first:
-        *.posting_id == $posting_id, :k;
+    my Int $index = 1 + %.balance{$asset-code}.first:
+        *.posting-id == $posting-id, :k;
 
     # create new PostingID
-    my PostingID $new_posting_id .= new(
-        :$entry_id
+    my PostingID $new-posting-id .= new(
+        :$entry-id
         :number(-1),
         :text("NSAutoPostingID"),
         :xxhash(55555)
     );
 
     # splice balance update instruction next to parent PostingID's
-    # location in %.balance{$asset_code} array
+    # location in %.balance{$asset-code} array
     self.mkchangeset(
-        :$entry_id,
-        :posting_id($new_posting_id),
-        :$asset_code,
+        :$entry-id,
+        :posting-id($new-posting-id),
+        :$asset-code,
         :$decinc,
         :$quantity,
-        :$xe_asset_code,
-        :$xe_asset_quantity
+        :$xe-asset-code,
+        :$xe-asset-quantity
         :splice, :$index
     );
 }
@@ -571,40 +571,40 @@ multi method tree(%tree) returns Array[Array[VarName:D]]
 
     sub grind(%tree, Str :$carry = "") returns Array
     {
-        my @acct_names;
+        my @acct-names;
         for %tree.keys -> $toplevel
         {
-            my $acct_name = $carry ~ $toplevel ~ ':';
+            my $acct-name = $carry ~ $toplevel ~ ':';
             if %tree{$toplevel} ~~ Hash
             {
-                push @acct_names,
-                    $acct_name,
+                push @acct-names,
+                    $acct-name,
                     |grind(
                         %tree{$toplevel},
-                        :carry($acct_name)
+                        :carry($acct-name)
                     );
             }
             else
             {
-                push @acct_names, %tree{$toplevel};
+                push @acct-names, %tree{$toplevel};
             }
         }
-        @acct_names;
+        @acct-names;
     }
 
     # grind hash into strings
-    my @acct_names = grind(%tree);
+    my @acct-names = grind(%tree);
 
     # trim trailing ':'
-    @acct_names .= map({ substr($_, 0, *-1) });
+    @acct-names .= map({ substr($_, 0, *-1) });
 
     # convert each nested wallet path string to type: Array[VarName]
     my Array[VarName:D] @tree;
-    for @acct_names -> $acct_name
+    for @acct-names -> $acct-name
     {
         # coerce to type: Array
-        my VarName:D @acct_path = Array($acct_name.split(':'));
-        push @tree, @acct_path;
+        my VarName:D @acct-path = Array($acct-name.split(':'));
+        push @tree, @acct-path;
     }
 
     # return sorted tree

@@ -27,7 +27,7 @@ our $CONF = Nightscape::Config.new;
 # requires pacman for querying cached txnpkgs
 multi sub MAIN(
     'list',
-    Str:D $txnpkg_name,
+    Str:D $txnpkg-name,
     Str:D :$cache-dir = "%*ENV<HOME>/.nightscape/db";
     Str :c(:$config),
     Str :$data-dir,
@@ -46,36 +46,36 @@ multi sub MAIN(
         $pkgname => %(:version($pkgver), :release($pkgrel));
     });
 
-    # quote txnpkg_names for literal regex interpretation
-    my Str:D @txnpkg_names =
+    # quote txnpkg-names for literal regex interpretation
+    my Str:D @txnpkg-names =
         %txnpkgs.keys».subst(/(.*)/, -> $/ {"'" ~ $0 ~ "'"});
 
     # ensure txnpkg exists
-    unless $txnpkg_name ~~ /<{@txnpkg_names}>/
+    unless $txnpkg-name ~~ /<{@txnpkg-names}>/
     {
-        die "Sorry, txnpkg 「$txnpkg_name」 missing";
+        die "Sorry, txnpkg 「$txnpkg-name」 missing";
     }
 
     # is txnpkg readable?
-    my Str:D $txnpkg_ver = %txnpkgs{$txnpkg_name}<version>;
-    my Int:D $txnpkg_rel = %txnpkgs{$txnpkg_name}<release>;
-    my Str:D $txnpkg_path =
-        "$cache-dir/$txnpkg_name-$txnpkg_ver-$txnpkg_rel.txn.tar.xz";
+    my Str:D $txnpkg-ver = %txnpkgs{$txnpkg-name}<version>;
+    my Int:D $txnpkg-rel = %txnpkgs{$txnpkg-name}<release>;
+    my Str:D $txnpkg-path =
+        "$cache-dir/$txnpkg-name-$txnpkg-ver-$txnpkg-rel.txn.tar.xz";
 
-    unless $txnpkg_path.IO.r
+    unless $txnpkg-path.IO.r
     {
         die "Sorry, txnpkg not readable. Check permissions.";
     }
 
     # extract tarball to tmpdir
-    my Str:D $build_root = '/dev/shm/' ~ "$txnpkg_name-$txnpkg_ver-$txnpkg_rel";
-    mkdir $build_root;
-    shell "tar -xvf $txnpkg_path -C $build_root";
-    my Str:D $json = slurp "$build_root/txn.json";
+    my Str:D $build-root = '/dev/shm/' ~ "$txnpkg-name-$txnpkg-ver-$txnpkg-rel";
+    mkdir $build-root;
+    shell "tar -xvf $txnpkg-path -C $build-root";
+    my Str:D $json = slurp "$build-root/txn.json";
 
     # clean up build root
-    dir($build_root)».unlink;
-    rmdir $build_root;
+    dir($build-root)».unlink;
+    rmdir $build-root;
 
     # initialize config profile from cmdline args
     {
@@ -88,7 +88,7 @@ multi sub MAIN(
             # check config file passed as cmdline arg exists
             if $config.IO.e
             {
-                %config<config_file> = "$config";
+                %config<config-file> = "$config";
             }
             else
             {
@@ -98,24 +98,24 @@ multi sub MAIN(
         else
         {
             # make default config directory if it doesn't exist
-            my Str $config_dir = IO::Path.new($CONF.config_file).dirname;
-            unless $config_dir.IO.d
+            my Str $config-dir = IO::Path.new($CONF.config-file).dirname;
+            unless $config-dir.IO.d
             {
                 say "Config directory doesn't exist.";
-                print "Creating config directory in $config_dir… ";
-                mkdir "$config_dir"
+                print "Creating config directory in $config-dir… ";
+                mkdir "$config-dir"
                     or die "Sorry, couldn't create config directory: ",
-                        $config_dir;
+                        $config-dir;
                 say "done.";
             }
             # write default config file if it doesn't exist
-            unless $CONF.config_file.IO.e
+            unless $CONF.config-file.IO.e
             {
-                my Str $config_text = q:to/EOCONF/;
+                my Str $config-text = q:to/EOCONF/;
                 base-currency = "USD"
                 EOCONF
-                print "Placing default config file at ", $CONF.config_file, "… ";
-                spurt $CONF.config_file, $config_text, :createonly;
+                print "Placing default config file at ", $CONF.config-file, "… ";
+                spurt $CONF.config-file, $config-text, :createonly;
                 say "done.";
             }
         }
@@ -125,7 +125,7 @@ multi sub MAIN(
             # check data dir passed as cmdline arg exists
             if $data-dir.IO.d
             {
-                %config<data_dir> = "$data-dir";
+                %config<data-dir> = "$data-dir";
             }
             else
             {
@@ -136,13 +136,13 @@ multi sub MAIN(
         else
         {
             # make default data directory if it doesn't exist
-            unless $CONF.data_dir.IO.d
+            unless $CONF.data-dir.IO.d
             {
                 say "Data directory doesn't exist.";
-                print "Creating data directory in ", $CONF.data_dir, "… ";
-                mkdir $CONF.data_dir
+                print "Creating data directory in ", $CONF.data-dir, "… ";
+                mkdir $CONF.data-dir
                     or die "Sorry, couldn't create data directory: ",
-                        $CONF.data_dir;
+                        $CONF.data-dir;
                 say "done.";
             }
         }
@@ -152,7 +152,7 @@ multi sub MAIN(
             # check log dir passed as cmdline arg exists
             if $log-dir.IO.d
             {
-                %config<log_dir> = "$log-dir";
+                %config<log-dir> = "$log-dir";
             }
             else
             {
@@ -163,13 +163,13 @@ multi sub MAIN(
         else
         {
             # make default log directory if it doesn't exist
-            unless $CONF.log_dir.IO.d
+            unless $CONF.log-dir.IO.d
             {
                 say "Log directory doesn't exist.";
-                print "Creating log directory in ", $CONF.log_dir, "… ";
-                mkdir $CONF.log_dir
+                print "Creating log directory in ", $CONF.log-dir, "… ";
+                mkdir $CONF.log-dir
                     or die "Sorry, couldn't create log directory: ",
-                        $CONF.log_dir;
+                        $CONF.log-dir;
                 say "done.";
             }
         }
@@ -179,7 +179,7 @@ multi sub MAIN(
             # check price dir passed as cmdline arg exists
             if $price-dir.IO.d
             {
-                %config<price_dir> = "$price-dir";
+                %config<price-dir> = "$price-dir";
             }
             else
             {
@@ -190,13 +190,13 @@ multi sub MAIN(
         else
         {
             # make default price directory if it doesn't exist
-            unless $CONF.price_dir.IO.d
+            unless $CONF.price-dir.IO.d
             {
                 say "Price directory doesn't exist.";
-                print "Creating price directory in ", $CONF.price_dir, "… ";
-                mkdir $CONF.price_dir
+                print "Creating price directory in ", $CONF.price-dir, "… ";
+                mkdir $CONF.price-dir
                     or die "Sorry, couldn't create price directory: ",
-                        $CONF.price_dir;
+                        $CONF.price-dir;
                 say "done.";
             }
         }
@@ -212,45 +212,45 @@ multi sub MAIN(
         try
         {
             use Config::TOML;
-            my Str $toml_text = slurp $CONF.config_file
-                or die "Sorry, couldn't read config file: ", $CONF.config_file;
+            my Str $toml-text = slurp $CONF.config-file
+                or die "Sorry, couldn't read config file: ", $CONF.config-file;
             # assume UTC when local offset unspecified in TOML dates
-            %toml = from-toml($toml_text, :date-local-offset(0));
+            %toml = from-toml($toml-text, :date-local-offset(0));
             CATCH
             {
                 say "Sorry, couldn't parse TOML syntax in config file: ",
-                    $CONF.config_file;
+                    $CONF.config-file;
             }
         }
 
         # set base currency
-        $CONF.base_currency = %toml<base-currency> if %toml<base-currency>;
+        $CONF.base-currency = %toml<base-currency> if %toml<base-currency>;
 
         # set base costing method
-        $CONF.base_costing = %toml<base-costing> if %toml<base-costing>;
+        $CONF.base-costing = %toml<base-costing> if %toml<base-costing>;
 
         # populate asset settings
-        my %assets_found = Nightscape::Config.detoml_assets(%toml);
-        if %assets_found
+        my %assets-found = Nightscape::Config.detoml-assets(%toml);
+        if %assets-found
         {
-            for %assets_found.kv -> $asset_code, $asset_data
+            for %assets-found.kv -> $asset-code, $asset-data
             {
-                $CONF.assets{$asset_code} = Nightscape::Config.gen_settings(
-                    :$asset_code,
-                    :$asset_data
+                $CONF.assets{$asset-code} = Nightscape::Config.gen-settings(
+                    :$asset-code,
+                    :$asset-data
                 );
             }
         }
 
         # populate entity settings
-        my %entities_found = Nightscape::Config.detoml_entities(%toml);
-        if %entities_found
+        my %entities-found = Nightscape::Config.detoml-entities(%toml);
+        if %entities-found
         {
-            for %entities_found.kv -> $entity_name, $entity_data
+            for %entities-found.kv -> $entity-name, $entity-data
             {
-                $CONF.entities{$entity_name} = Nightscape::Config.gen_settings(
-                    :$entity_name,
-                    :$entity_data
+                $CONF.entities{$entity-name} = Nightscape::Config.gen-settings(
+                    :$entity-name,
+                    :$entity-data
                 );
             }
         }
@@ -266,7 +266,7 @@ multi sub MAIN(
     -------
     EOF
     use Nightscape;
-    .say for Nightscape.ls_entries(:$json, :sort);
+    .say for Nightscape.ls-entries(:$json, :sort);
 
     say "\n", q:to/EOF/;
     Config
@@ -294,7 +294,7 @@ multi sub MAIN(
             # check config file passed as cmdline arg exists
             if $config.IO.e
             {
-                %config<config_file> = "$config";
+                %config<config-file> = "$config";
             }
             else
             {
@@ -304,24 +304,24 @@ multi sub MAIN(
         else
         {
             # make default config directory if it doesn't exist
-            my Str $config_dir = IO::Path.new($CONF.config_file).dirname;
-            unless $config_dir.IO.d
+            my Str $config-dir = IO::Path.new($CONF.config-file).dirname;
+            unless $config-dir.IO.d
             {
                 say "Config directory doesn't exist.";
-                print "Creating config directory in $config_dir… ";
-                mkdir "$config_dir"
+                print "Creating config directory in $config-dir… ";
+                mkdir "$config-dir"
                     or die "Sorry, couldn't create config directory: ",
-                        $config_dir;
+                        $config-dir;
                 say "done.";
             }
             # write default config file if it doesn't exist
-            unless $CONF.config_file.IO.e
+            unless $CONF.config-file.IO.e
             {
-                my Str $config_text = q:to/EOCONF/;
+                my Str $config-text = q:to/EOCONF/;
                 base-currency = "USD"
                 EOCONF
-                print "Placing default config file at ", $CONF.config_file, "… ";
-                spurt $CONF.config_file, $config_text, :createonly;
+                print "Placing default config file at ", $CONF.config-file, "… ";
+                spurt $CONF.config-file, $config-text, :createonly;
                 say "done.";
             }
         }
@@ -331,7 +331,7 @@ multi sub MAIN(
             # check data dir passed as cmdline arg exists
             if $data-dir.IO.d
             {
-                %config<data_dir> = "$data-dir";
+                %config<data-dir> = "$data-dir";
             }
             else
             {
@@ -342,13 +342,13 @@ multi sub MAIN(
         else
         {
             # make default data directory if it doesn't exist
-            unless $CONF.data_dir.IO.d
+            unless $CONF.data-dir.IO.d
             {
                 say "Data directory doesn't exist.";
-                print "Creating data directory in ", $CONF.data_dir, "… ";
-                mkdir $CONF.data_dir
+                print "Creating data directory in ", $CONF.data-dir, "… ";
+                mkdir $CONF.data-dir
                     or die "Sorry, couldn't create data directory: ",
-                        $CONF.data_dir;
+                        $CONF.data-dir;
                 say "done.";
             }
         }
@@ -358,7 +358,7 @@ multi sub MAIN(
             # check log dir passed as cmdline arg exists
             if $log-dir.IO.d
             {
-                %config<log_dir> = "$log-dir";
+                %config<log-dir> = "$log-dir";
             }
             else
             {
@@ -369,13 +369,13 @@ multi sub MAIN(
         else
         {
             # make default log directory if it doesn't exist
-            unless $CONF.log_dir.IO.d
+            unless $CONF.log-dir.IO.d
             {
                 say "Log directory doesn't exist.";
-                print "Creating log directory in ", $CONF.log_dir, "… ";
-                mkdir $CONF.log_dir
+                print "Creating log directory in ", $CONF.log-dir, "… ";
+                mkdir $CONF.log-dir
                     or die "Sorry, couldn't create log directory: ",
-                        $CONF.log_dir;
+                        $CONF.log-dir;
                 say "done.";
             }
         }
@@ -385,7 +385,7 @@ multi sub MAIN(
             # check price dir passed as cmdline arg exists
             if $price-dir.IO.d
             {
-                %config<price_dir> = "$price-dir";
+                %config<price-dir> = "$price-dir";
             }
             else
             {
@@ -396,13 +396,13 @@ multi sub MAIN(
         else
         {
             # make default price directory if it doesn't exist
-            unless $CONF.price_dir.IO.d
+            unless $CONF.price-dir.IO.d
             {
                 say "Price directory doesn't exist.";
-                print "Creating price directory in ", $CONF.price_dir, "… ";
-                mkdir $CONF.price_dir
+                print "Creating price directory in ", $CONF.price-dir, "… ";
+                mkdir $CONF.price-dir
                     or die "Sorry, couldn't create price directory: ",
-                        $CONF.price_dir;
+                        $CONF.price-dir;
                 say "done.";
             }
         }
@@ -418,45 +418,45 @@ multi sub MAIN(
         try
         {
             use Config::TOML;
-            my Str $toml_text = slurp $CONF.config_file
-                or die "Sorry, couldn't read config file: ", $CONF.config_file;
+            my Str $toml-text = slurp $CONF.config-file
+                or die "Sorry, couldn't read config file: ", $CONF.config-file;
             # assume UTC when local offset unspecified in TOML dates
-            %toml = from-toml($toml_text, :date-local-offset(0));
+            %toml = from-toml($toml-text, :date-local-offset(0));
             CATCH
             {
                 say "Sorry, couldn't parse TOML syntax in config file: ",
-                    $CONF.config_file;
+                    $CONF.config-file;
             }
         }
 
         # set base currency
-        $CONF.base_currency = %toml<base-currency> if %toml<base-currency>;
+        $CONF.base-currency = %toml<base-currency> if %toml<base-currency>;
 
         # set base costing method
-        $CONF.base_costing = %toml<base-costing> if %toml<base-costing>;
+        $CONF.base-costing = %toml<base-costing> if %toml<base-costing>;
 
         # populate asset settings
-        my %assets_found = Nightscape::Config.detoml_assets(%toml);
-        if %assets_found
+        my %assets-found = Nightscape::Config.detoml-assets(%toml);
+        if %assets-found
         {
-            for %assets_found.kv -> $asset_code, $asset_data
+            for %assets-found.kv -> $asset-code, $asset-data
             {
-                $CONF.assets{$asset_code} = Nightscape::Config.gen_settings(
-                    :$asset_code,
-                    :$asset_data
+                $CONF.assets{$asset-code} = Nightscape::Config.gen-settings(
+                    :$asset-code,
+                    :$asset-data
                 );
             }
         }
 
         # populate entity settings
-        my %entities_found = Nightscape::Config.detoml_entities(%toml);
-        if %entities_found
+        my %entities-found = Nightscape::Config.detoml-entities(%toml);
+        if %entities-found
         {
-            for %entities_found.kv -> $entity_name, $entity_data
+            for %entities-found.kv -> $entity-name, $entity-data
             {
-                $CONF.entities{$entity_name} = Nightscape::Config.gen_settings(
-                    :$entity_name,
-                    :$entity_data
+                $CONF.entities{$entity-name} = Nightscape::Config.gen-settings(
+                    :$entity-name,
+                    :$entity-data
                 );
             }
         }
@@ -474,7 +474,7 @@ multi sub MAIN(
         -------
         EOF
         use Nightscape;
-        .say for Nightscape.ls_entries(:$file, :sort);
+        .say for Nightscape.ls-entries(:$file, :sort);
     }
     else
     {
@@ -497,7 +497,7 @@ multi sub MAIN(
 
 sub USAGE()
 {
-    my Str $help_text = q:to/EOF/;
+    my Str $help-text = q:to/EOF/;
     Usage:
       nightscape [-h] [--config=CONFIG_FILE] TRANSACTION_JOURNAL
 
@@ -511,7 +511,7 @@ sub USAGE()
       --price-dir=PRICE_DIR
         the location of the asset price directory
     EOF
-    say $help_text.trim;
+    say $help-text.trim;
 }
 
 # vim: ft=perl6

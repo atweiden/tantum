@@ -12,11 +12,11 @@ has Nightscape::Entity %.entities{VarName};
 has Nightscape::Entry @.entries is rw;
 
 # list unique entity names defined in entries
-method ls_entity_names(
+method ls-entity-names(
     Nightscape::Entry:D :@entries! is readonly
 ) returns Array[VarName:D]
 {
-    # to instantiate Nightscape::Entry, exec Nightscape.ls_entries(:$file)
+    # to instantiate Nightscape::Entry, exec Nightscape.ls-entries(:$file)
     # to parse entries. Actions.pm contains logic barring more than one
     # entity per entry:
     #
@@ -31,7 +31,7 @@ method ls_entity_names(
 }
 
 # list entries from on disk transaction journal
-multi method ls_entries(
+multi method ls-entries(
     Str:D :$file!,
     Bool :$sort
 ) returns Array[Nightscape::Entry]
@@ -39,16 +39,19 @@ multi method ls_entries(
     use TXN::Parser;
 
     # resolve include directives in transaction journal on disk
-    my Str:D $journal = TXN::Parser.preprocess($file);
+    my Str:D $journal = TXN::Parser.preprocess(:$file);
 
     # parse preprocessed transaction journal
     if my Match $parsed = TXN::Parser.parse($journal)
     {
+        use Nightscape::Import;
+
         # entries, unsorted, with included transaction journals
-        my Nightscape::Entry @entries = $parsed.made;
+        my Nightscape::Entry:D @entries =
+            Nightscape::Import.entries($parsed.made);
 
         # entries, sorted by date ascending then by importance descending
-        @entries = sort_entries(@entries) if $sort;
+        @entries = sort-entries(@entries) if $sort;
 
         @entries;
     }
@@ -59,46 +62,46 @@ multi method ls_entries(
 }
 
 # list entries from txnpkg txn.json
-multi method ls_entries(
+multi method ls-entries(
     Str:D :$json!,
     Bool :$sort
 ) returns Array[Nightscape::Entry:D]
 {
     # import JSON cached txnpkg and convert to C<Nightscape::Entry>s
     use Nightscape::Import;
-    my Nightscape::Entry:D @entries = Nightscape::Import.entries($json);
+    my Nightscape::Entry:D @entries = Nightscape::Import.entries(:$json);
 
     # entries, sorted by date ascending then by importance descending
-    @entries = sort_entries(@entries) if $sort;
+    @entries = sort-entries(@entries) if $sort;
 
     @entries;
 }
 
 # filter entries
-multi method ls_entries(
+multi method ls-entries(
     Nightscape::Entry:D :@entries is readonly = @.entries,
     DateTime :$date,
-    Range :$date_range,
+    Range :$date-range,
     Regex :$description,
     Regex :$entity,
-    EntryID :$entry_id,
+    EntryID :$entry-id,
     Int :$important,
     Regex :$tag
 ) returns Array[Nightscape::Entry]
 {
     my Nightscape::Entry @e = @entries;
-    @e = self._ls_entries(:entries(@e), :$date) if $date;
-    @e = self._ls_entries(:entries(@e), :$date_range) if $date_range;
-    @e = self._ls_entries(:entries(@e), :$description) if defined $description;
-    @e = self._ls_entries(:entries(@e), :$entity) if defined $entity;
-    @e = self._ls_entries(:entries(@e), :$entry_id) if $entry_id;
-    @e = self._ls_entries(:entries(@e), :$important) if $important;
-    @e = self._ls_entries(:entries(@e), :$tag) if defined $tag;
+    @e = self._ls-entries(:entries(@e), :$date) if $date;
+    @e = self._ls-entries(:entries(@e), :$date-range) if $date-range;
+    @e = self._ls-entries(:entries(@e), :$description) if defined $description;
+    @e = self._ls-entries(:entries(@e), :$entity) if defined $entity;
+    @e = self._ls-entries(:entries(@e), :$entry-id) if $entry-id;
+    @e = self._ls-entries(:entries(@e), :$important) if $important;
+    @e = self._ls-entries(:entries(@e), :$tag) if defined $tag;
     @e;
 }
 
 # list entries by date
-multi method _ls_entries(
+multi method _ls-entries(
     Nightscape::Entry:D :@entries! is readonly,
     DateTime:D :$date!
 ) returns Array[Nightscape::Entry]
@@ -107,16 +110,16 @@ multi method _ls_entries(
 }
 
 # list entries within date range
-multi method _ls_entries(
+multi method _ls-entries(
     Nightscape::Entry:D :@entries! is readonly,
-    Range:D :$date_range!
+    Range:D :$date-range!
 ) returns Array[Nightscape::Entry]
 {
-    my Nightscape::Entry @e = @entries.grep({ .header.date ~~ $date_range });
+    my Nightscape::Entry @e = @entries.grep({ .header.date ~~ $date-range });
 }
 
 # list entries by entity
-multi method _ls_entries(
+multi method _ls-entries(
     Nightscape::Entry:D :@entries! is readonly,
     Regex:D :$entity!
 ) returns Array[Nightscape::Entry]
@@ -127,21 +130,21 @@ multi method _ls_entries(
 }
 
 # list entries by EntryID
-multi method _ls_entries(
+multi method _ls-entries(
     Nightscape::Entry:D :@entries! is readonly,
-    EntryID:D :$entry_id!
+    EntryID:D :$entry-id!
 ) returns Array[Nightscape::Entry]
 {
-    my Nightscape::Entry @e = @entries.grep({ .id == $entry_id });
+    my Nightscape::Entry @e = @entries.grep({ .id == $entry-id });
 }
 
 # instantiate entity
-method mkentity(VarName:D :$entity_name!, Bool :$force)
+method mkentity(VarName:D :$entity-name!, Bool :$force)
 {
     sub init()
     {
         # instantiate new entity
-        %!entities{$entity_name} = Nightscape::Entity.new(:$entity_name);
+        %!entities{$entity-name} = Nightscape::Entity.new(:$entity-name);
     }
 
     # was :force arg passed?
@@ -151,10 +154,10 @@ method mkentity(VarName:D :$entity_name!, Bool :$force)
         init();
     }
     # does entity exist?
-    elsif %.entities{$entity_name}
+    elsif %.entities{$entity-name}
     {
         # error: entity exists, can't overwrite
-        die "Sorry, can't mkentity 「$entity_name」: entity exists.";
+        die "Sorry, can't mkentity 「$entity-name」: entity exists.";
     }
     else
     {
@@ -164,7 +167,7 @@ method mkentity(VarName:D :$entity_name!, Bool :$force)
 }
 
 # sort entries by date ascending then by importance descending
-sub sort_entries(Nightscape::Entry @entries) returns Array[Nightscape::Entry]
+sub sort-entries(Nightscape::Entry @entries) returns Array[Nightscape::Entry]
 {
     my Nightscape::Entry @e = @entries.sort({
         $^b.header.important > $^a.header.important
