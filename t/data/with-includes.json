@@ -1,0 +1,270 @@
+[
+  {
+    "id": {
+      "text": "2011-01-01 \"FooCorp started the year with $1000 in Bankwest cheque account\"\n  Assets:FooCorp:Bankwest:Cheque      $1000.00 USD\n  Equity:FooCorp                      $1000.00 USD\n",
+      "xxhash": 4150991411,
+      "number": 0
+    },
+    "header": {
+      "important": 0,
+      "tags": [],
+      "description": "FooCorp started the year with $1000 in Bankwest cheque account",
+      "date": "2011-01-01T00:00:00Z"
+    },
+    "postings": [
+      {
+        "id": {
+          "text": "Assets:FooCorp:Bankwest:Cheque      $1000.00 USD",
+          "xxhash": 3244003616,
+          "entry-id": {
+            "text": "2011-01-01 \"FooCorp started the year with $1000 in Bankwest cheque account\"\n  Assets:FooCorp:Bankwest:Cheque      $1000.00 USD\n  Equity:FooCorp                      $1000.00 USD\n",
+            "xxhash": 4150991411,
+            "number": 0
+          },
+          "number": 0
+        },
+        "decinc": "INC",
+        "amount": {
+          "asset-code": "USD",
+          "exchange-rate": {},
+          "asset-symbol": "$",
+          "asset-quantity": 1000,
+          "plus-or-minus": ""
+        },
+        "account": {
+          "subaccount": [
+            "Bankwest",
+            "Cheque"
+          ],
+          "entity": "FooCorp",
+          "silo": "ASSETS"
+        }
+      },
+      {
+        "id": {
+          "text": "Equity:FooCorp                      $1000.00 USD",
+          "xxhash": 1025058054,
+          "entry-id": {
+            "text": "2011-01-01 \"FooCorp started the year with $1000 in Bankwest cheque account\"\n  Assets:FooCorp:Bankwest:Cheque      $1000.00 USD\n  Equity:FooCorp                      $1000.00 USD\n",
+            "xxhash": 4150991411,
+            "number": 0
+          },
+          "number": 1
+        },
+        "decinc": "INC",
+        "amount": {
+          "asset-code": "USD",
+          "exchange-rate": {},
+          "asset-symbol": "$",
+          "asset-quantity": 1000,
+          "plus-or-minus": ""
+        },
+        "account": {
+          "entity": "FooCorp",
+          "silo": "EQUITY"
+        }
+      }
+    ]
+  },
+  {
+    "id": {
+      "text": "2012-01-01 \"FooCorp started the year with $1000 in Bankwest cheque account\"\n  Assets:FooCorp:Bankwest:Cheque      $1000.00 USD\n  Equity:FooCorp                      $1000.00 USD\n",
+      "xxhash": 3812242451,
+      "number": 1
+    },
+    "header": {
+      "important": 0,
+      "tags": [],
+      "description": "FooCorp started the year with $1000 in Bankwest cheque account",
+      "date": "2012-01-01T00:00:00Z"
+    },
+    "postings": [
+      {
+        "id": {
+          "text": "Assets:FooCorp:Bankwest:Cheque      $1000.00 USD",
+          "xxhash": 3244003616,
+          "entry-id": {
+            "text": "2012-01-01 \"FooCorp started the year with $1000 in Bankwest cheque account\"\n  Assets:FooCorp:Bankwest:Cheque      $1000.00 USD\n  Equity:FooCorp                      $1000.00 USD\n",
+            "xxhash": 3812242451,
+            "number": 1
+          },
+          "number": 0
+        },
+        "decinc": "INC",
+        "amount": {
+          "asset-code": "USD",
+          "exchange-rate": {},
+          "asset-symbol": "$",
+          "asset-quantity": 1000,
+          "plus-or-minus": ""
+        },
+        "account": {
+          "subaccount": [
+            "Bankwest",
+            "Cheque"
+          ],
+          "entity": "FooCorp",
+          "silo": "ASSETS"
+        }
+      },
+      {
+        "id": {
+          "text": "Equity:FooCorp                      $1000.00 USD",
+          "xxhash": 1025058054,
+          "entry-id": {
+            "text": "2012-01-01 \"FooCorp started the year with $1000 in Bankwest cheque account\"\n  Assets:FooCorp:Bankwest:Cheque      $1000.00 USD\n  Equity:FooCorp                      $1000.00 USD\n",
+            "xxhash": 3812242451,
+            "number": 1
+          },
+          "number": 1
+        },
+        "decinc": "INC",
+        "amount": {
+          "asset-code": "USD",
+          "exchange-rate": {},
+          "asset-symbol": "$",
+          "asset-quantity": 1000,
+          "plus-or-minus": ""
+        },
+        "account": {
+          "entity": "FooCorp",
+          "silo": "EQUITY"
+        }
+      }
+    ]
+  },
+  {
+    "id": {
+      "text": "2013-01-01 \"FooCorp started the year with $1000 in Bankwest cheque account\"\n  Assets:FooCorp:Bankwest:Cheque      $1000.00 USD\n  Equity:FooCorp                      $1000.00 USD\n",
+      "xxhash": 4107302510,
+      "number": 2
+    },
+    "header": {
+      "important": 0,
+      "tags": [],
+      "description": "FooCorp started the year with $1000 in Bankwest cheque account",
+      "date": "2013-01-01T00:00:00Z"
+    },
+    "postings": [
+      {
+        "id": {
+          "text": "Assets:FooCorp:Bankwest:Cheque      $1000.00 USD",
+          "xxhash": 3244003616,
+          "entry-id": {
+            "text": "2013-01-01 \"FooCorp started the year with $1000 in Bankwest cheque account\"\n  Assets:FooCorp:Bankwest:Cheque      $1000.00 USD\n  Equity:FooCorp                      $1000.00 USD\n",
+            "xxhash": 4107302510,
+            "number": 2
+          },
+          "number": 0
+        },
+        "decinc": "INC",
+        "amount": {
+          "asset-code": "USD",
+          "exchange-rate": {},
+          "asset-symbol": "$",
+          "asset-quantity": 1000,
+          "plus-or-minus": ""
+        },
+        "account": {
+          "subaccount": [
+            "Bankwest",
+            "Cheque"
+          ],
+          "entity": "FooCorp",
+          "silo": "ASSETS"
+        }
+      },
+      {
+        "id": {
+          "text": "Equity:FooCorp                      $1000.00 USD",
+          "xxhash": 1025058054,
+          "entry-id": {
+            "text": "2013-01-01 \"FooCorp started the year with $1000 in Bankwest cheque account\"\n  Assets:FooCorp:Bankwest:Cheque      $1000.00 USD\n  Equity:FooCorp                      $1000.00 USD\n",
+            "xxhash": 4107302510,
+            "number": 2
+          },
+          "number": 1
+        },
+        "decinc": "INC",
+        "amount": {
+          "asset-code": "USD",
+          "exchange-rate": {},
+          "asset-symbol": "$",
+          "asset-quantity": 1000,
+          "plus-or-minus": ""
+        },
+        "account": {
+          "entity": "FooCorp",
+          "silo": "EQUITY"
+        }
+      }
+    ]
+  },
+  {
+    "id": {
+      "text": "2014-01-01 \"I started the year with $1000 in Bankwest cheque account\"\n  Assets:Personal:Bankwest:Cheque      $1000.00 USD\n  Equity:Personal                      $1000.00 USD\n",
+      "xxhash": 3922094163,
+      "number": 3
+    },
+    "header": {
+      "important": 0,
+      "tags": [],
+      "description": "I started the year with $1000 in Bankwest cheque account",
+      "date": "2014-01-01T00:00:00Z"
+    },
+    "postings": [
+      {
+        "id": {
+          "text": "Assets:Personal:Bankwest:Cheque      $1000.00 USD",
+          "xxhash": 4134277096,
+          "entry-id": {
+            "text": "2014-01-01 \"I started the year with $1000 in Bankwest cheque account\"\n  Assets:Personal:Bankwest:Cheque      $1000.00 USD\n  Equity:Personal                      $1000.00 USD\n",
+            "xxhash": 3922094163,
+            "number": 3
+          },
+          "number": 0
+        },
+        "decinc": "INC",
+        "amount": {
+          "asset-code": "USD",
+          "exchange-rate": {},
+          "asset-symbol": "$",
+          "asset-quantity": 1000,
+          "plus-or-minus": ""
+        },
+        "account": {
+          "subaccount": [
+            "Bankwest",
+            "Cheque"
+          ],
+          "entity": "Personal",
+          "silo": "ASSETS"
+        }
+      },
+      {
+        "id": {
+          "text": "Equity:Personal                      $1000.00 USD",
+          "xxhash": 344831063,
+          "entry-id": {
+            "text": "2014-01-01 \"I started the year with $1000 in Bankwest cheque account\"\n  Assets:Personal:Bankwest:Cheque      $1000.00 USD\n  Equity:Personal                      $1000.00 USD\n",
+            "xxhash": 3922094163,
+            "number": 3
+          },
+          "number": 1
+        },
+        "decinc": "INC",
+        "amount": {
+          "asset-code": "USD",
+          "exchange-rate": {},
+          "asset-symbol": "$",
+          "asset-quantity": 1000,
+          "plus-or-minus": ""
+        },
+        "account": {
+          "entity": "Personal",
+          "silo": "EQUITY"
+        }
+      }
+    ]
+  }
+]

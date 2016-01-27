@@ -474,7 +474,7 @@ multi sub MAIN(
         -------
         EOF
         use Nightscape;
-        .say for Nightscape.ls-entries(:$file, :sort);
+        .say for Nightscape.ls-entries(:txn(slurp $file), :sort);
     }
     else
     {

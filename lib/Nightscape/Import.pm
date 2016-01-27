@@ -3,12 +3,12 @@ use Nightscape::Entry;
 use Nightscape::Types;
 unit class Nightscape::Import;
 
-sub gen-datetime($dt) returns DateTime:D
+method gen-datetime($dt) returns DateTime:D
 {
     my DateTime:D $date = $dt;
 }
 
-sub gen-varname(Str:D $vn) returns VarName:D
+method gen-varname(Str:D $vn) returns VarName:D
 {
     if $vn ~~ / (\S+) { my VarName:D $v = "$0"; make $v; } /
     {
@@ -16,22 +16,22 @@ sub gen-varname(Str:D $vn) returns VarName:D
     }
 }
 
-sub gen-varnames(Str:D @vns) returns Array[VarName:D]
+method gen-varnames(@vns) returns Array[VarName:D]
 {
     my VarName:D @varnames;
     for @vns -> $vn
     {
-        my VarName:D $varname = gen-varname($vn);
+        my VarName:D $varname = self.gen-varname($vn);
         push @varnames, $varname;
     }
     @varnames;
 }
 
-sub gen-entry-header(%header-container) returns Nightscape::Entry::Header:D
+method gen-entry-header(%header-container) returns Nightscape::Entry::Header:D
 {
     my %h;
 
-    %h<date> = gen-datetime(%header-container<date>);
+    %h<date> = self.gen-datetime(%header-container<date>);
 
     my Str $description = %header-container<description>;
     %h<description> = $description if $description;
@@ -41,14 +41,14 @@ sub gen-entry-header(%header-container) returns Nightscape::Entry::Header:D
 
     if %header-container<tags>
     {
-        my VarName:D @tags = gen-varnames(%header-container<tags>);
+        my VarName:D @tags = self.gen-varnames(%header-container<tags>);
         %h<tags> := @tags;
     }
 
     my Nightscape::Entry::Header $header .= new(|%h);
 }
 
-sub gen-entry-id(%entry-id-container) returns EntryID:D
+method gen-entry-id(%entry-id-container) returns EntryID:D
 {
     my Int:D $number = %entry-id-container<number>;
     my Str:D $text = %entry-id-container<text>;
@@ -56,16 +56,16 @@ sub gen-entry-id(%entry-id-container) returns EntryID:D
     my EntryID $entry-id .= new(:$number, :$text, :$xxhash);
 }
 
-sub gen-posting-id(%posting-id-container) returns PostingID:D
+method gen-posting-id(%posting-id-container) returns PostingID:D
 {
-    my EntryID:D $entry-id = gen-entry-id(%posting-id-container<entry-id>);
+    my EntryID:D $entry-id = self.gen-entry-id(%posting-id-container<entry-id>);
     my Int:D $number = %posting-id-container<number>;
     my Str:D $text = %posting-id-container<text>;
     my xxHash:D $xxhash = %posting-id-container<xxhash>;
     my PostingID $posting-id .= new(:$entry-id, :$number, :$text, :$xxhash);
 }
 
-sub gen-entry-posting-account(
+method gen-entry-posting-account(
     %posting-account-container
 ) returns Nightscape::Entry::Posting::Account:D
 {
@@ -81,14 +81,14 @@ sub gen-entry-posting-account(
     if %posting-account-container<subaccount>
     {
         my Str:D @subacct = |%posting-account-container<subaccount>;
-        my VarName:D @subaccount = gen-varnames(@subacct);
+        my VarName:D @subaccount = self.gen-varnames(@subacct);
         %h<subaccount> := @subaccount;
     }
 
     my Nightscape::Entry::Posting::Account $account .= new(|%h);
 }
 
-sub gen-entry-posting-amount-xe(
+method gen-entry-posting-amount-xe(
     %posting-amount-xe-container
 ) returns Nightscape::Entry::Posting::Amount::XE:D
 {
@@ -107,7 +107,7 @@ sub gen-entry-posting-amount-xe(
     my Nightscape::Entry::Posting::Amount::XE $exchange-rate .= new(|%h);
 }
 
-sub gen-entry-posting-amount(
+method gen-entry-posting-amount(
     %posting-amount-container
 ) returns Nightscape::Entry::Posting::Amount:D
 {
@@ -129,7 +129,7 @@ sub gen-entry-posting-amount(
     if %posting-amount-container<exchange-rate>
     {
         my Nightscape::Entry::Posting::Amount::XE:D $exchange-rate =
-            gen-entry-posting-amount-xe(
+            self.gen-entry-posting-amount-xe(
                 %posting-amount-container<exchange-rate>
             );
         %h<exchange-rate> = $exchange-rate;
@@ -138,15 +138,15 @@ sub gen-entry-posting-amount(
     my Nightscape::Entry::Posting::Amount $amount .= new(|%h);
 }
 
-sub gen-entry-posting(%posting-container) returns Nightscape::Entry::Posting:D
+method gen-entry-posting(%posting-container) returns Nightscape::Entry::Posting:D
 {
-    my PostingID:D $id = gen-posting-id(%posting-container<id>);
+    my PostingID:D $id = self.gen-posting-id(%posting-container<id>);
 
     my Nightscape::Entry::Posting::Account:D $account =
-        gen-entry-posting-account(%posting-container<account>);
+        self.gen-entry-posting-account(%posting-container<account>);
 
     my Nightscape::Entry::Posting::Amount:D $amount =
-        gen-entry-posting-amount(%posting-container<amount>);
+        self.gen-entry-posting-amount(%posting-container<amount>);
 
     # :: DecInc is enum
     my DecInc:D $decinc = ::(%posting-container<decinc>);
@@ -159,38 +159,32 @@ sub gen-entry-posting(%posting-container) returns Nightscape::Entry::Posting:D
     );
 }
 
-sub gen-entry-postings(
+method gen-entry-postings(
     @posting-containers
 ) returns Array #Array[Nightscape::Entry::Posting:D]
 {
     my Nightscape::Entry::Posting:D @postings =
-        gen-entry-posting($_) for @posting-containers;
+        self.gen-entry-posting($_) for @posting-containers;
     @postings;
 }
 
-sub gen-entry(%entry-container) returns Nightscape::Entry:D
+method gen-entry(%entry-container) returns Nightscape::Entry:D
 {
     my Nightscape::Entry::Header:D $header =
-        gen-entry-header(%entry-container<header>);
+        self.gen-entry-header(%entry-container<header>);
 
-    my EntryID:D $id = gen-entry-id(%entry-container<id>);
+    my EntryID:D $id = self.gen-entry-id(%entry-container<id>);
 
     my Nightscape::Entry::Posting:D @postings =
-        gen-entry-postings(%entry-container<postings>);
+        self.gen-entry-postings(%entry-container<postings>);
 
     my Nightscape::Entry $entry .= new(:$header, :$id, :@postings);
 }
 
-sub gen-entries(@entry-containers) is export returns Array[Nightscape::Entry:D]
+method gen-entries(@entry-containers) returns Array[Nightscape::Entry:D]
 {
     my Nightscape::Entry:D @entries;
-    push @entries, gen-entry($_) for @entry-containers;
-    @entries;
-}
-
-method entries(@parsed) returns Array[Nightscape::Entry:D]
-{
-    my Nightscape::Entry:D @entries = gen-entries(@parsed);
+    push @entries, self.gen-entry($_) for @entry-containers;
     @entries;
 }
 

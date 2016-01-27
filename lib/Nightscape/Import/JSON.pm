@@ -4,7 +4,7 @@ use Nightscape::Import;
 use Nightscape::Types;
 unit class Nightscape::Import::JSON is Nightscape::Import;
 
-sub gen-datetime($dt) returns DateTime:D
+method gen-datetime($dt) returns DateTime:D
 {
     use TXN::Parser::Actions;
     use TXN::Parser::Grammar;
@@ -16,11 +16,10 @@ sub gen-datetime($dt) returns DateTime:D
     ).made;
 }
 
-method entries(Str:D :$json!) returns Array[Nightscape::Entry:D]
+method entries(Str:D :$json!) returns Array #Array[Nightscape::Entry:D]
 {
     use JSON::Tiny;
-    my Nightscape::Entry:D @entries = gen-entries(from-json($json).Array);
-    @entries;
+    my Nightscape::Entry:D @entries = self.gen-entries(from-json($json).Array);
 }
 
 # vim: ft=perl6

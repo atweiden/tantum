@@ -3,27 +3,20 @@ use lib 'lib';
 use Test;
 use Nightscape;
 
-plan 12;
+plan 2;
 
-my Str $file = "examples/sample/sample.txn";
-my Nightscape::Entry @entries;
+subtest
+{
+    my Str:D $json = slurp 'examples/sample/sample.json';
+    my Nightscape::Entry:D @entries = Nightscape.ls-entries(:$json);
 
-if $file.IO.e
-{
-    @entries = Nightscape.ls-entries(:txn(slurp $file));
-}
-else
-{
-    die "Sorry, couldn't locate file: $file";
-}
-
-{
     # check that the list of returned entries has only one entry on
     # date 2014-01-03, and that the returned entry's date is 2014-01-03
     my Nightscape::Entry @entries-by-date = Nightscape.ls-entries(
         :@entries,
         :date(DateTime.new(:year(2014), :month(1), :day(3)))
     );
+
     is(
         @entries-by-date.elems,
         1,
@@ -48,15 +41,14 @@ else
         ┗━━━━━━━━━━━━━┛
         EOF
     );
-}
 
-{
     # check that the list of returned entries has 0 entries by entity
     # Lorem
     my Nightscape::Entry @entries-by-entity-lorem = Nightscape.ls-entries(
         :@entries,
         :entity(/Lorem/)
     );
+
     is(
         @entries-by-entity-lorem.elems,
         0,
@@ -69,15 +61,14 @@ else
         ┗━━━━━━━━━━━━━┛
         EOF
     );
-}
 
-{
     # check that the list of returned entries has 7 entries by entity
     # Personal
     my Nightscape::Entry @entries-by-entity-personal = Nightscape.ls-entries(
         :@entries,
         :entity(/Personal/)
     );
+
     is(
         @entries-by-entity-personal.elems,
         7,
@@ -92,27 +83,19 @@ else
     );
 }
 
-my Str $file-inc = "t/data/with-includes.txn";
-my Nightscape::Entry @entries-inc;
+subtest
+{
+    my Str:D $json = slurp 't/data/with-includes.json';
+    my Nightscape::Entry:D @entries = Nightscape.ls-entries(:$json);
 
-if $file-inc.IO.e
-{
-    @entries-inc = Nightscape.ls-entries(:txn(slurp $file-inc));
-}
-else
-{
-    die "Sorry, couldn't locate transaction journal at 「$file-inc」";
-}
-
-{
     # check that the list of returned entries has only one entry on
     # date 2011-01-01, and that the returned entry's date is 2011-01-01
-    my Nightscape::Entry @entries-by-date = Nightscape.ls-entries(
-        :entries(@entries-inc),
+    my Nightscape::Entry @entries-by-date-a = Nightscape.ls-entries(
+        :@entries,
         :date(DateTime.new(:year(2011), :month(1), :day(1)))
     );
     is(
-        @entries-by-date.elems,
+        @entries-by-date-a.elems,
         1,
         q:to/EOF/
         ♪ [ls-entries w/ includes] - 5 of 12
@@ -124,7 +107,7 @@ else
         EOF
     );
     is(
-        @entries-by-date[0].header.date,
+        @entries-by-date-a[0].header.date,
         DateTime.new(:year(2011), :month(1), :day(1)),
         q:to/EOF/
         ♪ [ls-entries w/ includes] - 6 of 12
@@ -135,17 +118,16 @@ else
         ┗━━━━━━━━━━━━━┛
         EOF
     );
-}
 
-{
     # check that the list of returned entries has only one entry on
     # date 2012-01-01, and that the returned entry's date is 2012-01-01
-    my Nightscape::Entry @entries-by-date = Nightscape.ls-entries(
-        :entries(@entries-inc),
+    my Nightscape::Entry @entries-by-date-b = Nightscape.ls-entries(
+        :@entries,
         :date(DateTime.new(:year(2012), :month(1), :day(1)))
     );
+
     is(
-        @entries-by-date.elems,
+        @entries-by-date-b.elems,
         1,
         q:to/EOF/
         ♪ [ls-entries w/ includes] - 7 of 12
@@ -157,7 +139,7 @@ else
         EOF
     );
     is(
-        @entries-by-date[0].header.date,
+        @entries-by-date-b[0].header.date,
         DateTime.new(:year(2012), :month(1), :day(1)),
         q:to/EOF/
         ♪ [ls-entries w/ includes] - 8 of 12
@@ -168,17 +150,16 @@ else
         ┗━━━━━━━━━━━━━┛
         EOF
     );
-}
 
-{
     # check that the list of returned entries has only one entry on
     # date 2013-01-01, and that the returned entry's date is 2013-01-01
-    my Nightscape::Entry @entries-by-date = Nightscape.ls-entries(
-        :entries(@entries-inc),
+    my Nightscape::Entry @entries-by-date-c = Nightscape.ls-entries(
+        :@entries,
         :date(DateTime.new(:year(2013), :month(1), :day(1)))
     );
+
     is(
-        @entries-by-date.elems,
+        @entries-by-date-c.elems,
         1,
         q:to/EOF/
         ♪ [ls-entries w/ includes] - 9 of 12
@@ -190,7 +171,7 @@ else
         EOF
     );
     is(
-        @entries-by-date[0].header.date,
+        @entries-by-date-c[0].header.date,
         DateTime.new(:year(2013), :month(1), :day(1)),
         q:to/EOF/
         ♪ [ls-entries w/ includes] - 10 of 12
@@ -201,17 +182,16 @@ else
         ┗━━━━━━━━━━━━━┛
         EOF
     );
-}
 
-{
     # check that the list of returned entries has only one entry on
     # date 2014-01-01, and that the returned entry's date is 2014-01-01
-    my Nightscape::Entry @entries-by-date = Nightscape.ls-entries(
-        :entries(@entries-inc),
+    my Nightscape::Entry @entries-by-date-d = Nightscape.ls-entries(
+        :@entries,
         :date(DateTime.new(:year(2014), :month(1), :day(1)))
     );
+
     is(
-        @entries-by-date.elems,
+        @entries-by-date-d.elems,
         1,
         q:to/EOF/
         ♪ [ls-entries w/ includes] - 11 of 12
@@ -223,7 +203,7 @@ else
         EOF
     );
     is(
-        @entries-by-date[0].header.date,
+        @entries-by-date-d[0].header.date,
         DateTime.new(:year(2014), :month(1), :day(1)),
         q:to/EOF/
         ♪ [ls-entries w/ includes] - 12 of 12

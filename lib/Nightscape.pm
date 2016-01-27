@@ -16,8 +16,8 @@ method ls-entity-names(
     Nightscape::Entry:D :@entries! is readonly
 ) returns Array[VarName:D]
 {
-    # to instantiate Nightscape::Entry, exec Nightscape.ls-entries(:$file)
-    # to parse entries. Actions.pm contains logic barring more than one
+    # to instantiate Nightscape::Entry, exec Nightscape.ls-entries to
+    # parse entries. Actions.pm contains logic barring more than one
     # entity per entry:
     #
     #     die unless @entities.grep(@entities[0]).elems == @entities.elems
@@ -30,38 +30,22 @@ method ls-entity-names(
     @entities .= unique;
 }
 
-# list entries from on disk transaction journal
+# list entries from txn
 multi method ls-entries(
-    Str:D :$file!,
+    Str:D :$txn!,
     Bool :$sort
 ) returns Array[Nightscape::Entry:D]
 {
-    use TXN::Parser;
+    use Nightscape::Import::TXN;
+    my Nightscape::Entry:D @entries = Nightscape::Import::TXN.entries(:$txn);
 
-    # resolve include directives in transaction journal on disk
-    my Str:D $journal = TXN::Parser.preprocess(:$file);
+    # entries, sorted by date ascending then by importance descending
+    @entries = sort-entries(@entries) if $sort;
 
-    # parse preprocessed transaction journal
-    if my Match $parsed = TXN::Parser.parse($journal)
-    {
-        use Nightscape::Import;
-
-        # entries, unsorted, with included transaction journals
-        my Nightscape::Entry:D @entries =
-            Nightscape::Import.entries($parsed.made);
-
-        # entries, sorted by date ascending then by importance descending
-        @entries = sort-entries(@entries) if $sort;
-
-        @entries;
-    }
-    else
-    {
-        die "Sorry, could not parse transaction journal at 「$file」";
-    }
+    @entries;
 }
 
-# list entries from txnpkg txn.json
+# list entries from json
 multi method ls-entries(
     Str:D :$json!,
     Bool :$sort

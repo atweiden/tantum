@@ -67,7 +67,7 @@ my Nightscape::Entry @entries;
 
 if $file.IO.e
 {
-    @entries = Nightscape.ls-entries(:$file, :sort);
+    @entries = Nightscape.ls-entries(:txn(slurp $file), :sort);
 }
 else
 {
@@ -238,7 +238,10 @@ my Nightscape::Entry @entries-advanced;
 
 if $file-advanced.IO.e
 {
-    @entries-advanced = Nightscape.ls-entries(:file($file-advanced), :sort);
+    @entries-advanced = Nightscape.ls-entries(
+        :txn(slurp $file-advanced),
+        :sort
+    );
 }
 else
 {
