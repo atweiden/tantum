@@ -9,6 +9,7 @@
         "JSON::Tiny",
         "TXN"
     ],
+    "license"     : "http://unlicense.org/UNLICENSE",
     "source-type" : "git",
     "source-url"  : "git://github.com/atweiden/nightscape.git"
 }
