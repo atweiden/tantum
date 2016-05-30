@@ -1,5 +1,4 @@
-Components Required
-===================
+# Components Required
 
 - Syntax
 - Config
@@ -8,20 +7,19 @@ Components Required
 - Logic
 - Reports
 
-Syntax
-------
+## Syntax
 
 Syntax inspired by [Ledger.py](https://github.com/mafm/ledger.py),
 [Beancount](https://bitbucket.org/blais/beancount/src) and
 [HLedger](https://github.com/simonmichael/hledger).
 
-#### Virtual Accounts
+### Virtual Accounts
 
 **Virtual Accounts**. These are z-index accounts that don't actually
 exist but allow you to essentially create labels that you can track over
 time. Potentially useful for budgeting, e.g.:
 
-```transactions
+```txn
 2014-01-01 "I receive paycheck of $20000.00 USD"
   Assets:Checking        $20000.00
   Income:Job             $20000.00
@@ -29,19 +27,19 @@ time. Potentially useful for budgeting, e.g.:
   _Budget:Pets           $10000.00
 ```
 
-```transactions
+```txn
 2014-03-25 "Payment for books (paid from Checking)"
   Expenses:Books         $100.00
   Assets:Checking        $-100.00
   _Budget:School         $-100.00
 ```
 
-#### Links
+### Links
 
 **Links**. Come in handy if `include`-ing multiple journals, wherein
 certain entries are related, note the `@Jan2014Loan[]` array syntax.
 
-```transactions
+```txn
 2014-01-02 "I loaned the business $100.00 USD, to be repaid in full no later than three years following today's date (i.e. by or on 2017-01-02), plus the annual AFR as of January 2014 (0.25%), compounded annually" #Bankwest-Personal #loans-receivable @Jan2014Loan[0]
   Assets:Personal:AccountsReceivable     $100.00 USD
   Assets:Personal:Bankwest:Cheque       -$100.00 USD
@@ -56,8 +54,7 @@ the personal side of the loan will appear before the corporate side,
 reflecting order of array elements.
 
 
-Config
-------
+## Config
 
 **INI config**
 
@@ -83,7 +80,7 @@ if you don't specify:
 for `[EntityNamedFoo]`, then Nightscape will default to looking for
 exchange rate pricing in the config-file section titled:
 
-```
+```toml
 [Assets.$aux-currency-code.Prices.$entity-base-currency-code]
 ```
 
@@ -118,17 +115,18 @@ pricing pairs before merger.
 
   - Tag-specific pricing data
 
+```toml
 ["@coinbase".Assets.BTC.Prices.USD]
+```
 
 - Configurable documents directory
 
 
-Parser
-------
+## Parser
 
 Example log format:
 
-```transactions
+```txn
 2013-01-01 I began the year with $1000 in my cheque account.
   Assets:Bankwest:Cheque      $1,000
   Equity:OpeningBalances      $1,000
@@ -155,27 +153,26 @@ From this, we need to parse:
 └── Posting
 ```
 
-#### Account
+### Account
 
 We need the ability to discern accounts (`Assets`, `Expenses`,
 `Liabilities`, `Income`, `Equity`), as well as arbitrarily named
 subaccounts from colon (`:`) separated words, e.g. `Expenses:Electricity`.
 
-#### Date
+### Date
 
 Date of transaction.
 
-#### Description
+### Description
 
 Description of transaction.
 
-#### Posting
+### Posting
 
 Debits and credits.
 
 
-Validation
-----------
+## Validation
 
 Each entry should balance. [@mafm](https://github.com/mafm)’s code
 does this with a table:
@@ -187,7 +184,6 @@ Expenses    |  1
 Liabilities | -1
 Income      | -1
 Equity      | -1
-```
 
 For multicurrency entries, or when an alternative currency/asset symbol is
 detected as opposed to the default currency symbol, the parser should
@@ -208,7 +204,7 @@ Nightscape should raise an exception. If the exchange rate is scanned
 for and successfully found, Nightscape should ensure that the exchange
 rate is quoted in terms of the base currency:
 
-```transactions
+```txn
 2014-12-01 "The business bought ฿0.10000000 BTC on Coinbase.com for $77.99 USD at a price of $771.46 USD/BTC with a fee of $0.84 USD"
   Assets:Business:Coinbase:BTC           ฿0.10000000 BTC @ $771.46 USD/BTC
   Expenses:Business:CoinbaseFee          $0.84 USD
@@ -222,7 +218,7 @@ Alternatively, in cases where one non-default asset is used to pay
 for another non-default asset, syntax is checked to ensure the "base"
 non-default asset is expressed in the true default asset, e.g.:
 
-```transactions
+```txn
 2015-01-01 "I exchanged 1 BTC for 200 LTC"
   Assets:LTC     200  LTC
   Assets:BTC    -1.00 BTC @ $395.00
@@ -231,24 +227,21 @@ non-default asset is expressed in the true default asset, e.g.:
 Works behind the scenes to compute $1.975 as basis for the LTC
 
 
-Logic
------
+## Logic
 
 - Track FIFO basis
 
 
-Reports
--------
+## Reports
 
 - Generate reports
 
 
-Tentative
----------
+## Tentative
 
-#### implement hard check of one entity per journal entry [CHECK]
+### implement hard check of one entity per journal entry [CHECK]
 
-#### implement checks
+### implement checks
 
 - do postings balance?
 - is hash1 a prefix of hash2
@@ -263,8 +256,7 @@ def chart_of_accounts(accounts_dict, prefix = "", indent=0):
     accounts_dict represents hierachical structure of accounts."""
 ```
 
-
-#### implement lib/Nightscape/Entity.pm
+### implement lib/Nightscape/Entity.pm
 
 ```perl6
 has Date $.open;
@@ -274,7 +266,7 @@ has Nightscape::Entity::SubAccount %.subaccount{VarName};
 #inventory?
 ```
 
-#### implement lib/Nightscape/Entity/SubAccount.pm
+### implement lib/Nightscape/Entity/SubAccount.pm
 
 - open / closed
 - inventory
@@ -282,7 +274,7 @@ has Nightscape::Entity::SubAccount %.subaccount{VarName};
 - config stuff
   - must-balance?
 
-#### implement name option for accounts and title option for journal
+### implement name option for accounts and title option for journal
 
 ```toml
 title = "My Transactions" # this title used in generated reports
@@ -291,9 +283,9 @@ title = "My Transactions" # this title used in generated reports
 name = "Foo Bar Enterprises Ltd." # this name used in generated reports
 ```
 
-#### implement @@ exchange rate parsing rules
+### implement @@ exchange rate parsing rules
 
-```transactions
+```txn
 2014-01-01 "I bought coins on Coinbase"
   Assets:Personal:Coinbase:BTC         0.40 BTC @@ $100.00 USD
   Assets:Personal:Bankwest:Cheque  -$100.00 USD

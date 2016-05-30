@@ -1,36 +1,33 @@
-Nightscape Syntax
-=================
+# Nightscape Syntax
 
-Entries
--------
+## Entries
 
 - Journal entries must be separated by newline(s)
 
-#### Unacceptable (missing newline separator between entries)
+### Unacceptable (missing newline separator between entries)
 
-```
-2014-01-01 I started the year with $1000 in Bankwest cheque account
+```txn
+2014-01-01 "I started the year with $1000 in Bankwest cheque account"
   Assets:Personal:Bankwest:Cheque    $1000.00 USD
-  Equity:Personal                    $1000.00 USD 2014-01-02 I paid Exxon Mobile $10 for gas from Bankwest cheque account
+  Equity:Personal                    $1000.00 USD 2014-01-02 "I paid Exxon Mobile $10 for gas from Bankwest cheque account"
   Expenses:Personal:Fuel             $10.00 USD
   Assets:Personal:Bankwest:Cheque   -$10.00 USD
 ```
 
-#### Acceptable
+### Acceptable
 
-```
-2014-01-01 I started the year with $1000 in Bankwest cheque account
+```txn
+2014-01-01 "I started the year with $1000 in Bankwest cheque account"
   Assets:Personal:Bankwest:Cheque    $1000.00 USD
   Equity:Personal                    $1000.00 USD
 
-2014-01-02 I paid Exxon Mobile $10 for gas from Bankwest cheque account
+2014-01-02 "I paid Exxon Mobile $10 for gas from Bankwest cheque account"
   Expenses:Personal:Fuel             $10.00 USD
   Assets:Personal:Bankwest:Cheque   -$10.00 USD
 ```
 
 
-Dates
------
+## Dates
 
 Dates can come in three different forms:
 
@@ -40,76 +37,77 @@ Dates can come in three different forms:
    (`YYYY-MM-ddThh:mm:ss.ffff`)
 3. Standard calendar dates (`YYYY-MM-dd`)
 
-#### Unacceptable (invalid full-year)
+### Unacceptable (invalid full-year)
 
-```
+```txn
 1-1-2015
 1/1/2015
 2015/01/01
 Jan 1st, 2015
 ```
 
-#### Unacceptable (invalid date-time)
+### Unacceptable (invalid date-time)
 
 Missing `[Tt]`:
 
-```
+```txn
 2015-01-01 00:00:00Z
 ```
 
-#### Acceptable
+### Acceptable
 
-```
-# YYYY-MM-DD
+```txn
+-- YYYY-MM-DD
 2015-01-01
 
-# RFC3339 timestamp
+-- RFC3339 timestamp
 2015-01-01T00:00:00Z
 2015-01-01t00:00:00z
 2015-01-01T00:00:00-07:00
 
-# RFC3339 timestamp with local offset omitted
+-- RFC3339 timestamp with local offset omitted
 2015-01-01T07:32:00
 2015-01-01T00:32:00.999999
 ```
 
 
-Metainfo
---------
+## Metainfo
 
 - Metainfo is optional
 - Metainfo, when given, can come after the date separated by at least
   one whitespace or newline and/or after the description separated by
   at least one whitespace or newline.
 
-#### Tags
 
-- Tags begin with a `@`
+## Tags
+
+- Tags begin with a `#`
 - Tag names must obey variable naming rules
 - Tags are case insensitive
-- There must be no leading space between the `@` and the tag name
+- There must be no leading space between the `#` and the tag name
 - Tags must come on the same single line of the description, trailing
   the quoted description
 
-###### Unacceptable (invalid variable name)
+### Unacceptable (invalid variable name)
 
-```transactions
-@for$za             # invalid: contains invalid var-char dollar sign (`$`)
-@CanIDeductThis?    # invalid: contains invalid var-char question mark (`?`)
-@                   # invalid: missing tag name
+```txn
+#for$za             -- invalid: contains invalid var-char dollar sign (`$`)
+#CanIDeductThis?    -- invalid: contains invalid var-char question mark (`?`)
+#                   -- invalid: missing tag name
 ```
 
-###### Acceptable
+### Acceptable
 
-```transactions
-@for-business-luncheon
+```txn
+#for-business-luncheon
 ```
 
-```transactions
-@for-business-luncheon @deductible
+```txn
+#for-business-luncheon #deductible
 ```
 
-#### Exclamation Marks
+
+## Exclamation Marks
 
 - Description lines can be optionally accompanied with one or more
   exclamation marks (`!`)
@@ -118,24 +116,23 @@ Metainfo
 - Exclamation marks may appear clustered together (`!!!`), separated
   by whitespace or both (`! !! ! !!!`)
 - Exclamation marks may also appear intermixed with tags, separated
-  by whitespace (`! @tag1 !!!! @tag2`)
+  by whitespace (`! #tag1 !!!! #tag2`)
 
-###### Unacceptable (exclamation point is followed by unrecognized char)
+### Unacceptable (exclamation point is followed by unrecognized char)
 
-```transactions
+```txn
 !a
 ```
 
-###### Acceptable
+### Acceptable
 
-```transactions
+```txn
 ! !! ! !!!
-!! @tag1 !!! @tag2
+!! #tag1 !!! #tag2
 ```
 
 
-Descriptions
-------------
+## Descriptions
 
 - Transaction descriptions are optional
 - Transaction descriptions, when given, follow TOML string rules. The
@@ -146,15 +143,15 @@ Descriptions
 - There must be at least one whitespace or newline between the date and
   the description, or a metainfo and the description.
 
-#### Unacceptable (transaction description not surrounded in quotes)
+### Unacceptable (transaction description not surrounded in quotes)
 
-```
+```txn
 2014-01-01 I started the year with $1000 in Bankwest cheque account
 ```
 
-#### Unacceptable (description in quotes not contained on one line)
+### Unacceptable (description in quotes not contained on one line)
 
-```
+```txn
 2014-01-01 'I started the year \
             with $1000 in Bankwest \
             cheque account'
@@ -163,11 +160,9 @@ Descriptions
             cheque account"
 ```
 
-#### Unacceptable ()
+### Acceptable
 
-#### Acceptable
-
-```
+```txn
 2014-01-01 "I started the year with $1000 in Bankwest cheque account"
 
 2014-01-01 'Single quotes work too'
@@ -176,7 +171,7 @@ Descriptions
 
 2014-01-01 """Triple'd doubles with TOML string basic multiline rules"""
 
-2014-01-01 # descriptions are optional
+2014-01-01 -- descriptions are optional
 
 2014-01-01
 'You can do this'
@@ -197,22 +192,21 @@ Description here."""
 Description here.
 """
 
-2014-01-01 @tag1 @tag2
+2014-01-01 #tag1 #tag2
 """
 Description here.
 """
-@tag3 @tag4
+#tag3 #tag4
 
 2014-01-01
-@tag1 @tag2
+#tag1 #tag2
 """
 Description here.
 """
 ```
 
 
-Postings
---------
+## Postings
 
 - Postings must appear one after the other, separated by newline
 - Comment lines and blank lines are allowed in between postings
@@ -220,8 +214,7 @@ Postings
   and do not need to be indented.
 
 
-Silos
------
+## Silos
 
 - Accepted silo names
   - Asset / Assets
@@ -236,21 +229,20 @@ Silos
   - liability / liabilitiEs
   - Equity / equitieS
 
-#### Unacceptable (use of unsupported silo name)
+### Unacceptable (use of unsupported silo name)
 
-```
+```txn
 MyCustomSilo:FooEntity:BarSubaccount
 ```
 
-#### Acceptable
+### Acceptable
 
-```
+```txn
 Assets:FooEntity:BarSubaccount
 ```
 
 
-Entities
---------
+## Entities
 
 - At least one entity must be listed, and must appear directly after
   main account (`Assets`, `Expenses`, `Income`, `Liabilities`, or
@@ -264,61 +256,59 @@ Entities
   - silo names: assets, expenses, income, liabilities, equity
   - top-level config vars: base-costing, base-currency
 
-#### Unacceptable (no entity given)
+### Unacceptable (no entity given)
 
-```transactions
+```txn
 Assets
 ```
 
-#### Unacceptable (entities cannot contain whitespace)
+### Unacceptable (entities cannot contain whitespace)
 
-```
+```txn
 Assets:Chase Investment Bank
 ```
 
-#### Unacceptable (entities cannot be named a reserved word)
+### Unacceptable (entities cannot be named a reserved word)
 
-```
+```txn
 Assets:Assets
 Assets:base-currency
 ```
 
-#### Acceptable
+### Acceptable
 
-```transactions
+```txn
 Assets:ChaseInvestmentBank
 ```
 
 
-Subaccounts
------------
+## Subaccounts
 
 - Subaccounts are optional
 - Subaccount names are case-insensitive
 - Subaccounts must be separated by `:`
 
-```
-Assets:Bankwest             # Bankwest is interpreted as an entity you own
-Assets:Personal:Bankwest    # Bankwest is interpreted as a subaccount owned by you personally
+```txn
+Assets:Bankwest             -- Bankwest is interpreted as an entity you own
+Assets:Personal:Bankwest    -- Bankwest is interpreted as a subaccount owned by you personally
 ```
 
-#### Unacceptable (subaccounts cannot contain special chars besides `-` and `_`)
+### Unacceptable (subaccounts cannot contain special chars besides `-` and `_`)
 
-```
+```txn
 Assets:MyEntity:Bank.of.America:Checking
 Assets:MyEntity:Bank\ of\ America:Checking
 Assets:MyEntity:C4$H
 ```
 
-#### Acceptable
+### Acceptable
 
-```
+```txn
 Assets:Personal:Bankwest:Cheque
 ```
 
 
-Numbers
--------
+## Numbers
 
 - TOML number rules are generally adhered to. No leading zeros. Numbers
   can contain underscores so long as each underscore is surrounded by
@@ -333,32 +323,32 @@ Numbers
 - Negative numbers must avoid giving whitespace between the negating
   `-` character and one of either the asset symbol or asset quantity.
 
-#### Unacceptable (lack of currency code / asset code)
+### Unacceptable (lack of currency code / asset code)
 
-```
+```txn
 1000
 1000.00
 $1000
 $1000.00
 ```
 
-#### Unacceptable (trailing decimal point)
+### Unacceptable (trailing decimal point)
 
-```
+```txn
 20. USD
 $20. USD
 USD 20.
 ```
 
-#### Unacceptable (unsupported use of scientific notation)
+### Unacceptable (unsupported use of scientific notation)
 
-```
+```txn
 2.345e3
 ```
 
-#### Acceptable
+### Acceptable
 
-```
+```txn
 1000 USD
 1000.00 USD
 $1000 USD
@@ -369,59 +359,55 @@ USD $1000
 USD $1000.00
 ```
 
-#### Acceptable
+### Acceptable
 
-```
+```txn
 -500 USD
 -$500 USD
 $-500 USD
 ```
 
-#### Unacceptable (whitespace appears after negative sign)
+### Unacceptable (whitespace appears after negative sign)
 
-```
+```txn
 - 500 USD
 - $500 USD
 ```
 
 
-Exchange Rates
---------------
+## Exchange Rates
 
 - Exchange rates are optional
 - Exchange rates must be preceded by an `@` symbol and at least one
   whitespace
 - Number syntax conventions apply to the given numeric rate
 
+### Acceptable
 
-#### Acceptable
-
-```
+```txn
 @ $830.024 USD
 @    $830.024 USD
 @ 830.024 USD
 @ USD 830.024
 ```
 
-#### Unacceptable (missing leading `@` symbol and at least one whitespace)
+### Unacceptable (missing leading `@` symbol and at least one whitespace)
 
-```
+```txn
 $830.024 USD
 USD 830.024
 @USD 830.024
 ```
 
 
-Comments
---------
+## Comments
 
-- Comments begin with a `#`
+- Comments begin with a `--`
 - Comments can appear anywhere
 - There is no special multiline comment syntax
 
 
-Includes
---------
+## Includes
 
 - include separate transaction journal files by writing `include
   'path/to/file/without/extension'` with no leading whitespace
@@ -434,27 +420,27 @@ Includes
 - use maximum of one include directive per line
 - glob syntax not supported
 
-#### Unacceptable (missing double or single quotes around transaction journal name)
+### Unacceptable (missing double or single quotes around transaction journal name)
 
-```transactions
+```txn
 include includes/2011
 ```
 
-#### Unacceptable (more than one include directive given per line)
+### Unacceptable (more than one include directive given per line)
 
-```transactions
+```txn
 include 'includes/2011' 'includes/2012'
 ```
 
-#### Unacceptable (warning: glob syntax interpreted literally)
+### Unacceptable (warning: glob syntax interpreted literally)
 
-```transactions
+```txn
 include 'includes/*'
 ```
 
-#### Acceptable
+### Acceptable
 
-```transactions
+```txn
 include 'includes/2011'
 include "includes/2012"
 include 'includes/whitespace in transaction journal name is ok'

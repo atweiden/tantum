@@ -1,15 +1,12 @@
-Comparisons
-===========
+# Comparisons
 
-A review of other cmdline double-entry accounting systems follows.
+A review of other cmdline double-entry bookkeeping systems follows.
 
-
-[Beancount](https://bitbucket.org/blais/beancount/src)
-------------------------------------------------------
+## [Beancount](https://bitbucket.org/blais/beancount/src)
 
 The most active and innovative reimplementation of Ledger.
 
-#### Likes
+### Likes
 
 - Opening and closing of accounts
 
@@ -51,7 +48,7 @@ The most active and innovative reimplementation of Ledger.
 - weighted average cost basis method being experimented on, which would
   be a viable option for automatically calculating capital gains:
 
-#### Dislikes
+### Dislikes
 
 - Only supports one action per day (no date duplicates). You can't repeat
   ISO-DATE + ACTION, e.g. `2014-02-03 balance`. For my logs this could
@@ -63,12 +60,12 @@ The most active and innovative reimplementation of Ledger.
 
 - Unintuitive postings syntax. I don’t like the idea of writing
   `-$100.00` to show a $100 *increase* in liabilities. I have the same
-  complaint about every cmdline accounting system save for Ledger.py.
+  complaint about every cmdline bookkeeping system save for Ledger.py.
 
 - No FIFO/LIFO/AVGCOST method support. Beancount requires manually
   specifying the basis against which capital gains are calculated when
   selling or exchanging assets. I have the same complaint about every
-  cmdline accounting system.
+  cmdline bookkeeping system.
   - This is a tedious, manual effort, e.g. `10 SOME {2.02 USD}
     [2012-12-12] @ 2.50 USD`, which requires counting, by hand, remaining
     lots of $2.02 basis assets acquired on 2012-12-12. Particularly with
@@ -131,10 +128,9 @@ The most active and innovative reimplementation of Ledger.
 - Options should probably have an `include` directive too
 
 
-[Ledger](http://ledger-cli.org)
--------------------------------
+## [Ledger](http://ledger-cli.org)
 
-#### Likes
+### Likes
 
 - Biggest userbase, most stable and longest running
 
@@ -209,7 +205,7 @@ The most active and innovative reimplementation of Ledger.
 - `--pager` or `LEDGER_PAGER` environment variable: tells ledger to pass
   output to the pager program
 
-#### Dislikes
+### Dislikes
 
 - Payee; I'd rather optionally declare the payee with @WORD or #HASHTAG
   than make the payee a required field. Beancount gets this right.
@@ -271,7 +267,7 @@ Equity    | -1
   more of a general solution. This comes at the cost of readability
   and usability.
   - e.g. periodic transactions, think: macro. Macros should have no place
-    in a plain text accounting log. It makes the text file very hard for
+    in a plain text bookkeeping log. It makes the text file very hard for
     a human to read through. Anything like that should be handled with
     a dedicated GUI and exported to plain text afterwards
   - e.g. expressions that perform calculations within ledger
@@ -299,24 +295,22 @@ Equity    | -1
 > the same as the way you use it.
 
 
-[Ledger.py](https://github.com/mafm/ledger.py)
-----------------------------------------------
+## [Ledger.py](https://github.com/mafm/ledger.py)
 
-#### Likes
+### Likes
 
-- Best, most human-readable syntax of any cmdline accounting solution.
+- Best, most human-readable syntax of any cmdline bookkeeping solution.
 
-#### Dislikes
+### Dislikes
 
 - Very limited feature set
 
 - Doesn’t support multiple currencies
 
 
-[HLedger](https://github.com/simonmichael/hledger)
---------------------------------------------------
+## [HLedger](https://github.com/simonmichael/hledger)
 
-#### Likes
+### Likes
 
 - Web interface with advanced search feature
 
@@ -368,7 +362,7 @@ Equity    | -1
 - optional status flag, which can be empty or `!` or `*` (meaning
   "uncleared", "pending" and "cleared", or whatever you want)
 
-#### Dislikes
+### Dislikes
 
 - Web interface leaves much to be desired
 
@@ -384,9 +378,8 @@ Equity    | -1
     the highest precision seen in all posting amounts in that commmodity.
 
 
-[Penny](https://github.com/massysett/penny)
--------------------------------------------
+## [Penny](https://github.com/massysett/penny)
 
-#### Dislikes
+### Dislikes
 
 - Syntax.

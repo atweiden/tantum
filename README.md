@@ -1,8 +1,7 @@
-Nightscape
-==========
+# Nightscape
 
-Double-entry cmdline accounting system with support for automatic capital
-gains / losses calculation using an intuitive syntax.
+Double-entry cmdline bookkeeping system with support for automatic
+capital gains / losses calculation using an intuitive syntax.
 
 Nightscape's syntax was inspired by [@mafm](https://github.com/mafm)'s
 work in [ledger.py](https://github.com/mafm/ledger.py), e.g.:
@@ -14,14 +13,13 @@ work in [ledger.py](https://github.com/mafm/ledger.py), e.g.:
 ```
 
 
-Illustrated Use Cases
----------------------
+## Illustrated Use Cases
 
-#### Asset dispositions
+### Asset dispositions
 
 Nightscape syntax:
 
-```transactions
+```txn
 2013-11-12 "I sold 10 BTC for $10,000.00 USD, at a price of $1000 USD/BTC"
   Assets:FooCorp:Bitstamp     $10000 USD
   Assets:FooCorp:Bitstamp    -฿10.00 BTC @ $1000 USD
@@ -31,7 +29,7 @@ Alternate text-based bookkeeping approaches, such as
 [Ledger](http://ledger-cli.org) transaction journals, require a more
 elaborate syntax:
 
-```transactions
+```txn
 2013-11-12 "I sold 10 BTC for $10,000.00 USD, at a price of $1000 USD/BTC"
   Assets:FooCorp:Bitstamp         $10000.0 USD
   Income:FooCorp:CapitalGains     $9950.00 USD
@@ -51,30 +49,20 @@ which acquisition price(s), and in turn calculating any realized capital
 gains or losses.
 
 
-Usage
------
+## Installation
 
-```bash
-$ PERL6LIB=lib ./bin/nightscape.pl examples/sample/sample.txn
-```
-
-
-Installation
-------------
-
-#### Dependencies
+### Dependencies
 
 - Rakudo Perl6
 - [Config::TOML](https://github.com/atweiden/config-toml)
-- [Digest::xxHash](https://github.com/atweiden/digest-xxhash)
 - [JSON::Tiny](https://github.com/moritz/json)
 - [TXN](https://github.com/atweiden/mktxn)
 
-#### Optional Dependencies
+### Optional Dependencies
 
 - [Pacman](https://www.archlinux.org/pacman/): for querying cached txnpkgs
 
-#### Test Dependencies
+### Test Dependencies
 
 - [Peru](https://github.com/buildinspace/peru)
 
@@ -87,8 +75,7 @@ $ PERL6LIB=lib prove -r -e perl6
 ```
 
 
-Licensing
----------
+## Licensing
 
 This is free and unencumbered public domain software. For more
 information, see http://unlicense.org/ or the accompanying UNLICENSE file.

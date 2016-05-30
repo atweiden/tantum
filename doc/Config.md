@@ -1,17 +1,14 @@
-Nightscape Config
-=================
+# Nightscape Config
 
-Overview
---------
+## Overview
 
-Nightscape uses [TOML](https://github.com/toml-lang/toml)
-for config files.
+Nightscape uses [TOML](https://github.com/toml-lang/toml) for config
+files.
 
 The default config file is `$HOME/.nightscape/config.toml`.
 
 
-Base Currency
--------------
+## Base Currency
 
 The base currency / asset must be specified with the `base-currency`
 key at the top level of the config file. All entities will inherit this
@@ -26,8 +23,7 @@ base-currency = "JPY"
 ```
 
 
-Entities
---------
+## Entities
 
 At least one entity must be declared in the config file. An individual
 may want to use the word `Personal` or `FirstnameLastname`. A business
@@ -81,8 +77,7 @@ in the config file make no transaction journal entries outside of the
 given valid date range.
 
 
-Subaccounts
------------
+## Subaccounts
 
 Subaccount declarations are optional. Use subaccount sections to configure
 an `open` status for bank accounts, brokerage accounts, and other Asset
@@ -126,8 +121,7 @@ open = "2012-01-01 .. 2013-03-04"
 ```
 
 
-Asset Price Data
-----------------
+## Asset Price Data
 
 `Assets` is a special config section for providing price data for assets,
 foreign currencies or cryptocurrencies that appear in the transaction

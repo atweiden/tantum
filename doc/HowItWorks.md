@@ -1,15 +1,13 @@
-How It Works
-============
+# How It Works
 
-Part One: Config Checks
------------------------
+## Part One: Config Checks
 
 Goal: ensure valid config data and transaction journal.
 
 Config checks will fail if the transaction journal or config file is
 improperly formatted.
 
-#### Decipher Entity Config Sections from Price Data Sections
+### Decipher Entity Config Sections from Price Data Sections
 
 - split config.toml into entities (accounts) and prices
   (currencies/assets)
@@ -18,7 +16,7 @@ improperly formatted.
   - detect prices section by scanning section header for `Assets`,
     and section keys for `price-file` or ISO dates
 
-#### Entities
+### Entities
 
 - check entities for correct syntax
   - check that no top-level [entity] name, uppercased for
@@ -49,7 +47,7 @@ improperly formatted.
   - ensure transaction dates involving each subaccount with an `open`
     directive fall within valid date range
 
-#### Prices
+### Prices
 
 - lookup base-currency for each transaction posting
 - if asset code given in the transaction journal differs from the
@@ -61,11 +59,10 @@ improperly formatted.
     for price data file
 
 
-Part Two: Initialize Data Structures
-------------------------------------
+## Part Two: Initialize Data Structures
 
-#### Entity Setup
+### Entity Setup
 
 - Initialize data structure (TBD) for each entity declared in the config
 
-#### Equity Setup
+### Equity Setup
