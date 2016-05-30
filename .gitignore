@@ -1,0 +1,5 @@
+.peru
+.precomp
+t/data/*
+!t/data/sample.conf
+!.hgignore

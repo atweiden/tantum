@@ -74,6 +74,18 @@ Installation
 
 - [Pacman](https://www.archlinux.org/pacman/): for querying cached txnpkgs
 
+#### Test Dependencies
+
+- [Peru](https://github.com/buildinspace/peru)
+
+To run the tests:
+
+```
+$ git clone https://github.com/atweiden/nightscape && cd nightscape
+$ peru --file=.peru.yaml --sync-dir="$PWD" sync
+$ PERL6LIB=lib prove -r -e perl6
+```
+
 
 Licensing
 ---------

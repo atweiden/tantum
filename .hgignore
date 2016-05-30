@@ -1,0 +1,6 @@
+syntax: glob
+
+.peru
+.precomp
+t/data/*
+!t/data/sample.conf
