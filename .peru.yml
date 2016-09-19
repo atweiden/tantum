@@ -1,0 +1,12 @@
+imports:
+    txn-examples: t/data/
+
+git module txn-examples:
+    url: git://github.com/atweiden/txn-examples.git
+    rev: f9d4f930dcdec88fceefc70a57f8ac1b3144b3a3
+    drop:
+        - README.md
+        - UNLICENSE
+        - .gitignore
+        - .hgignore
+        - "*.sh"

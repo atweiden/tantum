@@ -2,8 +2,17 @@
     "name"        : "Nightscape",
     "version"     : "*",
     "author"      : "Andy Weidenbaum",
-    "description" : "Bitcoin double-entry cmdline accounting system",
-    "depends"     : ["Config::TOML", "Digest::xxHash"],
+    "description" : "Double-entry accounting system",
+    "depends"     : ["Config::TOML", "File::Presence", "TXN"],
+    "license"     : "http://unlicense.org/UNLICENSE",
     "source-type" : "git",
-    "source-url"  : "git://github.com/atweiden/nightscape.git"
+    "source-url"  : "git://github.com/atweiden/nightscape.git",
+    "support"     : {
+        "bugtracker" : "https://github.com/atweiden/nightscape/issues",
+        "source"     : "https://github.com/atweiden/nightscape"
+    },
+    "provides" : {
+        "Nightscape"   : "lib/Nightscape.pm",
+        "X:Nightscape" : "lib/X/Nightscape.pm"
+    }
 }

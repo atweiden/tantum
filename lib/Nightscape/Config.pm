@@ -1,372 +1,246 @@
 use v6;
+use Config::TOML;
+use File::Presence;
+use Nightscape::Config::Account;
 use Nightscape::Config::Asset;
 use Nightscape::Config::Entity;
+use Nightscape::Config::Ledger;
+use Nightscape::Config::Utils;
 use Nightscape::Types;
+use TXN::Parser::Types;
+use X::Nightscape;
 unit class Nightscape::Config;
 
-# setup
-has Str $.config_file = resolve_config_file();
-has Str $.data_dir = "%*ENV<HOME>/.nightscape";
-has Str $.log_dir = "$!data_dir/logs";
-has Str $.price_dir = "$!data_dir/prices";
+# class attributes {{{
 
-# base currency setting default/fallback for all entities
-has AssetCode $.base_currency is rw = "USD";
+# --- scene {{{
 
-# base inventory valuation method default/fallback for all assets
-has Costing $.base_costing is rw = AVCO;
+has Nightscape::Config::Ledger:D @.ledger is required;
 
-# asset settings parsed from config, indexed by asset code
-has Nightscape::Config::Asset %.assets{AssetCode} is rw;
+my Costing:D $default-base-costing = FIFO;
+has Costing:D $.base-costing = $default-base-costing;
 
-# entity settings parsed from config, indexed by entity name
-has Nightscape::Config::Entity %.entities{VarName} is rw;
+my AssetCode:D $default-base-currency = 'USD';
+has AssetCode:D $.base-currency = $default-base-currency;
 
-# filter asset price data from unvalidated %toml config
-method detoml_assets(%toml) returns Hash[Any,AssetCode]
+my Date:D $default-fiscal-year-end = Date.new(now.Date.year ~ '-12-31');
+has Date:D $.fiscal-year-end = $default-fiscal-year-end;
+
+has Nightscape::Config::Account @.account;
+has Nightscape::Config::Asset @.asset;
+has Nightscape::Config::Entity @.entity;
+
+# --- end scene }}}
+# --- setup {{{
+
+# application settings
+has AbsolutePath:D $.app-dir is required;
+has AbsolutePath:D $.app-file is required;
+has AbsolutePath:D $.log-dir is required;
+has AbsolutePath:D $.pkg-dir is required;
+has AbsolutePath:D $.price-dir is required;
+my AbsolutePath:D $default-app-dir = "$*HOME/.config/nightscape";
+my AbsolutePath:D $default-log-dir = "$default-app-dir/logs";
+my AbsolutePath:D $default-pkg-dir = "$default-app-dir/pkgs";
+my AbsolutePath:D $default-price-dir = "$default-app-dir/prices";
+my AbsolutePath:D $default-app-file = "$default-app-dir/nightscape.toml";
+my Str:D $default-app-file-contents = to-toml(%(
+    :app-dir($default-app-dir),
+    :log-dir($default-log-dir),
+    :pkg-dir($default-pkg-dir),
+    :price-dir($default-price-dir)
+));
+
+# scene settings
+has AbsolutePath:D $.scene-dir is required;
+has AbsolutePath:D $.scene-file is required;
+my AbsolutePath:D $default-scene-dir = "$*CWD/.nightscape";
+my AbsolutePath:D $default-scene-file = "$default-scene-dir/scene.toml";
+my Str:D $default-scene-file-contents = to-toml(%(
+    :base-costing("$default-base-costing"),
+    :base-currency($default-base-currency),
+    :fiscal-year-end($default-fiscal-year-end)
+));
+
+# --- end setup }}}
+
+# end class attributes }}}
+
+# submethod BUILD {{{
+
+submethod BUILD(
+    Str :$app-dir,
+    Str :$app-file,
+    Str :$log-dir,
+    Str :$pkg-dir,
+    Str :$price-dir,
+    Str :$scene-dir,
+    Str :$scene-file
+)
 {
-    # find [Aa]ssets toml header (case insensitive)
-    my VarName $assets_header;
-    $assets_header = %toml.keys.grep(/:i ^assets/)[0];
+    # --- application settings {{{
 
-    # store assets found
-    my %assets_found{AssetCode};
+    # if option C<app-file> is passed to instantiate
+    # C<Nightscape::Config>, use that, otherwise use default
+    $!app-file = $app-file ?? resolve-path($app-file) !! $default-app-file;
+    prepare-config-file($!app-file, $default-app-file-contents);
 
-    # assign assets data (under case insensitive [Aa]ssets toml header)
-    %assets_found = %toml{$assets_header} if $assets_header;
+    # attempt to parse C<$!app-file>
+    my %app = from-toml(:file($!app-file)) or die;
 
-    %assets_found;
-}
-
-# filter entities from unvalidated %toml config
-method detoml_entities(%toml) returns Hash[Any,VarName]
-{
-    use Nightscape::Parser::Grammar;
-
-    # detect entities
-    my VarName @entities_found;
-    %toml.map({
-        if my Match $parsed_section = Nightscape::Parser::Grammar.parse(
-            $_.keys,
-            :rule<var_name>
-        )
-        {
-            push @entities_found, $parsed_section.orig.Str
-                unless Nightscape::Parser::Grammar.parse(
-                    $parsed_section.orig,
-                    :rule<reserved>
-                );
-        }
-    });
-
-    # store entities found
-    my %entities_found{VarName};
-    if @entities_found
-    {
-        %entities_found{$_} = %toml{$_} for @entities_found;
-    }
-
-    # entities found
-    %entities_found;
-}
-
-# return pricesheet from unvalidated <Assets>{$asset_code}<Prices> config
-method gen_pricesheet(:%prices!) returns Hash[Hash[Price,DateTime],AssetCode]
-{
-    # incoming: {
-    #               :USD(
-    #                    :2014-01-01(876.54),
-    #                    :2014-01-02(765.43),
-    #                    :price-file("path/to/usd-prices")
-    #               ),
-    #               :EUR(
-    #                    :2014-01-01(500.00),
-    #                    :2014-01-02(400.00),
-    #                    :price-file("path/to/eur-prices")
-    #               )
-    #           }<>
+    # options C<app-dir>, C<log-dir>, C<pkg-dir>, C<price-dir>, passed
+    # to instantiate C<Nightscape::Config> override settings of the same
+    # name contained in C<$!app-file>
     #
-    # merges price-file directives if price-file given...
+    # if no setting is provided, use defaults
+    $!app-dir = resolve-dir($default-app-dir, %app<app-dir>, $app-dir);
+    $!log-dir = resolve-dir($default-log-dir, %app<log-dir>, $log-dir);
+    $!pkg-dir = resolve-dir($default-pkg-dir, %app<pkg-dir>, $pkg-dir);
+    $!price-dir = resolve-dir($default-price-dir, %app<price-dir>, $price-dir);
+    prepare-config-dirs($!app-dir, $!log-dir, $!pkg-dir, $!price-dir);
+
+    # --- end application settings }}}
+    # --- scene settings {{{
+
+    # if option C<scene-file> is passed to instantiate
+    # C<Nightscape::Config>, use that, otherwise use default
+    $!scene-file = $scene-file ?? resolve-path($scene-file) !! $default-scene-file;
+    prepare-config-file($!scene-file, $default-scene-file-contents);
+
+    # attempt to parse C<$!scene-file>
+    my %scene = from-toml(:file($!scene-file)) or die;
+
+    # option C<scene-dir> passed to instantiate C<Nightscape::Config>
+    # overrides setting of the same name contained in C<$!scene-file>
     #
-    # outgoing: {
-    #               :USD(
-    #                   DateTime.new(...) => 876.54,
-    #                   DateTime.new(...) => 765.43,
-    #                   DateTime.new(...) => 654.32,    # from price-file
-    #                   DateTime.new(...) => 543.21     # from price-file
-    #               ),
-    #               :EUR(
-    #                   DateTime.new(...) => 500.00,
-    #                   DateTime.new(...) => 400.00,
-    #                   DateTime.new(...) => 300.00,    # from price-file
-    #                   DateTime.new(...) => 200.00     # from price-file
-    #               )
-    #           }<>
-    use Nightscape::Parser::Grammar;
+    # if no setting is provided, use defaults
+    $!scene-dir = resolve-dir($default-scene-dir, %scene<scene-dir>, $scene-dir);
+    prepare-config-dirs($!scene-dir);
 
-    my Hash[Price,DateTime] %pricesheet{AssetCode};
-    for %prices.kv -> $asset_code, $date_price_pairs
+    try
     {
-        my Price %dates_and_prices{DateTime};
-        my Price %dates_and_prices_from_file{DateTime};
+        CATCH { when X::Nightscape::Config::Ledger::Missing { .message.say } };
+        @!ledger = gen-settings(:ledger(%scene<ledger>));
+    }
+    @!account = gen-settings(:account(%scene<account>)) if %scene<account>;
+    @!asset = gen-settings(:asset(%scene<asset>)) if %scene<asset>;
+    @!entity = gen-settings(:entity(%scene<entity>)) if %scene<entity>;
+    $!base-currency = gen-asset-code(%scene<base-currency>) if %scene<base-currency>;
+    $!base-costing = gen-costing(%scene<base-costing>) if %scene<base-costing>;
+    $!fiscal-year-end = %scene<fiscal-year-end> if %scene<fiscal-year-end>;
 
-        # gather date-price pairs from toplevel Currencies config section
-        #
-        # build DateTimes from TOML config containing potentially mixed
-        # YYYY-MM-DD keys and RFC3339 timestamp keys
-        for $date_price_pairs.keys -> $key
+    # --- end scene settings }}}
+}
+
+# end submethod BUILD }}}
+# method new {{{
+
+method new(
+    *%opts (
+        Str :app-dir($),
+        Str :app-file($),
+        Str :log-dir($),
+        Str :pkg-dir($),
+        Str :price-dir($),
+        Str :scene-dir($),
+        Str :scene-file($)
+    )
+)
+{
+    self.bless(|%opts);
+}
+
+# end method new }}}
+# sub gen-settings {{{
+
+multi sub gen-settings(:@account!) returns Array[Nightscape::Config::Account:D]
+{
+    my Nightscape::Config::Account:D @a =
+        @account.map({ Nightscape::Config::Account.new(|$_) });
+}
+
+multi sub gen-settings(:@asset!) returns Array[Nightscape::Config::Asset:D]
+{
+    my Nightscape::Config::Asset:D @a =
+        @asset.map({ Nightscape::Config::Asset.new(|$_) });
+}
+
+multi sub gen-settings(:@entity!) returns Array[Nightscape::Config::Entity:D]
+{
+    my Nightscape::Config::Entity:D @a =
+        @entity.map({ Nightscape::Config::Entity.new(|$_) });
+}
+
+# ledger specified
+multi sub gen-settings(:@ledger!) returns Array[Nightscape::Config::Ledger:D]
+{
+    my Nightscape::Config::Ledger:D @a =
+        @ledger.map({ Nightscape::Config::Ledger.new(|$_) });
+}
+
+# ledger unspecified
+multi sub gen-settings(:$ledger!)
+{
+    die X::Nightscape::Config::Ledger::Missing.new;
+}
+
+# end sub gen-settings }}}
+# sub prepare-config-dirs {{{
+
+sub prepare-config-dirs(*@dirs)
+{
+    prepare-config-dir($_) for @dirs;
+}
+
+sub prepare-config-dir(Str:D $dir where *.so)
+{
+    given File::Presence.show($dir)
+    {
+        when !$_<e> { $dir.IO.mkdir or die }
+        when !$_<r> { die }
+        when !$_<w> { die }
+        when !$_<d> { die }
+        default { True }
+    }
+}
+
+# end sub prepare-config-dirs }}}
+# sub prepare-config-file {{{
+
+sub prepare-config-file(
+    Str:D $config-file where *.so,
+    Str:D $config-file-contents where *.so
+)
+{
+    given File::Presence.show($config-file)
+    {
+        # create config file if DNE
+        when !$_<e>
         {
-            # convert valid YYYY-MM-DD dates to DateTime
-            if Nightscape::Parser::Grammar.parse($key, :rule<full_date>)
-            {
-                my %dt = <year month day> Z=> map +*, $key.split('-');
-                %dates_and_prices{DateTime.new(|%dt)} =
-                    FatRat($date_price_pairs{$key});
-            }
-        };
-
-        # gather date-price pairs from price-file if it exists
-        my Str $price_file;
-        $date_price_pairs.keys.grep(/'price-file'/).map({
-            $price_file = $date_price_pairs{$_}
-        });
-
-        # price-file directive found?
-        if $price_file
-        {
-            # if toml price-file is given as relative path, prepend to
-            # it $.price_dir
-            if $price_file.IO.is-relative
-            {
-                $price_file = $.price_dir ~ "/" ~ $price_file;
-            }
-
-            # does price file exist?
-            unless $price_file.IO.e
-            {
-                die "Sorry, could not locate price file at 「$price_file」";
-            }
-
-            %dates_and_prices_from_file = read_price_file(:$price_file);
+            my Str:D $config-file-basedir = $config-file.IO.dirname;
+            $config-file-basedir.IO.mkdir unless $config-file-basedir.IO.d;
+            $config-file.IO.spurt("$config-file-contents\n", :createonly)
+                or die;
         }
-
-        # merge %dates_and_prices_from_file with %dates_and_prices,
-        # with values from %dates_and_prices keys overwriting
-        # values from equivalent %dates_and_prices_from_file keys
-        my Price %xe{DateTime} =
-            (%dates_and_prices_from_file, %dates_and_prices);
-        %pricesheet{$asset_code} = %xe;
+        when !$_<r> { die }
+        when !$_<w> { die }
+        when !$_<f> { die }
+        default { True }
     }
-    %pricesheet;
 }
 
-# return instantiated asset settings
-multi method gen_settings(
-    AssetCode:D :$asset_code!,
-    :$asset_data!
-) returns Nightscape::Config::Asset:D
+# end sub prepare-config-file }}}
+# sub resolve-dir {{{
+
+sub resolve-dir($default-dir, $toml-dir?, $user-override-dir?) returns Str:D
 {
-    # asset costing
-    my Costing $costing;
-    $costing = ::($asset_data<costing>) if $asset_data<costing>;
-
-    # asset prices
-    my Hash[Price,DateTime] %prices{AssetCode};
-    %prices = self.gen_pricesheet(:prices($asset_data<Prices>))
-        if $asset_data<Prices>;
-
-    # build asset settings
-    Nightscape::Config::Asset.new(:$asset_code, :$costing, :%prices);
+    my Str:D $dir = do
+        if $user-override-dir { $user-override-dir }
+        elsif $toml-dir { $toml-dir }
+        else { $default-dir };
+    resolve-path($dir);
 }
 
-# return instantiated entity settings
-multi method gen_settings(
-    VarName:D :$entity_name!,
-    :$entity_data!
-) returns Nightscape::Config::Entity:D
-{
-    # populate entity-specific asset settings
-    my Nightscape::Config::Asset %assets{AssetCode};
-    my %assets_found = self.detoml_assets($entity_data);
-    if %assets_found
-    {
-        for %assets_found.kv -> $asset_code, $asset_data
-        {
-            %assets{$asset_code} = self.gen_settings(
-                :$asset_code,
-                :$asset_data
-            );
-        }
-    }
+# end sub resolve-dir }}}
 
-    # populate entity-specific base costing if found
-    my Costing $base_costing;
-    $base_costing = $entity_data<base-costing> if $entity_data<base-costing>;
-
-    # populate entity-specific base currency if found
-    my AssetCode $base_currency;
-    $base_currency = $entity_data<base-currency> if $entity_data<base-currency>;
-
-    # TODO: populate entity open dates if found
-    my Range $open;
-
-    # build entity settings
-    Nightscape::Config::Entity.new(
-        :%assets,
-        :$base_costing,
-        :$base_currency,
-        :$entity_name,
-        :$open
-    );
-}
-
-
-# return date-price hash by resolving price-file config option (NYI)
-sub read_price_file(Str:D :$price_file!) returns Hash[Price,DateTime]
-{
-    say "Reading price file: $price_file…";
-}
-
-# get entity's base currency or if not present, the default base-currency
-method resolve_base_currency(VarName:D $entity) returns AssetCode:D
-{
-    my AssetCode $base_currency;
-
-    # do entity's settings specify base currency?
-    if try {%.entities{$entity}.base_currency}
-    {
-        # use entity's configured base currency
-        $base_currency = %.entities{$entity}.base_currency;
-    }
-    # is there a default base currency?
-    elsif $.base_currency
-    {
-        # use configured default base currency
-        $base_currency = $.base_currency;
-    }
-    else
-    {
-        # error: base currency not found
-        die qq:to/EOF/;
-        Sorry, could not find base-currency for entity 「$entity」.
-
-        Please check that the entity is configured with a base currency,
-        or that the config file contains a toplevel base-currency
-        directive.
-
-        entity: 「$entity」
-        config file: 「$.config_file」
-        EOF
-    }
-
-    # base currency
-    $base_currency;
-}
-
-# conf precedence: $PWD/nightscape.conf, $HOME/.nightscape.conf, $HOME/.nightscape/config.toml
-sub resolve_config_file() returns Str:D
-{
-    my Str $config_file;
-
-    # is nightscape.conf in CWD?
-    if "nightscape.conf".IO.e
-    {
-        $config_file = "nightscape.conf";
-    }
-    # is nightscape.conf at $HOME/.nightscape.conf?
-    elsif "%*ENV<HOME>/.nightscape.conf".IO.e
-    {
-
-        $config_file = "%*ENV<HOME>/.nightscape.conf";
-    }
-    else
-    {
-        $config_file = "%*ENV<HOME>/.nightscape/config.toml";
-    }
-
-    $config_file;
-}
-
-# get inventory costing method
-method resolve_costing(
-    AssetCode:D :$asset_code!,
-    VarName:D :$entity_name!
-) returns Costing:D
-{
-    my Costing $costing_asset;
-    my Costing $costing_entity;
-
-    # check for asset costing method settings
-    $costing_asset = try {%.assets{$asset_code}.costing};
-
-    # check for entity-specific asset costing method settings
-    $costing_entity =
-        try {%.entities{$entity_name}.assets{$asset_code}.costing};
-
-    # entity-specific asset costing method settings?
-    if defined $costing_entity
-    {
-        # use entity-specific asset costing method settings
-        $costing_entity;
-    }
-    # asset costing method settings?
-    elsif defined $costing_asset
-    {
-        # use asset costing method settings
-        $costing_asset;
-    }
-    # default costing method?
-    elsif defined $.base_costing
-    {
-        # use default costing method settings
-        $.base_costing;
-    }
-    else
-    {
-        # error: costing method not found
-        die qq:to/EOF/;
-        Sorry, could not find costing method for asset 「$asset_code」.
-
-        Please check that the asset is configured with a costing method,
-        or that the config file contains a toplevel base-costing
-        directive.
-
-        config file: 「$.config_file」
-        asset: 「$asset_code」
-        entity: 「$entity_name」
-        EOF
-    }
-}
-
-# given posting asset code (aux), base asset code (base), and a date,
-# return price of aux in terms of base on date
-method resolve_price(
-    AssetCode:D :$aux!,
-    AssetCode:D :$base!,
-    DateTime:D :$date!,
-    VarName :$entity_name
-) returns Price
-{
-    my Price $price_asset;
-    my Price $price_entity;
-
-    # pricing for aux asset in terms of base on date
-    $price_asset = try {%.assets{$aux}.prices{$base}\
-        .grep({ .keys[0].year ~~ $date.year })\
-        .grep({ .keys[0].month ~~ $date.month })\
-        .grep({ .keys[0].day ~~ $date.day })\
-        .values[0].value
-    }; # %.assets{$aux}.prices{$base}{$date} fails nom 2015-10-14
-
-    # entity-specific pricing for aux asset in terms of base on date
-    if $entity_name
-    {
-        $price_entity =
-            try {%.entities{$entity_name}.assets{$aux}.prices{$base}{$date}};
-    }
-
-    # return entity-specific asset pricing if available, else asset pricing
-    $price_entity ?? $price_entity !! $price_asset;
-}
-
-# vim: ft=perl6
+# vim: set filetype=perl6 foldmethod=marker foldlevel=0:

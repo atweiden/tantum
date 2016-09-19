@@ -1,0 +1,248 @@
+#!/usr/bin/env perl6
+
+
+
+
+use v6;
+use Nightscape;
+
+
+
+
+# -----------------------------------------------------------------------------
+# help
+# -----------------------------------------------------------------------------
+
+multi sub MAIN('help', Str $command?)
+{
+    USAGE($command);
+}
+
+
+
+
+# -----------------------------------------------------------------------------
+# main
+# -----------------------------------------------------------------------------
+
+multi sub MAIN(
+    'clean',
+    *%setup-opts (
+        Str :app-dir($),
+        Str :app-file($),
+        Str :log-dir($),
+        Str :pkg-dir($),
+        Str :price-dir($),
+        Str :scene-dir($),
+        Str :scene-file($)
+    )
+)
+{
+    Nightscape.new(|%setup-opts).clean;
+}
+
+multi sub MAIN(
+    'reup',
+    Bool :$no-sync,
+    Int :L(:$date-local-offset),
+    Str :I(:$txn-dir),
+    *%setup-opts (
+        Str :app-dir($),
+        Str :app-file($),
+        Str :log-dir($),
+        Str :pkg-dir($),
+        Str :price-dir($),
+        Str :scene-dir($),
+        Str :scene-file($)
+    ),
+    *@ledger
+)
+{
+    my Str %opts{Str};
+    %opts<date-local-offset> = $date-local-offset if $date-local-offset.defined;
+    %opts<ledger> = @ledger if @ledger;
+    %opts<no-sync> = $no-sync if $no-sync;
+    %opts<txn-dir> = $txn-dir if $txn-dir;
+    Nightscape.new(|%setup-opts).reup(|%opts);
+}
+
+multi sub MAIN(
+    'serve',
+    *%setup-opts (
+        Str :app-dir($),
+        Str :app-file($),
+        Str :log-dir($),
+        Str :pkg-dir($),
+        Str :price-dir($),
+        Str :scene-dir($),
+        Str :scene-file($)
+    )
+)
+{
+    Nightscape.new(|%setup-opts).serve;
+}
+
+multi sub MAIN(
+    'show',
+    *%setup-opts (
+        Str :app-dir($),
+        Str :app-file($),
+        Str :log-dir($),
+        Str :pkg-dir($),
+        Str :price-dir($),
+        Str :scene-dir($),
+        Str :scene-file($)
+    )
+)
+{
+    Nightscape.new(|%setup-opts).show;
+}
+
+multi sub MAIN(
+    'sync',
+    Int :L(:$date-local-offset),
+    Str :I(:$txn-dir),
+    *%setup-opts (
+        Str :app-dir($),
+        Str :app-file($),
+        Str :log-dir($),
+        Str :pkg-dir($),
+        Str :price-dir($),
+        Str :scene-dir($),
+        Str :scene-file($)
+    )
+)
+{
+    my Str %opts{Str};
+    %opts<date-local-offset> = $date-local-offset if $date-local-offset.defined;
+    %opts<txn-dir> = $txn-dir if $txn-dir;
+    Nightscape.new(|%setup-opts).sync(|%opts);
+}
+
+multi sub MAIN(Str $command, *%)
+{
+    USAGE();
+}
+
+
+
+
+# -----------------------------------------------------------------------------
+# usage
+# -----------------------------------------------------------------------------
+
+multi sub USAGE('clean')
+{
+    constant $HELP = q:to/EOF/;
+    Usage:
+      nightscape clean
+
+    Removes scene.
+    EOF
+    say $HELP.trim;
+}
+
+multi sub USAGE('reup')
+{
+    constant $HELP = q:to/EOF/;
+    Usage:
+      nightscape [--no-sync]
+                 [--date-local-offset=<offset>]
+                 [--txn-dir=<dir>]
+                 reup [<ledgers>...]
+
+    Updates each accounting ledger in your scene config file with the
+    latest revision information from its source. For git and hg ledgers,
+    this is the `rev` field, and for a curl ledger it's the `sha256`
+    field. Nightscape will either add the field for you, or update it if
+    it's already there. To update specific ledgers instead of everything,
+    pass their names as positional arguments. Nightscape does a sync
+    after the reup is done, though you can prevent that with --no-sync.
+
+    Options:
+      --no-sync
+        skip the sync at the end
+      -L, --date-local-offset=<offset>
+        the local offset for dates without one
+      -I, --txn-dir=<dir>
+        the include directory
+    EOF
+    say $HELP.trim;
+}
+
+multi sub USAGE('serve')
+{
+    constant $HELP = q:to/EOF/;
+    Usage:
+      nightscape serve
+
+    Serves scene.
+    EOF
+    say $HELP.trim;
+}
+
+multi sub USAGE('show')
+{
+    constant $HELP = q:to/EOF/;
+    Usage:
+      nightscape show
+
+    Shows scene.
+    EOF
+    say $HELP.trim;
+}
+
+multi sub USAGE('sync')
+{
+    constant $HELP = q:to/EOF/;
+    Usage:
+      nightscape [--date-local-offset=<offset>]
+                 [--txn-dir=<dir>]
+                 sync
+
+    Fetches accounting ledger sources and builds scene from imported
+    entries.
+
+    Options:
+      -L, --date-local-offset=<offset>
+        the local offset for dates without one
+      -I, --txn-dir=<dir>
+        the include directory
+    EOF
+    say $HELP.trim;
+}
+
+multi sub USAGE($?)
+{
+    constant $HELP = q:to/EOF/;
+    Usage:
+      nightscape [-h] [--app-file=<file>] [--scene-file=<file>] <command>
+
+    Commands:
+      sync         fetch accounting ledger sources and build scene
+      reup         update revision info for your accounting ledger sources
+      clean        delete scene
+      show         show scene
+      serve        serve scene
+      help         show help for subcommands
+
+    Options:
+      --app-dir=<dir>
+        the application data directory
+      --app-file=<dir>
+        the application configuration file
+      --log-dir=<dir>
+        the log directory
+      --pkg-dir=<dir>
+        the TXN pkg lookup directory
+      --price-dir=<dir>
+        the asset price directory
+      --scene-dir=<dir>
+        the scene directory
+      --scene-file=<file>
+        the scene configuration file
+    EOF
+    say $HELP.trim;
+}
+
+# vim: set filetype=perl6 foldmethod=marker foldlevel=0:
