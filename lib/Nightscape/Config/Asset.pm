@@ -77,12 +77,12 @@ sub gen-price-sheet(
     {
         my Price:D %dates-and-prices-from-file{Date:D};
         my Price:D %dates-and-prices{Date:D} =
-            %asset-code-keypairs.grep({ .key.isa(Date) });
+            %asset-code-keypairs.grep(*.key.isa(Date:D));
 
         # gather date-price pairs from price-file if it exists
         my Str $price-file =
-            %asset-code-keypairs.grep({ .key.isa(Str) })
-                                .first({ .key eq 'price-file' })
+            %asset-code-keypairs.grep(*.key.isa(Str:D))
+                                .first(*.key eq 'price-file')
                                 .value;
 
         if $price-file
