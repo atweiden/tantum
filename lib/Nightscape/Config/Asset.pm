@@ -53,10 +53,10 @@ multi method new(
 multi method new(
     *%opts (
         Str:D :code($)! where *.so,
+        :price(%) where *.not,
+        Str :price-dir($) where *.not,
         Str :costing($),
-        Str :name($),
-        :price(%),
-        Str :price-dir($)
+        Str :name($)
     )
 )
 {
