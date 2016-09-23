@@ -149,14 +149,14 @@ method !sync(
 
 multi sub sync(
     Nightscape::Config::Ledger:D @ledger,
-    Str:D :$pkg-dir! where *.so,
     *%opts (
+        Str:D :pkg-dir($)! where *.so,
         Int :date-local-offset($),
         Str :txn-dir($)
     )
 ) returns List:D
 {
-    @ledger.map({ sync($_, :$pkg-dir, |%opts) }).List;
+    @ledger.map({ sync($_, |%opts) }).List;
 }
 
 multi sub sync(
