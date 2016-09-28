@@ -34,7 +34,7 @@ sub gen-date(Str:D $d where *.so) is export returns Date:D
 
 multi sub gen-date-range(Str:D $s where *.so) is export returns Range:D
 {
-    my Str:D ($d1, $d2) = $s.split('..');
+    my Str:D ($d1, $d2) = $s.split(/\h*'..'\h*/);
     my Range:D $date-range = gen-date-range($d1, $d2);
 }
 
