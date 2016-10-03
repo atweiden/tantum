@@ -6,6 +6,7 @@ use TXN;
 use TXN::Parser;
 use TXN::Parser::Types;
 use TXN::Remarshal;
+use X::Nightscape;
 
 class Nightscape::Config::Ledger::FromFile {...}
 class Nightscape::Config::Ledger::FromPkg {...}
@@ -37,6 +38,11 @@ class Nightscape::Config::Ledger
     )
     {
         Nightscape::Config::Ledger::FromPkg.bless(|%opts);
+    }
+
+    multi method new(*%)
+    {
+        die X::Nightscape::Config::Ledger::Malformed.new;
     }
 
     # --- end method new }}}

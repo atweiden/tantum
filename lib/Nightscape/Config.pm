@@ -119,7 +119,7 @@ submethod BUILD(
 
     try
     {
-        CATCH { when X::Nightscape::Config::Ledger::Missing { .message.say } };
+        CATCH { default { .message.say } };
         @!ledger = gen-settings(:ledger(%scene<ledger>));
     }
     @!account = gen-settings(:account(%scene<account>)) if %scene<account>;
