@@ -130,7 +130,7 @@ class Nightscape::Config::Ledger::FromPkg is Nightscape::Config::Ledger
     # --- end submethod BUILD }}}
     # --- method made {{{
 
-    method made(::?CLASS:D: AbsolutePath :$pkg-dir! where *.so) returns Hash:D
+    method made(::?CLASS:D: AbsolutePath:D :$pkg-dir! where *.so) returns Hash:D
     {
         my AbsolutePath:D $tarball =
             "$pkg-dir/$.pkgname-$.pkgver-$.pkgrel.txn.tar.xz";
