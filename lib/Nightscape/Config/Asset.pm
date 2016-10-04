@@ -83,7 +83,8 @@ multi sub gen-price-sheet(
             # if C<$price-file> from toml is given as relative path,
             # prepend to it C<$price-dir>
             $price-file = $price-dir ~ '/' ~ $price-file
-                if $price-file.IO.is-relative;
+                if $price-file.subst(/^'~/'/, "$*HOME/").IO.is-relative;
+            $price-file = resolve-path($price-file);
             die unless exists-readable-file($price-file);
             %dates-and-prices-from-file =
                 gen-price-sheet(from-toml(:file($price-file)));
