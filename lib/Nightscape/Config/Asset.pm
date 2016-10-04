@@ -22,7 +22,7 @@ has Hash[Price:D,Date:D] %.price{AssetCode:D};
 
 submethod BUILD(
     Str:D :$code! where *.so,
-    Str:D :$price-dir where *.so,
+    Str:D :$scene-file where *.so,
     Str :$costing,
     Str :$name,
     :%price
@@ -32,7 +32,7 @@ submethod BUILD(
 
     $!costing = gen-costing($costing) if $costing;
     $!name = gen-var-name($name) if $name;
-    %!price = gen-price-sheet(%price, $price-dir) if %price;
+    %!price = gen-price-sheet(%price, $scene-file) if %price;
 }
 
 # end submethod BUILD }}}
@@ -41,7 +41,7 @@ submethod BUILD(
 multi method new(
     *%opts (
         Str:D :code($)! where *.so,
-        Str:D :price-dir($)! where *.so,
+        Str:D :scene-file($)! where *.so,
         :price(%),
         Str :costing($),
         Str :name($)
@@ -61,7 +61,7 @@ multi method new(*%)
 
 multi sub gen-price-sheet(
     %price where *.so,
-    AbsolutePath:D $price-dir where *.so
+    AbsolutePath:D $scene-file where *.so
 ) returns Hash[Hash[Price:D,Date:D],AssetCode:D]
 {
     my Hash[Price:D,Date:D] %price-sheet{AssetCode:D};
@@ -81,11 +81,21 @@ multi sub gen-price-sheet(
         if $price-file
         {
             # if C<$price-file> from toml is given as relative path,
-            # prepend to it C<$price-dir>
-            $price-file = $price-dir ~ '/' ~ $price-file
+            # prepend to it C<$scene-file.IO.dirname>
+            #
+            # this is because price-file directives can only be given
+            # within the scene config file
+            #
+            # thus relative paths appearing within the scene config file
+            # must be resolved relative to the scene config file
+            $price-file = $scene-file.IO.dirname ~ '/' ~ $price-file
                 if $price-file.subst(/^'~/'/, "$*HOME/").IO.is-relative;
+
+            # resolve absolute paths potentially beginning with C<~/>
             $price-file = resolve-path($price-file);
+
             die unless exists-readable-file($price-file);
+
             %dates-and-prices-from-file =
                 gen-price-sheet(from-toml(:file($price-file)));
         }

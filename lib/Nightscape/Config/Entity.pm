@@ -25,7 +25,7 @@ has Range $.open;
 
 submethod BUILD(
     Str:D :$code! where *.so,
-    Str:D :$price-dir! where *.so,
+    Str:D :$scene-file! where *.so,
     :@account,
     :@asset,
     Str :$base-costing,
@@ -38,7 +38,7 @@ submethod BUILD(
     $!code = gen-var-name-bare($code);
 
     @!account = gen-settings(:@account) if @account;
-    @!asset = gen-settings(:@asset, :$price-dir) if @asset;
+    @!asset = gen-settings(:@asset, :$scene-file) if @asset;
     $!base-costing = gen-costing($base-costing) if $base-costing;
     $!base-currency = gen-asset-code($base-currency) if $base-currency;
     $!fiscal-year-end = $fiscal-year-end if $fiscal-year-end;
@@ -52,7 +52,7 @@ submethod BUILD(
 multi method new(
     *%opts (
         Str:D :code($)! where *.so,
-        Str:D :price-dir($)! where *.so,
+        Str:D :scene-file($)! where *.so,
         :account(@),
         :asset(@),
         Str :base-costing($),
@@ -82,11 +82,11 @@ multi sub gen-settings(:@account!) returns Array[Nightscape::Config::Account:D]
 
 multi sub gen-settings(
     :@asset!,
-    :$price-dir!
+    :$scene-file!
 ) returns Array[Nightscape::Config::Asset:D]
 {
     my Nightscape::Config::Asset:D @a =
-        @asset.map({ Nightscape::Config::Asset.new(|$_, :$price-dir) });
+        @asset.map({ Nightscape::Config::Asset.new(|$_, :$scene-file) });
 }
 
 # end sub gen-settings }}}
