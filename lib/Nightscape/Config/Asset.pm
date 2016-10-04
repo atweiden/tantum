@@ -3,7 +3,9 @@ use Config::TOML;
 use File::Presence;
 use Nightscape::Config::Utils;
 use Nightscape::Types;
+use TXN::Parser::Grammar;
 use TXN::Parser::Types;
+use X::Nightscape;
 unit class Nightscape::Config::Asset;
 
 # class attributes {{{
@@ -20,10 +22,10 @@ has Hash[Price:D,Date:D] %.price{AssetCode:D};
 
 submethod BUILD(
     Str:D :$code! where *.so,
+    Str:D :$price-dir where *.so,
     Str :$costing,
     Str :$name,
-    :%price,
-    Str :$price-dir
+    :%price
 )
 {
     $!code = gen-asset-code($code);
@@ -36,12 +38,11 @@ submethod BUILD(
 # end submethod BUILD }}}
 # method new {{{
 
-# C<%price> and C<$price-dir> must be given together or not at all
 multi method new(
     *%opts (
         Str:D :code($)! where *.so,
-        :price(%)! where *.so,
         Str:D :price-dir($)! where *.so,
+        :price(%),
         Str :costing($),
         Str :name($)
     )
@@ -50,23 +51,15 @@ multi method new(
     self.bless(|%opts);
 }
 
-multi method new(
-    *%opts (
-        Str:D :code($)! where *.so,
-        :price(%) where *.not,
-        Str :price-dir($) where *.not,
-        Str :costing($),
-        Str :name($)
-    )
-)
+multi method new(*%)
 {
-    self.bless(|%opts);
+    die X::Nightscape::Config::Asset::Malformed.new;
 }
 
 # end method new }}}
 # sub gen-price-sheet {{{
 
-sub gen-price-sheet(
+multi sub gen-price-sheet(
     %price where *.so,
     AbsolutePath:D $price-dir where *.so
 ) returns Hash[Hash[Price:D,Date:D],AssetCode:D]
@@ -77,11 +70,11 @@ sub gen-price-sheet(
     {
         my Price:D %dates-and-prices-from-file{Date:D};
         my Price:D %dates-and-prices{Date:D} =
-            %asset-code-keypairs.grep(*.key.isa(Date:D));
+            gen-price-sheet(%asset-code-keypairs);
 
-        # gather date-price pairs from price-file if it exists
+        # gather date-price pairs from C<$price-file> if it exists
         my Str $price-file =
-            %asset-code-keypairs.grep(*.key.isa(Str:D))
+            %asset-code-keypairs.grep(*.key.isa(Str))
                                 .first(*.key eq 'price-file')
                                 .value;
 
@@ -92,17 +85,33 @@ sub gen-price-sheet(
             $price-file = $price-dir ~ '/' ~ $price-file
                 if $price-file.IO.is-relative;
             die unless exists-readable-file($price-file);
-            %dates-and-prices-from-file = from-toml(:file($price-file));
+            %dates-and-prices-from-file =
+                gen-price-sheet(from-toml(:file($price-file)));
         }
 
         # merge C<%dates-and-prices-from-file> with C<%dates-and-prices>,
         # with values from C<%dates-and-prices> keys overwriting values
         # from equivalent C<%dates-and-prices-from-file> keys
-        my Price:D %xe{Date:D} = (%dates-and-prices-from-file, %dates-and-prices);
+        my Price:D %xe{Date:D} =
+            |%dates-and-prices-from-file,
+            |%dates-and-prices;
         %price-sheet{$asset-code} = %xe;
     }
 
     %price-sheet;
+}
+
+multi sub gen-price-sheet(
+    %asset-code-keypairs where *.so
+) returns Hash[Price:D,Date:D]
+{
+    my Price:D %dates-and-prices{Date:D} = %asset-code-keypairs.grep({
+        TXN::Parser::Grammar.parse(.key, :rule<date:full-date>)
+    }).map({
+        die X::Nightscape::Config::Asset::Price::Malformed.new
+            unless FatRat(.value) ~~ Price;
+        Date.new(.key) => FatRat(.value)
+    });
 }
 
 # end sub gen-price-sheet }}}

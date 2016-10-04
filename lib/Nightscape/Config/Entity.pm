@@ -4,6 +4,7 @@ use Nightscape::Config::Asset;
 use Nightscape::Config::Utils;
 use Nightscape::Types;
 use TXN::Parser::Types;
+use X::Nightscape;
 unit class Nightscape::Config::Entity;
 
 # class attributes {{{
@@ -24,8 +25,9 @@ has Range $.open;
 
 submethod BUILD(
     Str:D :$code! where *.so,
-    Hash :@account,
-    Hash :@asset,
+    Str:D :$price-dir! where *.so,
+    :@account,
+    :@asset,
     Str :$base-costing,
     Str :$base-currency,
     Date :$fiscal-year-end,
@@ -36,7 +38,7 @@ submethod BUILD(
     $!code = gen-var-name-bare($code);
 
     @!account = gen-settings(:@account) if @account;
-    @!asset = gen-settings(:@asset) if @asset;
+    @!asset = gen-settings(:@asset, :$price-dir) if @asset;
     $!base-costing = gen-costing($base-costing) if $base-costing;
     $!base-currency = gen-asset-code($base-currency) if $base-currency;
     $!fiscal-year-end = $fiscal-year-end if $fiscal-year-end;
@@ -47,11 +49,12 @@ submethod BUILD(
 # end submethod BUILD }}}
 # method new {{{
 
-method new(
+multi method new(
     *%opts (
         Str:D :code($)! where *.so,
-        Hash :account(@),
-        Hash :asset(@),
+        Str:D :price-dir($)! where *.so,
+        :account(@),
+        :asset(@),
         Str :base-costing($),
         Str :base-currency($),
         Date :fiscal-year-end($),
@@ -63,6 +66,11 @@ method new(
     self.bless(|%opts);
 }
 
+multi method new(*%)
+{
+    die X::Nightscape::Config::Entity::Malformed.new;
+}
+
 # end method new }}}
 # sub gen-settings {{{
 
@@ -72,10 +80,13 @@ multi sub gen-settings(:@account!) returns Array[Nightscape::Config::Account:D]
         @account.map({ Nightscape::Config::Account.new(|$_) });
 }
 
-multi sub gen-settings(:@asset!) returns Array[Nightscape::Config::Asset:D]
+multi sub gen-settings(
+    :@asset!,
+    :$price-dir!
+) returns Array[Nightscape::Config::Asset:D]
 {
     my Nightscape::Config::Asset:D @a =
-        @asset.map({ Nightscape::Config::Asset.new(|$_) });
+        @asset.map({ Nightscape::Config::Asset.new(|$_, :$price-dir) });
 }
 
 # end sub gen-settings }}}

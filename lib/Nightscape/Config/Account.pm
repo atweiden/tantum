@@ -1,6 +1,7 @@
 use v6;
 use Nightscape::Config::Utils;
 use TXN::Parser::Types;
+use X::Nightscape;
 unit class Nightscape::Config::Account;
 
 # class attributes {{{
@@ -18,7 +19,7 @@ has Range $.open;
 submethod BUILD(
     Str:D :$silo! where *.so,
     Str:D :$entity! where *.so,
-    Str:D :@path! where *.so,
+    :@path! where *.so,
     Str :$open
 )
 {
@@ -31,16 +32,21 @@ submethod BUILD(
 # end submethod BUILD }}}
 # method new {{{
 
-method new(
+multi method new(
     *%opts (
         Str:D :silo($)! where *.so,
         Str:D :entity($)! where *.so,
-        Str:D :path(@)! where *.so,
+        :path(@)! where *.so,
         Str :open($)
     )
 )
 {
     self.bless(|%opts);
+}
+
+multi method new(*%)
+{
+    die X::Nightscape::Config::Account::Malformed.new;
 }
 
 # end method new }}}

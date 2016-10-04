@@ -119,15 +119,21 @@ submethod BUILD(
 
     try
     {
-        CATCH { default { .message.say } };
+        CATCH { default { .message.say; exit 1 } };
         @!ledger = gen-settings(:ledger(%scene<ledger>));
+        @!account = gen-settings(:account(%scene<account>))
+            if %scene<account>;
+        @!asset = gen-settings(:asset(%scene<asset>), :$!price-dir)
+            if %scene<asset>;
+        @!entity = gen-settings(:entity(%scene<entity>), :$!price-dir)
+            if %scene<entity>;
+        $!base-currency = gen-asset-code(%scene<base-currency>)
+            if %scene<base-currency>;
+        $!base-costing = gen-costing(%scene<base-costing>)
+            if %scene<base-costing>;
+        $!fiscal-year-end = %scene<fiscal-year-end>
+            if %scene<fiscal-year-end>;
     }
-    @!account = gen-settings(:account(%scene<account>)) if %scene<account>;
-    @!asset = gen-settings(:asset(%scene<asset>)) if %scene<asset>;
-    @!entity = gen-settings(:entity(%scene<entity>)) if %scene<entity>;
-    $!base-currency = gen-asset-code(%scene<base-currency>) if %scene<base-currency>;
-    $!base-costing = gen-costing(%scene<base-costing>) if %scene<base-costing>;
-    $!fiscal-year-end = %scene<fiscal-year-end> if %scene<fiscal-year-end>;
 
     # --- end scene settings }}}
 }
@@ -153,22 +159,22 @@ method new(
 # end method new }}}
 # sub gen-settings {{{
 
-multi sub gen-settings(:@account!) returns Array[Nightscape::Config::Account:D]
+multi sub gen-settings(:@account!) returns Array:D
 {
     my Nightscape::Config::Account:D @a =
         @account.map({ Nightscape::Config::Account.new(|$_) });
 }
 
-multi sub gen-settings(:@asset!) returns Array[Nightscape::Config::Asset:D]
+multi sub gen-settings(:@asset!, :$price-dir!) returns Array:D
 {
     my Nightscape::Config::Asset:D @a =
-        @asset.map({ Nightscape::Config::Asset.new(|$_) });
+        @asset.map({ Nightscape::Config::Asset.new(|$_, :$price-dir) });
 }
 
-multi sub gen-settings(:@entity!) returns Array[Nightscape::Config::Entity:D]
+multi sub gen-settings(:@entity!, :$price-dir!) returns Array:D
 {
     my Nightscape::Config::Entity:D @a =
-        @entity.map({ Nightscape::Config::Entity.new(|$_) });
+        @entity.map({ Nightscape::Config::Entity.new(|$_, :$price-dir) });
 }
 
 # ledger specified
