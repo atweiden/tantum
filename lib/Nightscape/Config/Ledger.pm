@@ -3,7 +3,6 @@ use File::Presence;
 use Nightscape::Config::Utils;
 use Nightscape::Types;
 use TXN;
-use TXN::Parser;
 use TXN::Parser::Types;
 use TXN::Remarshal;
 use X::Nightscape;
