@@ -87,6 +87,8 @@ class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
         )
     ) returns Hash:D
     {
+        die unless exists-readable-file($.file);
+
         my VarNameBare:D $pkgname = $.code;
         my Str:D $pkgver = '0.0.1';
         my UInt:D $pkgrel = 1;
