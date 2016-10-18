@@ -26,9 +26,9 @@ has AssetCode:D $.base-currency = $default-base-currency;
 my Date:D $default-fiscal-year-end = Date.new(now.Date.year ~ '-12-31');
 has Date:D $.fiscal-year-end = $default-fiscal-year-end;
 
-has Nightscape::Config::Account @.account;
-has Nightscape::Config::Asset @.asset;
-has Nightscape::Config::Entity @.entity;
+has Nightscape::Config::Account:D @.account;
+has Nightscape::Config::Asset:D @.asset;
+has Nightscape::Config::Entity:D @.entity;
 
 # --- end scene }}}
 # --- setup {{{
