@@ -87,7 +87,8 @@ class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
         )
     ) returns Hash:D
     {
-        die unless exists-readable-file($.file);
+        die X::Nightscape::Config::Ledger::FromFile::DNERF.new
+            unless exists-readable-file($.file);
 
         my VarNameBare:D $pkgname = $.code;
         my Str:D $pkgver = '0.0.1';
@@ -141,15 +142,28 @@ class Nightscape::Config::Ledger::FromPkg is Nightscape::Config::Ledger
     {
         my AbsolutePath:D $tarball =
             "$pkg-dir/$.pkgname-$.pkgver-$.pkgrel.txn.tar.xz";
-        die unless exists-readable-file($tarball);
+
+        die X::Nightscape::Config::Ledger::FromPkg::DNERF.new
+            unless exists-readable-file($tarball);
 
         # extract tarball to tmpdir
         my AbsolutePath:D $build-root = "$*TMPDIR/$.pkgname-$.pkgver-$.pkgrel";
-        $build-root.IO.mkdir or die;
+        $build-root.IO.mkdir or die X::Nightscape::Config::Mkdir::Failed.new(
+            :text('Could not create tmpdir build root for ledger pkg tarball')
+        );
         run qqw<tar -xvf $tarball -C $build-root>;
 
-        my Str:D $txn-json = "$build-root/txn.json".IO.slurp or die;
-        my Str:D $txn-info-json = "$build-root/.TXNINFO".IO.slurp or die;
+        # ensure txn.json exists in ledger pkg tarball then slurp
+        my AbsolutePath:D $txn-json-path = "$build-root/txn.json";
+        die X::Nightscape::Config::Ledger::FromPkg::TXNJSON::DNERF.new
+            unless exists-readable-file($txn-json-path);
+        my Str:D $txn-json = $txn-json-path.IO.slurp;
+
+        # ensure .TXNINFO exists in ledger pkg tarball then slurp
+        my AbsolutePath:D $txn-info-json-path = "$build-root/.TXNINFO";
+        die X::Nightscape::Config::Ledger::FromPkg::TXNINFO::DNERF.new
+            unless exists-readable-file($txn-info-json-path);
+        my Str:D $txn-info-json = $txn-info-json-path.IO.slurp;
 
         my TXN::Parser::AST::Entry:D @entry =
             remarshal($txn-json, :if<json>, :of<entry>);

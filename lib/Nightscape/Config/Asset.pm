@@ -94,7 +94,8 @@ multi sub gen-price-sheet(
             # resolve absolute paths potentially beginning with C<~/>
             $price-file = resolve-path($price-file);
 
-            die unless exists-readable-file($price-file);
+            die X::Nightscape::Config::Asset::PriceFile::DNERF.new
+                unless exists-readable-file($price-file);
 
             %dates-and-prices-from-file =
                 gen-price-sheet(from-toml(:file($price-file)));

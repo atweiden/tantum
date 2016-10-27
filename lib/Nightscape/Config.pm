@@ -86,7 +86,7 @@ submethod BUILD(
     prepare-config-file($!app-file, $default-app-file-contents);
 
     # attempt to parse C<$!app-file>
-    my %app = from-toml(:file($!app-file)) or die;
+    my %app = from-toml(:file($!app-file));
 
     # options C<app-dir>, C<log-dir>, C<pkg-dir>, C<price-dir>, passed
     # to instantiate C<Nightscape::Config> override settings of the same
@@ -108,7 +108,7 @@ submethod BUILD(
     prepare-config-file($!scene-file, $default-scene-file-contents);
 
     # attempt to parse C<$!scene-file>
-    my %scene = from-toml(:file($!scene-file)) or die;
+    my %scene = from-toml(:file($!scene-file));
 
     # option C<scene-dir> passed to instantiate C<Nightscape::Config>
     # overrides setting of the same name contained in C<$!scene-file>
@@ -202,11 +202,28 @@ sub prepare-config-dir(Str:D $dir where *.so)
 {
     given File::Presence.show($dir)
     {
-        when !$_<e> { $dir.IO.mkdir or die }
-        when !$_<r> { die }
-        when !$_<w> { die }
-        when !$_<d> { die }
-        default { True }
+        when !$_<e>
+        {
+            $dir.IO.mkdir or die X::Nightscape::Config::Mkdir::Failed.new(
+                :text('Could not prepare config dir, failed to create dir')
+            );
+        }
+        when !$_<r>
+        {
+            die X::Nightscape::Config::PrepareConfigDir::NotReadable.new;
+        }
+        when !$_<w>
+        {
+            die X::Nightscape::Config::PrepareConfigDir::NotWriteable.new;
+        }
+        when !$_<d>
+        {
+            die X::Nightscape::Config::PrepareConfigDir::NotADirectory.new;
+        }
+        default
+        {
+            True;
+        }
     }
 }
 
@@ -225,13 +242,24 @@ sub prepare-config-file(
         {
             my Str:D $config-file-basedir = $config-file.IO.dirname;
             $config-file-basedir.IO.mkdir unless $config-file-basedir.IO.d;
-            $config-file.IO.spurt("$config-file-contents\n", :createonly)
-                or die;
+            $config-file.IO.spurt("$config-file-contents\n", :createonly);
         }
-        when !$_<r> { die }
-        when !$_<w> { die }
-        when !$_<f> { die }
-        default { True }
+        when !$_<r>
+        {
+            die X::Nightscape::Config::PrepareConfigFile::NotReadable.new;
+        }
+        when !$_<w>
+        {
+            die X::Nightscape::Config::PrepareConfigFile::NotWriteable.new;
+        }
+        when !$_<f>
+        {
+            die X::Nightscape::Config::PrepareConfigFile::NotAFile.new;
+        }
+        default
+        {
+            True;
+        }
     }
 }
 
