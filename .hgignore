@@ -3,3 +3,4 @@ syntax: glob
 .nightscape
 .peru
 .precomp
+t/data/*
