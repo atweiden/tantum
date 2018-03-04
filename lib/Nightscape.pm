@@ -21,6 +21,7 @@ submethod BUILD(
         Str :scene-dir($),
         Str :scene-file($)
     )
+    --> Nil
 )
 {
     $!config = Nightscape::Config.new(|%setup-opts);
@@ -39,6 +40,7 @@ method new(
         Str :scene-dir($),
         Str :scene-file($)
     )
+    --> Nightscape:D
 )
 {
     self.bless(|%setup-opts);
@@ -47,7 +49,7 @@ method new(
 # end method new }}}
 # method clean {{{
 
-method clean(::?CLASS:D:)
+method clean(::?CLASS:D: --> Nil)
 {
     self!clean();
 }
@@ -63,6 +65,7 @@ method reup(
         Bool :no-sync($),
         Str :txn-dir($)
     )
+    --> Nil
 )
 {
     self!reup(|%opts);
@@ -71,7 +74,7 @@ method reup(
 # end method reup }}}
 # method serve {{{
 
-method serve(::?CLASS:D:)
+method serve(::?CLASS:D: --> Nil)
 {
     self!serve();
 }
@@ -79,7 +82,7 @@ method serve(::?CLASS:D:)
 # end method serve }}}
 # method show {{{
 
-method show(::?CLASS:D:)
+method show(::?CLASS:D: --> Nil)
 {
     self!show();
 }
@@ -93,6 +96,7 @@ method sync(
         Int :date-local-offset($),
         Str :txn-dir($)
     )
+    --> Nil
 )
 {
     self!sync(|%opts);
@@ -101,7 +105,7 @@ method sync(
 # end method sync }}}
 # method !clean {{{
 
-method !clean()
+method !clean(--> Nil)
 {
     True;
 }
@@ -109,7 +113,7 @@ method !clean()
 # end method !clean }}}
 # method !reup {{{
 
-method !reup()
+method !reup(--> Nil)
 {
     True;
 }
@@ -117,7 +121,7 @@ method !reup()
 # end method !reup }}}
 # method !serve {{{
 
-method !serve()
+method !serve(--> Nil)
 {
     True;
 }
@@ -125,7 +129,7 @@ method !serve()
 # end method !serve }}}
 # method !show {{{
 
-method !show()
+method !show(--> Nil)
 {
     True;
 }
@@ -138,6 +142,7 @@ method !sync(
         Int :date-local-offset($),
         Str :txn-dir($)
     )
+    --> Nil
 )
 {
     my List:D $pkg = sync($.config.ledger, :pkg-dir($.config.pkg-dir), |%opts);
@@ -150,35 +155,38 @@ method !sync(
 multi sub sync(
     Nightscape::Config::Ledger:D @ledger,
     *%opts (
-        Str:D :pkg-dir($)! where *.so,
+        Str:D :pkg-dir($)! where *.so(),
         Int :date-local-offset($),
         Str :txn-dir($)
     )
-) returns List:D
+    --> List:D
+)
 {
-    @ledger.map({ sync($_, |%opts) }).List;
+    @ledger.map({ sync($_, |%opts) }).List();
 }
 
 multi sub sync(
     Nightscape::Config::Ledger::FromFile:D $ledger,
-    Str:D :pkg-dir($)! where *.so,
+    Str:D :pkg-dir($)! where *.so(),
     *%opts (
         Int :date-local-offset($),
         Str :txn-dir($)
     )
-) returns Hash:D
+    --> Hash:D
+)
 {
     $ledger.made(|%opts);
 }
 
 multi sub sync(
     Nightscape::Config::Ledger::FromPkg:D $ledger,
-    Str:D :$pkg-dir! where *.so,
+    Str:D :$pkg-dir! where *.so(),
     *% (
         Int :date-local-offset($),
         Str :txn-dir($)
     )
-) returns Hash:D
+    --> Hash:D
+)
 {
     $ledger.made(:$pkg-dir);
 }

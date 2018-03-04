@@ -13,7 +13,7 @@ use Nightscape;
 # help
 # -----------------------------------------------------------------------------
 
-multi sub MAIN('help', Str $command?)
+multi sub MAIN('help', Str $command? --> Nil)
 {
     USAGE($command);
 }
@@ -36,9 +36,10 @@ multi sub MAIN(
         Str :scene-dir($),
         Str :scene-file($)
     )
+    --> Nil
 )
 {
-    Nightscape.new(|%setup-opts).clean;
+    Nightscape.new(|%setup-opts).clean();
 }
 
 multi sub MAIN(
@@ -56,10 +57,12 @@ multi sub MAIN(
         Str :scene-file($)
     ),
     *@ledger
+    --> Nil
 )
 {
     my Str %opts{Str};
-    %opts<date-local-offset> = $date-local-offset if $date-local-offset.defined;
+    %opts<date-local-offset> =
+        $date-local-offset if $date-local-offset.defined();
     %opts<ledger> = @ledger if @ledger;
     %opts<no-sync> = $no-sync if $no-sync;
     %opts<txn-dir> = $txn-dir if $txn-dir;
@@ -77,9 +80,10 @@ multi sub MAIN(
         Str :scene-dir($),
         Str :scene-file($)
     )
+    --> Nil
 )
 {
-    Nightscape.new(|%setup-opts).serve;
+    Nightscape.new(|%setup-opts).serve();
 }
 
 multi sub MAIN(
@@ -93,9 +97,10 @@ multi sub MAIN(
         Str :scene-dir($),
         Str :scene-file($)
     )
+    --> Nil
 )
 {
-    Nightscape.new(|%setup-opts).show;
+    Nightscape.new(|%setup-opts).show();
 }
 
 multi sub MAIN(
@@ -111,15 +116,17 @@ multi sub MAIN(
         Str :scene-dir($),
         Str :scene-file($)
     )
+    --> Nil
 )
 {
     my Str %opts{Str};
-    %opts<date-local-offset> = $date-local-offset if $date-local-offset.defined;
+    %opts<date-local-offset> =
+        $date-local-offset if $date-local-offset.defined();
     %opts<txn-dir> = $txn-dir if $txn-dir;
     Nightscape.new(|%setup-opts).sync(|%opts);
 }
 
-multi sub MAIN(Str $command, *%)
+multi sub MAIN(Str $command, *% --> Nil)
 {
     USAGE();
 }
@@ -131,20 +138,20 @@ multi sub MAIN(Str $command, *%)
 # usage
 # -----------------------------------------------------------------------------
 
-multi sub USAGE('clean')
+multi sub USAGE('clean' --> Nil)
 {
-    constant $HELP = q:to/EOF/;
+    constant $HELP = q:to/EOF/.trim();
     Usage:
       nightscape clean
 
     Removes scene.
     EOF
-    say $HELP.trim;
+    say($HELP);
 }
 
-multi sub USAGE('reup')
+multi sub USAGE('reup' --> Nil)
 {
-    constant $HELP = q:to/EOF/;
+    constant $HELP = q:to/EOF/.trim();
     Usage:
       nightscape [--no-sync]
                  [--date-local-offset=<offset>]
@@ -167,34 +174,34 @@ multi sub USAGE('reup')
       -I, --txn-dir=<dir>
         the include directory
     EOF
-    say $HELP.trim;
+    say($HELP);
 }
 
-multi sub USAGE('serve')
+multi sub USAGE('serve' --> Nil)
 {
-    constant $HELP = q:to/EOF/;
+    constant $HELP = q:to/EOF/.trim();
     Usage:
       nightscape serve
 
     Serves scene.
     EOF
-    say $HELP.trim;
+    say($HELP);
 }
 
-multi sub USAGE('show')
+multi sub USAGE('show' --> Nil)
 {
-    constant $HELP = q:to/EOF/;
+    constant $HELP = q:to/EOF/.trim();
     Usage:
       nightscape show
 
     Shows scene.
     EOF
-    say $HELP.trim;
+    say($HELP);
 }
 
-multi sub USAGE('sync')
+multi sub USAGE('sync' --> Nil)
 {
-    constant $HELP = q:to/EOF/;
+    constant $HELP = q:to/EOF/.trim();
     Usage:
       nightscape [--date-local-offset=<offset>]
                  [--txn-dir=<dir>]
@@ -209,12 +216,12 @@ multi sub USAGE('sync')
       -I, --txn-dir=<dir>
         the include directory
     EOF
-    say $HELP.trim;
+    say($HELP);
 }
 
-multi sub USAGE($?)
+multi sub USAGE($? --> Nil)
 {
-    constant $HELP = q:to/EOF/;
+    constant $HELP = q:to/EOF/.trim();
     Usage:
       nightscape [-h] [--app-file=<file>] [--scene-file=<file>] <command>
 
@@ -242,7 +249,7 @@ multi sub USAGE($?)
       --scene-file=<file>
         the scene configuration file
     EOF
-    say $HELP.trim;
+    say($HELP);
 }
 
 # vim: set filetype=perl6 foldmethod=marker foldlevel=0:

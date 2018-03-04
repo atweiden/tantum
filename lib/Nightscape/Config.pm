@@ -76,6 +76,7 @@ submethod BUILD(
     Str :$price-dir,
     Str :$scene-dir,
     Str :$scene-file
+    --> Nil
 )
 {
     # --- application settings {{{
@@ -104,7 +105,8 @@ submethod BUILD(
 
     # if option C<scene-file> is passed to instantiate
     # C<Nightscape::Config>, use that, otherwise use default
-    $!scene-file = $scene-file ?? resolve-path($scene-file) !! $default-scene-file;
+    $!scene-file =
+        $scene-file ?? resolve-path($scene-file) !! $default-scene-file;
     prepare-config-file($!scene-file, $default-scene-file-contents);
 
     # attempt to parse C<$!scene-file>
@@ -114,12 +116,13 @@ submethod BUILD(
     # overrides setting of the same name contained in C<$!scene-file>
     #
     # if no setting is provided, use defaults
-    $!scene-dir = resolve-dir($default-scene-dir, %scene<scene-dir>, $scene-dir);
+    $!scene-dir =
+        resolve-dir($default-scene-dir, %scene<scene-dir>, $scene-dir);
     prepare-config-dirs($!scene-dir);
 
     try
     {
-        CATCH { default { .message.say; exit 1 } };
+        CATCH { default { say(.message); exit(1) } };
         @!ledger = gen-settings(:ledger(%scene<ledger>));
         @!account = gen-settings(:account(%scene<account>))
             if %scene<account>;
@@ -151,6 +154,7 @@ method new(
         Str :scene-dir($),
         Str :scene-file($)
     )
+    --> Nightscape::Config:D
 )
 {
     self.bless(|%opts);
@@ -159,120 +163,241 @@ method new(
 # end method new }}}
 # sub gen-settings {{{
 
-multi sub gen-settings(:@account!) returns Array:D
+multi sub gen-settings(:@account! --> Array:D)
 {
     my Nightscape::Config::Account:D @a =
         @account.map({ Nightscape::Config::Account.new(|$_) });
 }
 
-multi sub gen-settings(:@asset!, :$scene-file!) returns Array:D
+multi sub gen-settings(:@asset!, :$scene-file! --> Array:D)
 {
     my Nightscape::Config::Asset:D @a =
         @asset.map({ Nightscape::Config::Asset.new(|$_, :$scene-file) });
 }
 
-multi sub gen-settings(:@entity!, :$scene-file!) returns Array:D
+multi sub gen-settings(:@entity!, :$scene-file! --> Array:D)
 {
     my Nightscape::Config::Entity:D @a =
         @entity.map({ Nightscape::Config::Entity.new(|$_, :$scene-file) });
 }
 
 # ledger specified
-multi sub gen-settings(:@ledger!) returns Array[Nightscape::Config::Ledger:D]
+multi sub gen-settings(:@ledger! --> Array[Nightscape::Config::Ledger:D])
 {
     my Nightscape::Config::Ledger:D @a =
         @ledger.map({ Nightscape::Config::Ledger.new(|$_) });
 }
 
 # ledger unspecified
-multi sub gen-settings(:$ledger!)
+multi sub gen-settings(:$ledger! --> Nil)
 {
-    die X::Nightscape::Config::Ledger::Missing.new;
+    die(X::Nightscape::Config::Ledger::Missing.new());
 }
 
 # end sub gen-settings }}}
 # sub prepare-config-dirs {{{
 
-sub prepare-config-dirs(*@dirs)
+sub prepare-config-dirs(*@dir --> Nil)
 {
-    prepare-config-dir($_) for @dirs;
+    @dir.map({ prepare-config-dir($_) });
 }
 
-sub prepare-config-dir(Str:D $dir where *.so)
+multi sub prepare-config-dir(Str:D $dir where *.so() --> Nil)
 {
-    given File::Presence.show($dir)
-    {
-        when !$_<e>
-        {
-            $dir.IO.mkdir or die X::Nightscape::Config::Mkdir::Failed.new(
-                :text('Could not prepare config dir, failed to create dir')
-            );
-        }
-        when !$_<r>
-        {
-            die X::Nightscape::Config::PrepareConfigDir::NotReadable.new;
-        }
-        when !$_<w>
-        {
-            die X::Nightscape::Config::PrepareConfigDir::NotWriteable.new;
-        }
-        when !$_<d>
-        {
-            die X::Nightscape::Config::PrepareConfigDir::NotADirectory.new;
-        }
-        default
-        {
-            True;
-        }
-    }
+    my Bool:D %show{Str:D} = File::Presence.show($dir);
+    prepare-config-dir($dir, %show);
+}
+
+multi sub prepare-config-dir(
+    Str:D $dir,
+    %show (
+        Bool:D :d($),
+        Bool:D :e($) where *.not(),
+        Bool:D :f($),
+        Bool:D :r($),
+        Bool:D :w($),
+        Bool:D :x($)
+    )
+    --> Nil
+)
+{
+    my Str:D $text = 'Could not prepare config dir, failed to create dir';
+    mkdir($dir) or die(X::Nightscape::Config::Mkdir::Failed.new(:$text));
+}
+
+multi sub prepare-config-dir(
+    Str:D $dir,
+    %show (
+        Bool:D :d($),
+        Bool:D :e($),
+        Bool:D :f($),
+        Bool:D :r($) where *.not(),
+        Bool:D :w($),
+        Bool:D :x($)
+    )
+    --> Nil
+)
+{
+    die(X::Nightscape::Config::PrepareConfigDir::NotReadable.new());
+}
+
+multi sub prepare-config-dir(
+    Str:D $dir,
+    %show (
+        Bool:D :d($),
+        Bool:D :e($),
+        Bool:D :f($),
+        Bool:D :r($),
+        Bool:D :w($) where *.not(),
+        Bool:D :x($)
+    )
+    --> Nil
+)
+{
+    die(X::Nightscape::Config::PrepareConfigDir::NotWriteable.new());
+}
+
+multi sub prepare-config-dir(
+    Str:D $dir,
+    %show (
+        Bool:D :d($) where *.not(),
+        Bool:D :e($),
+        Bool:D :f($),
+        Bool:D :r($),
+        Bool:D :w($),
+        Bool:D :x($)
+    )
+    --> Nil
+)
+{
+    die(X::Nightscape::Config::PrepareConfigDir::NotADirectory.new());
 }
 
 # end sub prepare-config-dirs }}}
 # sub prepare-config-file {{{
 
-sub prepare-config-file(
-    Str:D $config-file where *.so,
-    Str:D $config-file-contents where *.so
+multi sub prepare-config-file(
+    Str:D $config-file where *.so(),
+    Str:D $config-file-contents where *.so()
+    --> Nil
 )
 {
-    given File::Presence.show($config-file)
-    {
-        # create config file if DNE
-        when !$_<e>
-        {
-            my Str:D $config-file-basedir = $config-file.IO.dirname;
-            $config-file-basedir.IO.mkdir unless $config-file-basedir.IO.d;
-            $config-file.IO.spurt("$config-file-contents\n", :createonly);
-        }
-        when !$_<r>
-        {
-            die X::Nightscape::Config::PrepareConfigFile::NotReadable.new;
-        }
-        when !$_<w>
-        {
-            die X::Nightscape::Config::PrepareConfigFile::NotWriteable.new;
-        }
-        when !$_<f>
-        {
-            die X::Nightscape::Config::PrepareConfigFile::NotAFile.new;
-        }
-        default
-        {
-            True;
-        }
-    }
+    my Bool:D %show{Str:D} = File::Presence.show($config-file);
+    prepare-config-file($config-file, $config-file-contents, %show);
+}
+
+# create config file if DNE
+multi sub prepare-config-file(
+    Str:D $config-file,
+    Str:D $config-file-contents,
+    %show (
+        Bool:D :d($),
+        Bool:D :e($) where *.not(),
+        Bool:D :f($),
+        Bool:D :r($),
+        Bool:D :w($),
+        Bool:D :x($)
+    )
+    --> Nil
+)
+{
+    my Str:D $config-file-basedir = $config-file.IO.dirname();
+    mkdir($config-file-basedir) unless $config-file-basedir.IO.d();
+    spurt($config-file, "$config-file-contents\n", :createonly);
+}
+
+multi sub prepare-config-file(
+    Str:D $config-file,
+    Str:D $config-file-contents,
+    %show (
+        Bool:D :d($),
+        Bool:D :e($),
+        Bool:D :f($),
+        Bool:D :r($) where *.not(),
+        Bool:D :w($),
+        Bool:D :x($)
+    )
+    --> Nil
+)
+{
+    die(X::Nightscape::Config::PrepareConfigFile::NotReadable.new());
+}
+
+multi sub prepare-config-file(
+    Str:D $config-file,
+    Str:D $config-file-contents,
+    %show (
+        Bool:D :d($),
+        Bool:D :e($),
+        Bool:D :f($),
+        Bool:D :r($),
+        Bool:D :w($) where *.not(),
+        Bool:D :x($)
+    )
+    --> Nil
+)
+{
+    die(X::Nightscape::Config::PrepareConfigFile::NotWriteable.new());
+}
+
+multi sub prepare-config-file(
+    Str:D $config-file,
+    Str:D $config-file-contents,
+    %show (
+        Bool:D :d($),
+        Bool:D :e($),
+        Bool:D :f($) where *.not(),
+        Bool:D :r($),
+        Bool:D :w($),
+        Bool:D :x($)
+    )
+    --> Nil
+)
+{
+    die(X::Nightscape::Config::PrepareConfigFile::NotAFile.new());
 }
 
 # end sub prepare-config-file }}}
 # sub resolve-dir {{{
 
-sub resolve-dir($default-dir, $toml-dir?, $user-override-dir?) returns Str:D
+multi sub resolve-dir(*@dir --> Str:D)
 {
-    my Str:D $dir = do
-        if $user-override-dir { $user-override-dir }
-        elsif $toml-dir { $toml-dir }
-        else { $default-dir };
-    resolve-path($dir);
+    my Str:D %dir{Str:D};
+    %dir<default-dir> = @dir[0] if @dir[0];
+    %dir<toml-dir> = @dir[1] if @dir[1];
+    %dir<user-override-dir> = @dir[2] if @dir[2];
+    my Str:D $resolve-dir = resolve-dir(|%dir);
+    my Str:D $dir = resolve-path($resolve-dir);
+}
+
+multi sub resolve-dir(
+    Str:D :default-dir($)! where *.so(),
+    Str:D :toml-dir($)! where *.so(),
+    Str:D :$user-override-dir! where *.so()
+    --> Str:D
+)
+{
+    my Str:D $dir = $user-override-dir;
+}
+
+multi sub resolve-dir(
+    Str:D :default-dir($)! where *.so(),
+    Str:D :$toml-dir! where *.so(),
+    Str :user-override-dir($)
+    --> Str:D
+)
+{
+    my Str:D $dir = $toml-dir;
+}
+
+multi sub resolve-dir(
+    Str:D :$default-dir! where *.so(),
+    Str :toml-dir($),
+    Str :user-override-dir($)
+    --> Str:D
+)
+{
+    my Str:D $dir = $default-dir;
 }
 
 # end sub resolve-dir }}}

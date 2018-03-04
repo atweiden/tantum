@@ -5,9 +5,9 @@ unit module X::Nightscape;
 
 class Config::Account::Malformed is Exception
 {
-    method message() returns Str:D
+    method message(--> Str:D)
     {
-        'Malformed account in scene config file';
+        my Str:D $message = 'Malformed account in scene config file';
     }
 }
 
@@ -16,9 +16,9 @@ class Config::Account::Malformed is Exception
 
 class Config::Asset::Malformed is Exception
 {
-    method message() returns Str:D
+    method message(--> Str:D)
     {
-        'Malformed asset in scene config file';
+        my Str:D $message = 'Malformed asset in scene config file';
     }
 }
 
@@ -27,9 +27,9 @@ class Config::Asset::Malformed is Exception
 
 class Config::Asset::Price::Malformed is Exception
 {
-    method message() returns Str:D
+    method message(--> Str:D)
     {
-        'Malformed asset pricing in scene config file';
+        my Str:D $message = 'Malformed asset pricing in scene config file';
     }
 }
 
@@ -38,9 +38,10 @@ class Config::Asset::Price::Malformed is Exception
 
 class Config::Asset::PriceFile::DNERF is Exception
 {
-    method message() returns Str:D
+    method message(--> Str:D)
     {
-        'Asset price file given in scene config file '
+        my Str:D $message =
+            'Asset price file given in scene config file '
             ~ 'but does not exist in readable form';
     }
 }
@@ -50,9 +51,9 @@ class Config::Asset::PriceFile::DNERF is Exception
 
 class Config::Entity::Malformed is Exception
 {
-    method message() returns Str:D
+    method message(--> Str:D)
     {
-        'Malformed entity in scene config file';
+        my Str:D $message = 'Malformed entity in scene config file';
     }
 }
 
@@ -61,9 +62,10 @@ class Config::Entity::Malformed is Exception
 
 class Config::Ledger::FromFile::DNERF is Exception
 {
-    method message() returns Str:D
+    method message(--> Str:D)
     {
-        'Ledger source from file given in scene config file '
+        my Str:D $message =
+            'Ledger source from file given in scene config file '
             ~ 'but does not exist in readable form';
     }
 }
@@ -73,9 +75,10 @@ class Config::Ledger::FromFile::DNERF is Exception
 
 class Config::Ledger::FromPkg::DNERF is Exception
 {
-    method message() returns Str:D
+    method message(--> Str:D)
     {
-        'Ledger source from pkg given in scene config file '
+        my Str:D $message =
+            'Ledger source from pkg given in scene config file '
             ~ 'but does not exist in readable form';
     }
 }
@@ -85,9 +88,9 @@ class Config::Ledger::FromPkg::DNERF is Exception
 
 class Config::Ledger::FromPkg::TXNINFO::DNERF is Exception
 {
-    method message() returns Str:D
+    method message(--> Str:D)
     {
-        'Could not find .TXNINFO in ledger pkg';
+        my Str:D $message = 'Could not find .TXNINFO in ledger pkg';
     }
 }
 
@@ -96,9 +99,9 @@ class Config::Ledger::FromPkg::TXNINFO::DNERF is Exception
 
 class Config::Ledger::FromPkg::TXNJSON::DNERF is Exception
 {
-    method message() returns Str:D
+    method message(--> Str:D)
     {
-        'Could not find txn.json in ledger pkg';
+        my Str:D $message = 'Could not find txn.json in ledger pkg';
     }
 }
 
@@ -107,9 +110,9 @@ class Config::Ledger::FromPkg::TXNJSON::DNERF is Exception
 
 class Config::Ledger::Malformed is Exception
 {
-    method message() returns Str:D
+    method message(--> Str:D)
     {
-        'Malformed ledger sources in scene config file';
+        my Str:D $message = 'Malformed ledger sources in scene config file';
     }
 }
 
@@ -118,9 +121,9 @@ class Config::Ledger::Malformed is Exception
 
 class Config::Ledger::Missing is Exception
 {
-    method message() returns Str:D
+    method message(--> Str:D)
     {
-        'Missing ledger sources in scene config file';
+        my Str:D $message = 'Missing ledger sources in scene config file';
     }
 }
 
@@ -130,9 +133,9 @@ class Config::Ledger::Missing is Exception
 class Config::Mkdir::Failed is Exception
 {
     has Str:D $.text is required;
-    method message() returns Str:D
+    method message(::?CLASS:D: --> Str:D)
     {
-        $.text;
+        my Str:D $message = $.text;
     }
 }
 
@@ -141,9 +144,10 @@ class Config::Mkdir::Failed is Exception
 
 class Config::PrepareConfigDir::NotReadable is Exception
 {
-    method message() returns Str:D
+    method message(--> Str:D)
     {
-        'Could not prepare config dir, existing not readable';
+        my Str:D $message =
+            'Could not prepare config dir, existing not readable';
     }
 }
 
@@ -152,9 +156,10 @@ class Config::PrepareConfigDir::NotReadable is Exception
 
 class Config::PrepareConfigDir::NotWriteable is Exception
 {
-    method message() returns Str:D
+    method message(--> Str:D)
     {
-        'Could not prepare config dir, existing is not writeable';
+        my Str:D $message =
+            'Could not prepare config dir, existing is not writeable';
     }
 }
 
@@ -163,9 +168,10 @@ class Config::PrepareConfigDir::NotWriteable is Exception
 
 class Config::PrepareConfigDir::NotADirectory is Exception
 {
-    method message() returns Str:D
+    method message(--> Str:D)
     {
-        'Could not prepare config dir, existing is not a directory';
+        my Str:D $message =
+            'Could not prepare config dir, existing is not a directory';
     }
 }
 
@@ -174,9 +180,10 @@ class Config::PrepareConfigDir::NotADirectory is Exception
 
 class Config::PrepareConfigFile::NotReadable is Exception
 {
-    method message() returns Str:D
+    method message(--> Str:D)
     {
-        'Could not prepare config file, existing not readable';
+        my Str:D $message =
+            'Could not prepare config file, existing not readable';
     }
 }
 
@@ -185,9 +192,10 @@ class Config::PrepareConfigFile::NotReadable is Exception
 
 class Config::PrepareConfigFile::NotWriteable is Exception
 {
-    method message() returns Str:D
+    method message(--> Str:D)
     {
-        'Could not prepare config file, existing is not writeable';
+        my Str:D $message =
+            'Could not prepare config file, existing is not writeable';
     }
 }
 
@@ -196,9 +204,10 @@ class Config::PrepareConfigFile::NotWriteable is Exception
 
 class Config::PrepareConfigFile::NotADirectory is Exception
 {
-    method message() returns Str:D
+    method message(--> Str:D)
     {
-        'Could not prepare config file, existing is not a file';
+        my Str:D $message =
+            'Could not prepare config file, existing is not a file';
     }
 }
 

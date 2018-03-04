@@ -10,7 +10,6 @@ unit class Nightscape::Config::Entity;
 # class attributes {{{
 
 has VarNameBare:D $.code is required;
-
 has Nightscape::Config::Account @.account;
 has Nightscape::Config::Asset @.asset;
 has Costing $.base-costing;
@@ -24,8 +23,8 @@ has Range $.open;
 # submethod BUILD {{{
 
 submethod BUILD(
-    Str:D :$code! where *.so,
-    Str:D :$scene-file! where *.so,
+    Str:D :$code! where *.so(),
+    Str:D :$scene-file! where *.so(),
     :@account,
     :@asset,
     Str :$base-costing,
@@ -33,10 +32,10 @@ submethod BUILD(
     Date :$fiscal-year-end,
     Str :$name,
     Str :$open
+    --> Nil
 )
 {
     $!code = gen-var-name-bare($code);
-
     @!account = gen-settings(:@account) if @account;
     @!asset = gen-settings(:@asset, :$scene-file) if @asset;
     $!base-costing = gen-costing($base-costing) if $base-costing;
@@ -51,8 +50,8 @@ submethod BUILD(
 
 multi method new(
     *%opts (
-        Str:D :code($)! where *.so,
-        Str:D :scene-file($)! where *.so,
+        Str:D :code($)! where *.so(),
+        Str:D :scene-file($)! where *.so(),
         :account(@),
         :asset(@),
         Str :base-costing($),
@@ -61,20 +60,21 @@ multi method new(
         Str :name($),
         Str :open($)
     )
+    --> Nightscape::Config::Entity:D
 )
 {
     self.bless(|%opts);
 }
 
-multi method new(*%)
+multi method new(*% --> Nil)
 {
-    die X::Nightscape::Config::Entity::Malformed.new;
+    die(X::Nightscape::Config::Entity::Malformed.new());
 }
 
 # end method new }}}
 # sub gen-settings {{{
 
-multi sub gen-settings(:@account!) returns Array[Nightscape::Config::Account:D]
+multi sub gen-settings(:@account! --> Array[Nightscape::Config::Account:D])
 {
     my Nightscape::Config::Account:D @a =
         @account.map({ Nightscape::Config::Account.new(|$_) });
@@ -83,7 +83,8 @@ multi sub gen-settings(:@account!) returns Array[Nightscape::Config::Account:D]
 multi sub gen-settings(
     :@asset!,
     :$scene-file!
-) returns Array[Nightscape::Config::Asset:D]
+    --> Array[Nightscape::Config::Asset:D]
+)
 {
     my Nightscape::Config::Asset:D @a =
         @asset.map({ Nightscape::Config::Asset.new(|$_, :$scene-file) });

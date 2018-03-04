@@ -3,12 +3,12 @@ unit module Nightscape::Types;
 
 # AbsolutePath {{{
 
-subset AbsolutePath of Str is export where *.IO.is-absolute;
+subset AbsolutePath of Str is export where *.IO.is-absolute();
 
 # end AbsolutePath }}}
 # Costing {{{
 
-enum Costing is export <AVCO FIFO LIFO>;
+enum Costing <AVCO FIFO LIFO>;
 
 # end Costing }}}
 
