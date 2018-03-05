@@ -39,7 +39,7 @@ multi sub MAIN(
     --> Nil
 )
 {
-    Nightscape.new(|%setup-opts).clean();
+    Nightscape.new(|%setup-opts).clean;
 }
 
 multi sub MAIN(
@@ -61,8 +61,7 @@ multi sub MAIN(
 )
 {
     my Str %opts{Str};
-    %opts<date-local-offset> =
-        $date-local-offset if $date-local-offset.defined();
+    %opts<date-local-offset> = $date-local-offset if $date-local-offset.defined;
     %opts<ledger> = @ledger if @ledger;
     %opts<no-sync> = $no-sync if $no-sync;
     %opts<txn-dir> = $txn-dir if $txn-dir;
@@ -83,7 +82,7 @@ multi sub MAIN(
     --> Nil
 )
 {
-    Nightscape.new(|%setup-opts).serve();
+    Nightscape.new(|%setup-opts).serve;
 }
 
 multi sub MAIN(
@@ -100,7 +99,7 @@ multi sub MAIN(
     --> Nil
 )
 {
-    Nightscape.new(|%setup-opts).show();
+    Nightscape.new(|%setup-opts).show;
 }
 
 multi sub MAIN(
@@ -120,8 +119,7 @@ multi sub MAIN(
 )
 {
     my Str %opts{Str};
-    %opts<date-local-offset> =
-        $date-local-offset if $date-local-offset.defined();
+    %opts<date-local-offset> = $date-local-offset if $date-local-offset.defined;
     %opts<txn-dir> = $txn-dir if $txn-dir;
     Nightscape.new(|%setup-opts).sync(|%opts);
 }
@@ -140,7 +138,7 @@ multi sub MAIN(Str $command, *% --> Nil)
 
 multi sub USAGE('clean' --> Nil)
 {
-    constant $HELP = q:to/EOF/.trim();
+    constant $HELP = q:to/EOF/.trim;
     Usage:
       nightscape clean
 
@@ -151,7 +149,7 @@ multi sub USAGE('clean' --> Nil)
 
 multi sub USAGE('reup' --> Nil)
 {
-    constant $HELP = q:to/EOF/.trim();
+    constant $HELP = q:to/EOF/.trim;
     Usage:
       nightscape [--no-sync]
                  [--date-local-offset=<offset>]
@@ -179,7 +177,7 @@ multi sub USAGE('reup' --> Nil)
 
 multi sub USAGE('serve' --> Nil)
 {
-    constant $HELP = q:to/EOF/.trim();
+    constant $HELP = q:to/EOF/.trim;
     Usage:
       nightscape serve
 
@@ -190,7 +188,7 @@ multi sub USAGE('serve' --> Nil)
 
 multi sub USAGE('show' --> Nil)
 {
-    constant $HELP = q:to/EOF/.trim();
+    constant $HELP = q:to/EOF/.trim;
     Usage:
       nightscape show
 
@@ -201,7 +199,7 @@ multi sub USAGE('show' --> Nil)
 
 multi sub USAGE('sync' --> Nil)
 {
-    constant $HELP = q:to/EOF/.trim();
+    constant $HELP = q:to/EOF/.trim;
     Usage:
       nightscape [--date-local-offset=<offset>]
                  [--txn-dir=<dir>]
@@ -221,7 +219,7 @@ multi sub USAGE('sync' --> Nil)
 
 multi sub USAGE($? --> Nil)
 {
-    constant $HELP = q:to/EOF/.trim();
+    constant $HELP = q:to/EOF/.trim;
     Usage:
       nightscape [-h] [--app-file=<file>] [--scene-file=<file>] <command>
 

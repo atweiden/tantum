@@ -191,7 +191,7 @@ multi sub gen-settings(:@ledger! --> Array[Nightscape::Config::Ledger:D])
 # ledger unspecified
 multi sub gen-settings(:$ledger! --> Nil)
 {
-    die(X::Nightscape::Config::Ledger::Missing.new());
+    die(X::Nightscape::Config::Ledger::Missing.new);
 }
 
 # end sub gen-settings }}}
@@ -202,7 +202,7 @@ sub prepare-config-dirs(*@dir --> Nil)
     @dir.map({ prepare-config-dir($_) });
 }
 
-multi sub prepare-config-dir(Str:D $dir where *.so() --> Nil)
+multi sub prepare-config-dir(Str:D $dir where *.so --> Nil)
 {
     my Bool:D %show{Str:D} = File::Presence.show($dir);
     prepare-config-dir($dir, %show);
@@ -212,7 +212,7 @@ multi sub prepare-config-dir(
     Str:D $dir,
     %show (
         Bool:D :d($),
-        Bool:D :e($) where *.not(),
+        Bool:D :e($) where *.not,
         Bool:D :f($),
         Bool:D :r($),
         Bool:D :w($),
@@ -231,14 +231,14 @@ multi sub prepare-config-dir(
         Bool:D :d($),
         Bool:D :e($),
         Bool:D :f($),
-        Bool:D :r($) where *.not(),
+        Bool:D :r($) where *.not,
         Bool:D :w($),
         Bool:D :x($)
     )
     --> Nil
 )
 {
-    die(X::Nightscape::Config::PrepareConfigDir::NotReadable.new());
+    die(X::Nightscape::Config::PrepareConfigDir::NotReadable.new);
 }
 
 multi sub prepare-config-dir(
@@ -248,19 +248,19 @@ multi sub prepare-config-dir(
         Bool:D :e($),
         Bool:D :f($),
         Bool:D :r($),
-        Bool:D :w($) where *.not(),
+        Bool:D :w($) where *.not,
         Bool:D :x($)
     )
     --> Nil
 )
 {
-    die(X::Nightscape::Config::PrepareConfigDir::NotWriteable.new());
+    die(X::Nightscape::Config::PrepareConfigDir::NotWriteable.new);
 }
 
 multi sub prepare-config-dir(
     Str:D $dir,
     %show (
-        Bool:D :d($) where *.not(),
+        Bool:D :d($) where *.not,
         Bool:D :e($),
         Bool:D :f($),
         Bool:D :r($),
@@ -270,15 +270,15 @@ multi sub prepare-config-dir(
     --> Nil
 )
 {
-    die(X::Nightscape::Config::PrepareConfigDir::NotADirectory.new());
+    die(X::Nightscape::Config::PrepareConfigDir::NotADirectory.new);
 }
 
 # end sub prepare-config-dirs }}}
 # sub prepare-config-file {{{
 
 multi sub prepare-config-file(
-    Str:D $config-file where *.so(),
-    Str:D $config-file-contents where *.so()
+    Str:D $config-file where *.so,
+    Str:D $config-file-contents where *.so
     --> Nil
 )
 {
@@ -292,7 +292,7 @@ multi sub prepare-config-file(
     Str:D $config-file-contents,
     %show (
         Bool:D :d($),
-        Bool:D :e($) where *.not(),
+        Bool:D :e($) where *.not,
         Bool:D :f($),
         Bool:D :r($),
         Bool:D :w($),
@@ -301,8 +301,8 @@ multi sub prepare-config-file(
     --> Nil
 )
 {
-    my Str:D $config-file-basedir = $config-file.IO.dirname();
-    mkdir($config-file-basedir) unless $config-file-basedir.IO.d();
+    my Str:D $config-file-basedir = $config-file.IO.dirname;
+    mkdir($config-file-basedir) unless $config-file-basedir.IO.d;
     spurt($config-file, "$config-file-contents\n", :createonly);
 }
 
@@ -313,14 +313,14 @@ multi sub prepare-config-file(
         Bool:D :d($),
         Bool:D :e($),
         Bool:D :f($),
-        Bool:D :r($) where *.not(),
+        Bool:D :r($) where *.not,
         Bool:D :w($),
         Bool:D :x($)
     )
     --> Nil
 )
 {
-    die(X::Nightscape::Config::PrepareConfigFile::NotReadable.new());
+    die(X::Nightscape::Config::PrepareConfigFile::NotReadable.new);
 }
 
 multi sub prepare-config-file(
@@ -331,13 +331,13 @@ multi sub prepare-config-file(
         Bool:D :e($),
         Bool:D :f($),
         Bool:D :r($),
-        Bool:D :w($) where *.not(),
+        Bool:D :w($) where *.not,
         Bool:D :x($)
     )
     --> Nil
 )
 {
-    die(X::Nightscape::Config::PrepareConfigFile::NotWriteable.new());
+    die(X::Nightscape::Config::PrepareConfigFile::NotWriteable.new);
 }
 
 multi sub prepare-config-file(
@@ -346,7 +346,7 @@ multi sub prepare-config-file(
     %show (
         Bool:D :d($),
         Bool:D :e($),
-        Bool:D :f($) where *.not(),
+        Bool:D :f($) where *.not,
         Bool:D :r($),
         Bool:D :w($),
         Bool:D :x($)
@@ -354,7 +354,7 @@ multi sub prepare-config-file(
     --> Nil
 )
 {
-    die(X::Nightscape::Config::PrepareConfigFile::NotAFile.new());
+    die(X::Nightscape::Config::PrepareConfigFile::NotAFile.new);
 }
 
 # end sub prepare-config-file }}}
@@ -371,9 +371,9 @@ multi sub resolve-dir(*@dir --> Str:D)
 }
 
 multi sub resolve-dir(
-    Str:D :default-dir($)! where *.so(),
-    Str:D :toml-dir($)! where *.so(),
-    Str:D :$user-override-dir! where *.so()
+    Str:D :default-dir($)! where *.so,
+    Str:D :toml-dir($)! where *.so,
+    Str:D :$user-override-dir! where *.so
     --> Str:D
 )
 {
@@ -381,8 +381,8 @@ multi sub resolve-dir(
 }
 
 multi sub resolve-dir(
-    Str:D :default-dir($)! where *.so(),
-    Str:D :$toml-dir! where *.so(),
+    Str:D :default-dir($)! where *.so,
+    Str:D :$toml-dir! where *.so,
     Str :user-override-dir($)
     --> Str:D
 )
@@ -391,7 +391,7 @@ multi sub resolve-dir(
 }
 
 multi sub resolve-dir(
-    Str:D :$default-dir! where *.so(),
+    Str:D :$default-dir! where *.so,
     Str :toml-dir($),
     Str :user-override-dir($)
     --> Str:D

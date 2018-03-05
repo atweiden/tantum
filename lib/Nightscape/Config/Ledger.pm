@@ -18,8 +18,8 @@ class Nightscape::Config::Ledger
 
     multi method new(
         *%opts (
-            Str:D :code($)! where *.so(),
-            Str:D :file($)! where *.so(),
+            Str:D :code($)! where *.so,
+            Str:D :file($)! where *.so,
             Int :date-local-offset($),
             Str :txn-dir($)
         )
@@ -31,8 +31,8 @@ class Nightscape::Config::Ledger
 
     multi method new(
         *%opts (
-            Str:D :pkgname($)! where *.so(),
-            Str:D :pkgver($)! where *.so(),
+            Str:D :pkgname($)! where *.so,
+            Str:D :pkgver($)! where *.so,
             Int :pkgrel($)
         )
         --> Nightscape::Config::Ledger::FromPkg:D
@@ -43,7 +43,7 @@ class Nightscape::Config::Ledger
 
     multi method new(*% --> Nil)
     {
-        die(X::Nightscape::Config::Ledger::Malformed.new());
+        die(X::Nightscape::Config::Ledger::Malformed.new);
     }
 
     # --- end method new }}}
@@ -66,8 +66,8 @@ class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
     # --- submethod BUILD {{{
 
     submethod BUILD(
-        Str:D :$code! where *.so(),
-        Str:D :$file! where *.so(),
+        Str:D :$code! where *.so,
+        Str:D :$file! where *.so,
         Int :$date-local-offset,
         Str :$txn-dir
         --> Nil
@@ -76,7 +76,7 @@ class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
         $!code = gen-var-name-bare($code);
         $!file = resolve-path($file);
         $!date-local-offset =
-            $date-local-offset if $date-local-offset.defined();
+            $date-local-offset if $date-local-offset.defined;
         $!txn-dir = resolve-path($txn-dir) if $txn-dir;
     }
 
@@ -92,7 +92,7 @@ class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
         --> Hash:D
     )
     {
-        die(X::Nightscape::Config::Ledger::FromFile::DNERF.new())
+        die(X::Nightscape::Config::Ledger::FromFile::DNERF.new)
             unless exists-readable-file($.file);
 
         my VarNameBare:D $pkgname = $.code;
@@ -102,9 +102,9 @@ class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
         # settings passed as args override class attributes
         my %opts{Str:D};
         %opts<date-local-offset> =
-            $.date-local-offset if $.date-local-offset.defined();
+            $.date-local-offset if $.date-local-offset.defined;
         %opts<date-local-offset> =
-            $date-local-offset if $date-local-offset.defined();
+            $date-local-offset if $date-local-offset.defined;
         %opts<txn-dir> = $.txn-dir if $.txn-dir;
         %opts<txn-dir> = resolve-path($txn-dir) if $txn-dir;
 
@@ -130,8 +130,8 @@ class Nightscape::Config::Ledger::FromPkg is Nightscape::Config::Ledger
     # --- submethod BUILD {{{
 
     submethod BUILD(
-        Str:D :$pkgname! where *.so(),
-        Str:D :$pkgver! where *.so(),
+        Str:D :$pkgname! where *.so,
+        Str:D :$pkgver! where *.so,
         Int :$pkgrel
         --> Nil
     )
@@ -144,12 +144,12 @@ class Nightscape::Config::Ledger::FromPkg is Nightscape::Config::Ledger
     # --- end submethod BUILD }}}
     # --- method made {{{
 
-    method made(::?CLASS:D: AbsolutePath:D :$pkg-dir! where *.so() --> Hash:D)
+    method made(::?CLASS:D: AbsolutePath:D :$pkg-dir! where *.so --> Hash:D)
     {
         my AbsolutePath:D $tarball =
             "$pkg-dir/$.pkgname-$.pkgver-$.pkgrel.txn.tar.xz";
 
-        die(X::Nightscape::Config::Ledger::FromPkg::DNERF.new())
+        die(X::Nightscape::Config::Ledger::FromPkg::DNERF.new)
             unless exists-readable-file($tarball);
 
         # extract tarball to tmpdir
@@ -163,13 +163,13 @@ class Nightscape::Config::Ledger::FromPkg is Nightscape::Config::Ledger
 
         # ensure txn.json exists in ledger pkg tarball then slurp
         my AbsolutePath:D $txn-json-path = "$build-root/txn.json";
-        die(X::Nightscape::Config::Ledger::FromPkg::TXNJSON::DNERF.new())
+        die(X::Nightscape::Config::Ledger::FromPkg::TXNJSON::DNERF.new)
             unless exists-readable-file($txn-json-path);
         my Str:D $txn-json = slurp($txn-json-path);
 
         # ensure .TXNINFO exists in ledger pkg tarball then slurp
         my AbsolutePath:D $txn-info-json-path = "$build-root/.TXNINFO";
-        die(X::Nightscape::Config::Ledger::FromPkg::TXNINFO::DNERF.new())
+        die(X::Nightscape::Config::Ledger::FromPkg::TXNINFO::DNERF.new)
             unless exists-readable-file($txn-info-json-path);
         my Str:D $txn-info-json = slurp($txn-info-json-path);
 
@@ -178,7 +178,7 @@ class Nightscape::Config::Ledger::FromPkg is Nightscape::Config::Ledger
         my %txn-info{Str:D} = Rakudo::Internals::JSON.from-json($txn-info-json);
 
         # clean up build root
-        dir($build-root).hyper().map({ .unlink() });
+        dir($build-root).hyper.map({ .unlink });
         rmdir($build-root);
 
         %(:@entry, :%txn-info);
