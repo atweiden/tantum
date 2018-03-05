@@ -2,7 +2,7 @@
     "perl"        : "6.*",
     "name"        : "Nightscape",
     "version"     : "*",
-    "author"      : "Andy Weidenbaum",
+    "author"      : "atweiden",
     "description" : "Double-entry accounting system",
     "depends"     : ["Config::TOML", "File::Presence", "TXN"],
     "license"     : "Unlicense",
