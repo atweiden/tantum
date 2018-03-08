@@ -24,7 +24,7 @@ sub gen-costing(Str:D $s where *.so --> Costing:D) is export
 
 sub gen-date(Str:D $d where *.so --> Date:D) is export
 {
-    my TXN::Parser::Actions $actions .= new();
+    my TXN::Parser::Actions $actions .= new;
     my Date:D $date =
         TXN::Parser::Grammar.parse($d, :rule<date:full-date>, :$actions).made;
 }
