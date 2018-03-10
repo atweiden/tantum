@@ -222,7 +222,8 @@ multi sub prepare-config-dir(
 )
 {
     my Str:D $text = 'Could not prepare config dir, failed to create dir';
-    mkdir($dir) or die(X::Nightscape::Config::Mkdir::Failed.new(:$text));
+    mkdir($dir)
+        or die(X::Nightscape::Config::Mkdir::Failed.new(:$text));
 }
 
 multi sub prepare-config-dir(

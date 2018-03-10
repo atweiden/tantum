@@ -92,8 +92,8 @@ class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
         --> Hash:D
     )
     {
-        die(X::Nightscape::Config::Ledger::FromFile::DNERF.new)
-            unless exists-readable-file($.file);
+        exists-readable-file($.file)
+            or die(X::Nightscape::Config::Ledger::FromFile::DNERF.new);
 
         my VarNameBare:D $pkgname = $.code;
         my Str:D $pkgver = '0.0.1';
@@ -149,28 +149,29 @@ class Nightscape::Config::Ledger::FromPkg is Nightscape::Config::Ledger
         my AbsolutePath:D $tarball =
             "$pkg-dir/$.pkgname-$.pkgver-$.pkgrel.txn.tar.xz";
 
-        die(X::Nightscape::Config::Ledger::FromPkg::DNERF.new)
-            unless exists-readable-file($tarball);
+        exists-readable-file($tarball)
+            or die(X::Nightscape::Config::Ledger::FromPkg::DNERF.new);
 
         # extract tarball to tmpdir
         my AbsolutePath:D $build-root = "$*TMPDIR/$.pkgname-$.pkgver-$.pkgrel";
-        mkdir($build-root) or do {
-            my Str:D $text =
-                'Could not create tmpdir build root for ledger pkg tarball';
-            die(X::Nightscape::Config::Mkdir::Failed.new(:$text));
-        }
+        mkdir($build-root)
+            or do {
+                my Str:D $text =
+                    'Could not create tmpdir build root for ledger pkg tarball';
+                die(X::Nightscape::Config::Mkdir::Failed.new(:$text));
+            }
         run qqw<tar -xvf $tarball -C $build-root>;
 
         # ensure txn.json exists in ledger pkg tarball then slurp
         my AbsolutePath:D $txn-json-path = "$build-root/txn.json";
-        die(X::Nightscape::Config::Ledger::FromPkg::TXNJSON::DNERF.new)
-            unless exists-readable-file($txn-json-path);
+        exists-readable-file($txn-json-path)
+            or die(X::Nightscape::Config::Ledger::FromPkg::TXNJSON::DNERF.new);
         my Str:D $txn-json = slurp($txn-json-path);
 
         # ensure .TXNINFO exists in ledger pkg tarball then slurp
         my AbsolutePath:D $txn-info-json-path = "$build-root/.TXNINFO";
-        die(X::Nightscape::Config::Ledger::FromPkg::TXNINFO::DNERF.new)
-            unless exists-readable-file($txn-info-json-path);
+        exists-readable-file($txn-info-json-path)
+            or die(X::Nightscape::Config::Ledger::FromPkg::TXNINFO::DNERF.new);
         my Str:D $txn-info-json = slurp($txn-info-json-path);
 
         my TXN::Parser::AST::Entry:D @entry =

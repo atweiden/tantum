@@ -96,8 +96,8 @@ sub gen-dates-and-prices(
         %asset-code-keypairs
         .grep({ TXN::Parser::Grammar.parse(.key, :rule<date:full-date>) })
         .map({
-            die(X::Nightscape::Config::Asset::Price::Malformed.new)
-                unless FatRat(.value) ~~ Price;
+            FatRat(.value) ~~ Price
+                or die(X::Nightscape::Config::Asset::Price::Malformed.new);
             Date.new(.key) => FatRat(.value)
         });
 }
@@ -143,8 +143,8 @@ multi sub gen-dates-and-prices-from-file(
     # resolve absolute paths potentially beginning with C<~/>
     $file = resolve-path($file);
 
-    die(X::Nightscape::Config::Asset::PriceFile::DNERF.new)
-        unless exists-readable-file($file);
+    exists-readable-file($file)
+        or die(X::Nightscape::Config::Asset::PriceFile::DNERF.new);
 
     my %toml = from-toml(:$file);
     my Price:D %dates-and-prices-from-file{Date:D} = gen-price-sheet(%toml);
