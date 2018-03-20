@@ -154,7 +154,7 @@ multi sub USAGE('reup' --> Nil)
       nightscape [--no-sync]
                  [--date-local-offset=<offset>]
                  [--txn-dir=<dir>]
-                 reup [<ledgers>...]
+                 reup [<scene> <scene>...]
 
     Updates each accounting ledger in your scene config file with the
     latest revision information from its source. For git and hg ledgers,
@@ -203,7 +203,7 @@ multi sub USAGE('sync' --> Nil)
     Usage:
       nightscape [--date-local-offset=<offset>]
                  [--txn-dir=<dir>]
-                 sync
+                 sync [<scene> <scene>...]
 
     Fetches accounting ledger sources and builds scene from imported
     entries.
