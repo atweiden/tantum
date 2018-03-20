@@ -3,4 +3,5 @@ syntax: glob
 .nightscape
 .peru
 .precomp
+.subgit
 t/data/*
