@@ -5,7 +5,7 @@ use TXN::Parser::Types;
 unit class Nightscape;
 
 constant $PROGRAM = 'Nightscape';
-constant $VERSION = v0.0.1;
+constant $VERSION = v0.1.0;
 
 has Nightscape::Config:D $.config is required;
 

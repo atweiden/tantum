@@ -3,6 +3,7 @@ use File::Presence;
 use Nightscape::Config::Utils;
 use Nightscape::Types;
 use TXN;
+use TXN::Parser::ParseTree;
 use TXN::Parser::Types;
 use TXN::Remarshal;
 use X::Nightscape;
@@ -174,8 +175,7 @@ class Nightscape::Config::Ledger::FromPkg is Nightscape::Config::Ledger
             or die(X::Nightscape::Config::Ledger::FromPkg::TXNINFO::DNERF.new);
         my Str:D $txn-info-json = slurp($txn-info-json-path);
 
-        my TXN::Parser::AST::Entry:D @entry =
-            remarshal($txn-json, :if<json>, :of<entry>);
+        my Entry:D @entry = remarshal($txn-json, :if<json>, :of<entry>);
         my %txn-info{Str:D} = Rakudo::Internals::JSON.from-json($txn-info-json);
 
         # clean up build root

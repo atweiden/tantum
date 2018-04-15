@@ -1,7 +1,7 @@
 {
     "perl"        : "6.*",
     "name"        : "Nightscape",
-    "version"     : "*",
+    "version"     : "0.1.0",
     "author"      : "atweiden",
     "description" : "Double-entry accounting system",
     "depends"     : ["Config::TOML", "File::Presence", "TXN"],
