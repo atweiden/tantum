@@ -96,9 +96,9 @@ sub gen-dates-and-prices(
         %asset-code-keypairs
         .grep({ TXN::Parser::Grammar.parse(.key, :rule<date:full-date>) })
         .map({
-            FatRat(.value) ~~ Price
+            Rat(.value) ~~ Price
                 or die(X::Nightscape::Config::Asset::Price::Malformed.new);
-            Date.new(.key) => FatRat(.value)
+            Date.new(.key) => Rat(.value)
         });
 }
 
