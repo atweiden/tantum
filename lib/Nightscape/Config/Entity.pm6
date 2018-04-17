@@ -23,8 +23,8 @@ has Range $.open;
 # submethod BUILD {{{
 
 submethod BUILD(
-    Str:D :$code! where *.so,
-    Str:D :$scene-file! where *.so,
+    Str:D :$code! where .so,
+    Str:D :$scene-file! where .so,
     :@account,
     :@asset,
     Str :$base-costing,
@@ -50,8 +50,8 @@ submethod BUILD(
 
 multi method new(
     *%opts (
-        Str:D :code($)! where *.so,
-        Str:D :scene-file($)! where *.so,
+        Str:D :code($)! where .so,
+        Str:D :scene-file($)! where .so,
         :account(@),
         :asset(@),
         Str :base-costing($),

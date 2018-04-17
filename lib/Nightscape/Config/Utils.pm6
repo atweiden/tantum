@@ -6,7 +6,7 @@ unit module Nightscape::Config::Utils;
 
 # sub gen-asset-code {{{
 
-sub gen-asset-code(Str:D $s where *.so --> AssetCode:D) is export
+sub gen-asset-code(Str:D $s where .so --> AssetCode:D) is export
 {
     my AssetCode:D $asset-code = $s;
 }
@@ -14,7 +14,7 @@ sub gen-asset-code(Str:D $s where *.so --> AssetCode:D) is export
 # end sub gen-asset-code }}}
 # sub gen-costing {{{
 
-sub gen-costing(Str:D $s where *.so --> Costing:D) is export
+sub gen-costing(Str:D $s where .so --> Costing:D) is export
 {
     my Costing:D $costing = ::($s.uc);
 }
@@ -22,7 +22,7 @@ sub gen-costing(Str:D $s where *.so --> Costing:D) is export
 # end sub gen-costing }}}
 # sub gen-date {{{
 
-sub gen-date(Str:D $d where *.so --> Date:D) is export
+sub gen-date(Str:D $d where .so --> Date:D) is export
 {
     my TXN::Parser::Actions $actions .= new;
     my Date:D $date =
@@ -32,7 +32,7 @@ sub gen-date(Str:D $d where *.so --> Date:D) is export
 # end sub gen-date }}}
 # sub gen-date-range {{{
 
-multi sub gen-date-range(Str:D $s where *.so --> Range:D) is export
+multi sub gen-date-range(Str:D $s where .so --> Range:D) is export
 {
     my Str:D ($d1, $d2) = $s.split('..').hyper.map({ .trim });
     my Range:D $date-range = gen-date-range($d1, $d2);
@@ -77,7 +77,7 @@ multi sub gen-date-range(
 # end sub gen-date-range }}}
 # sub gen-silo {{{
 
-sub gen-silo(Str:D $s where *.so --> Silo:D) is export
+sub gen-silo(Str:D $s where .so --> Silo:D) is export
 {
     my Silo:D $silo = ::($s.uc);
 }
@@ -85,7 +85,7 @@ sub gen-silo(Str:D $s where *.so --> Silo:D) is export
 # end sub gen-silo }}}
 # sub gen-var-name {{{
 
-sub gen-var-name(Str:D $s where *.so --> VarName:D) is export
+sub gen-var-name(Str:D $s where .so --> VarName:D) is export
 {
     my VarName:D $var-name = $s;
 }
@@ -93,7 +93,7 @@ sub gen-var-name(Str:D $s where *.so --> VarName:D) is export
 # end sub gen-var-name }}}
 # sub gen-var-name-bare {{{
 
-sub gen-var-name-bare(Str:D $s where *.so --> VarNameBare:D) is export
+sub gen-var-name-bare(Str:D $s where .so --> VarNameBare:D) is export
 {
     my VarNameBare:D $var-name-bare = $s;
 }
@@ -101,7 +101,7 @@ sub gen-var-name-bare(Str:D $s where *.so --> VarNameBare:D) is export
 # end sub gen-var-name }}}
 # sub resolve-path {{{
 
-sub resolve-path(Str:D $path where *.so --> Str:D) is export
+sub resolve-path(Str:D $path where .so --> Str:D) is export
 {
     ~$path.subst(/^'~/'/, "$*HOME/").IO.resolve;
 }

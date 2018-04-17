@@ -19,8 +19,8 @@ class Nightscape::Config::Ledger
 
     multi method new(
         *%opts (
-            Str:D :code($)! where *.so,
-            Str:D :file($)! where *.so,
+            Str:D :code($)! where .so,
+            Str:D :file($)! where .so,
             Int :date-local-offset($),
             Str :txn-dir($)
         )
@@ -32,8 +32,8 @@ class Nightscape::Config::Ledger
 
     multi method new(
         *%opts (
-            Str:D :pkgname($)! where *.so,
-            Str:D :pkgver($)! where *.so,
+            Str:D :pkgname($)! where .so,
+            Str:D :pkgver($)! where .so,
             Int :pkgrel($)
         )
         --> Nightscape::Config::Ledger::FromPkg:D
@@ -67,8 +67,8 @@ class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
     # --- submethod BUILD {{{
 
     submethod BUILD(
-        Str:D :$code! where *.so,
-        Str:D :$file! where *.so,
+        Str:D :$code! where .so,
+        Str:D :$file! where .so,
         Int :$date-local-offset,
         Str :$txn-dir
         --> Nil
@@ -131,8 +131,8 @@ class Nightscape::Config::Ledger::FromPkg is Nightscape::Config::Ledger
     # --- submethod BUILD {{{
 
     submethod BUILD(
-        Str:D :$pkgname! where *.so,
-        Str:D :$pkgver! where *.so,
+        Str:D :$pkgname! where .so,
+        Str:D :$pkgver! where .so,
         Int :$pkgrel
         --> Nil
     )
@@ -145,7 +145,7 @@ class Nightscape::Config::Ledger::FromPkg is Nightscape::Config::Ledger
     # --- end submethod BUILD }}}
     # --- method made {{{
 
-    method made(::?CLASS:D: AbsolutePath:D :$pkg-dir! where *.so --> Hash:D)
+    method made(::?CLASS:D: AbsolutePath:D :$pkg-dir! where .so --> Hash:D)
     {
         my AbsolutePath:D $tarball =
             "$pkg-dir/$.pkgname-$.pkgver-$.pkgrel.txn.tar.xz";

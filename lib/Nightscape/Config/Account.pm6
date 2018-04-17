@@ -17,9 +17,9 @@ has Range $.open;
 # submethod BUILD {{{
 
 submethod BUILD(
-    Str:D :$silo! where *.so,
-    Str:D :$entity! where *.so,
-    :@path! where *.so,
+    Str:D :$silo! where .so,
+    Str:D :$entity! where .so,
+    :@path! where .so,
     Str :$open
     --> Nil
 )
@@ -35,9 +35,9 @@ submethod BUILD(
 
 multi method new(
     *%opts (
-        Str:D :silo($)! where *.so,
-        Str:D :entity($)! where *.so,
-        :path(@)! where *.so,
+        Str:D :silo($)! where .so,
+        Str:D :entity($)! where .so,
+        :path(@)! where .so,
         Str :open($)
     )
     --> Nightscape::Config::Account:D

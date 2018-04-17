@@ -20,8 +20,8 @@ has Hash[Price:D,Date:D] %.price{AssetCode:D};
 # submethod BUILD {{{
 
 submethod BUILD(
-    Str:D :$code! where *.so,
-    Str:D :$scene-file where *.so,
+    Str:D :$code! where .so,
+    Str:D :$scene-file where .so,
     Str :$costing,
     Str :$name,
     :%price
@@ -39,8 +39,8 @@ submethod BUILD(
 
 multi method new(
     *%opts (
-        Str:D :code($)! where *.so,
-        Str:D :scene-file($)! where *.so,
+        Str:D :code($)! where .so,
+        Str:D :scene-file($)! where .so,
         :price(%),
         Str :costing($),
         Str :name($)
@@ -60,8 +60,8 @@ multi method new(*% --> Nil)
 # sub gen-price-sheet {{{
 
 sub gen-price-sheet(
-    %price where *.so,
-    AbsolutePath:D $scene-file where *.so
+    %price where .so,
+    AbsolutePath:D $scene-file where .so
     --> Hash[Hash[Price:D,Date:D],AssetCode:D]
 )
 {
@@ -88,7 +88,7 @@ sub gen-price-sheet(
 }
 
 sub gen-dates-and-prices(
-    %asset-code-keypairs where *.so
+    %asset-code-keypairs where .so
     --> Hash[Price:D,Date:D]
 )
 {
@@ -103,8 +103,8 @@ sub gen-dates-and-prices(
 }
 
 multi sub gen-dates-and-prices-from-file(
-    %asset-code-keypairs where *.so,
-    AbsolutePath:D $scene-file where *.so
+    %asset-code-keypairs where .so,
+    AbsolutePath:D $scene-file where .so
     --> Hash[Price:D,Date:D]
 )
 {
@@ -123,9 +123,9 @@ multi sub gen-dates-and-prices-from-file(
 }
 
 multi sub gen-dates-and-prices-from-file(
-    %asset-code-keypairs where *.so,
-    AbsolutePath:D $scene-file where *.so,
-    Str:D $price-file where *.so
+    %asset-code-keypairs where .so,
+    AbsolutePath:D $scene-file where .so,
+    Str:D $price-file where .so
     --> Hash[Price:D,Date:D]
 )
 {
@@ -151,8 +151,8 @@ multi sub gen-dates-and-prices-from-file(
 }
 
 multi sub gen-dates-and-prices-from-file(
-    %asset-code-keypairs where *.so,
-    AbsolutePath:D $scene-file where *.so,
+    %asset-code-keypairs where .so,
+    AbsolutePath:D $scene-file where .so,
     Str $price-file
     --> Hash[Price:D,Date:D]
 )
