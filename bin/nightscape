@@ -46,7 +46,7 @@ multi sub MAIN(
     'reup',
     Bool :$no-sync,
     Int :L(:$date-local-offset),
-    Str :I(:$txn-dir),
+    Str :I(:$include-lib),
     *%setup-opts (
         Str :app-dir($),
         Str :app-file($),
@@ -62,9 +62,9 @@ multi sub MAIN(
 {
     my Str %opts{Str};
     %opts<date-local-offset> = $date-local-offset if $date-local-offset.defined;
+    %opts<include-lib> = $include-lib if $include-lib;
     %opts<ledger> = @ledger if @ledger;
     %opts<no-sync> = $no-sync if $no-sync;
-    %opts<txn-dir> = $txn-dir if $txn-dir;
     Nightscape.new(|%setup-opts).reup(|%opts);
 }
 
@@ -105,7 +105,7 @@ multi sub MAIN(
 multi sub MAIN(
     'sync',
     Int :L(:$date-local-offset),
-    Str :I(:$txn-dir),
+    Str :I(:$include-lib),
     *%setup-opts (
         Str :app-dir($),
         Str :app-file($),
@@ -120,7 +120,7 @@ multi sub MAIN(
 {
     my Str %opts{Str};
     %opts<date-local-offset> = $date-local-offset if $date-local-offset.defined;
-    %opts<txn-dir> = $txn-dir if $txn-dir;
+    %opts<include-lib> = $include-lib if $include-lib;
     Nightscape.new(|%setup-opts).sync(|%opts);
 }
 
@@ -153,7 +153,7 @@ multi sub USAGE('reup' --> Nil)
     Usage:
       nightscape [--no-sync]
                  [--date-local-offset=<offset>]
-                 [--txn-dir=<dir>]
+                 [--include-lib=<dir>]
                  reup [<scene> <scene>...]
 
     Updates each accounting ledger in your scene config file with the
@@ -169,7 +169,7 @@ multi sub USAGE('reup' --> Nil)
         skip the sync at the end
       -L, --date-local-offset=<offset>
         the local offset for dates without one
-      -I, --txn-dir=<dir>
+      -I, --include-lib=<dir>
         the include directory
     EOF
     say($HELP);
@@ -202,7 +202,7 @@ multi sub USAGE('sync' --> Nil)
     constant $HELP = q:to/EOF/.trim;
     Usage:
       nightscape [--date-local-offset=<offset>]
-                 [--txn-dir=<dir>]
+                 [--include-lib=<dir>]
                  sync [<scene> <scene>...]
 
     Fetches accounting ledger sources and builds scene from imported
@@ -211,7 +211,7 @@ multi sub USAGE('sync' --> Nil)
     Options:
       -L, --date-local-offset=<offset>
         the local offset for dates without one
-      -I, --txn-dir=<dir>
+      -I, --include-lib=<dir>
         the include directory
     EOF
     say($HELP);

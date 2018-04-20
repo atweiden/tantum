@@ -61,9 +61,9 @@ method reup(
     ::?CLASS:D:
     *%opts (
         Int :date-local-offset($),
+        Str :include-lib($),
         :ledger(@),
-        Bool :no-sync($),
-        Str :txn-dir($)
+        Bool :no-sync($)
     )
     --> Nil
 )
@@ -94,7 +94,7 @@ method sync(
     ::?CLASS:D:
     *%opts (
         Int :date-local-offset($),
-        Str :txn-dir($)
+        Str :include-lib($)
     )
     --> Nil
 )
@@ -140,7 +140,7 @@ method !show(--> Nil)
 method !sync(
     *%opts (
         Int :date-local-offset($),
-        Str :txn-dir($)
+        Str :include-lib($)
     )
     --> Nil
 )
@@ -157,7 +157,7 @@ multi sub sync(
     *%opts (
         Str:D :pkg-dir($)! where .so,
         Int :date-local-offset($),
-        Str :txn-dir($)
+        Str :include-lib($)
     )
     --> List:D
 )
@@ -170,7 +170,7 @@ multi sub sync(
     Str:D :pkg-dir($)! where .so,
     *%opts (
         Int :date-local-offset($),
-        Str :txn-dir($)
+        Str :include-lib($)
     )
     --> Hash:D
 )
@@ -183,7 +183,7 @@ multi sub sync(
     Str:D :$pkg-dir! where .so,
     *% (
         Int :date-local-offset($),
-        Str :txn-dir($)
+        Str :include-lib($)
     )
     --> Hash:D
 )

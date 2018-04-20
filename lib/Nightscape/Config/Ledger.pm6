@@ -22,7 +22,7 @@ class Nightscape::Config::Ledger
             Str:D :code($)! where .so,
             Str:D :file($)! where .so,
             Int :date-local-offset($),
-            Str :txn-dir($)
+            Str :include-lib($)
         )
         --> Nightscape::Config::Ledger::FromFile:D
     )
@@ -60,7 +60,7 @@ class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
     has VarNameBare:D $.code is required;
     has AbsolutePath:D $.file is required;
     has Int $.date-local-offset;
-    has AbsolutePath $.txn-dir;
+    has AbsolutePath $.include-lib;
 
     # --- end class attributes }}}
 
@@ -70,7 +70,7 @@ class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
         Str:D :$code! where .so,
         Str:D :$file! where .so,
         Int :$date-local-offset,
-        Str :$txn-dir
+        Str :$include-lib
         --> Nil
     )
     {
@@ -78,7 +78,7 @@ class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
         $!file = resolve-path($file);
         $!date-local-offset =
             $date-local-offset if $date-local-offset.defined;
-        $!txn-dir = resolve-path($txn-dir) if $txn-dir;
+        $!include-lib = resolve-path($include-lib) if $include-lib;
     }
 
     # --- end submethod BUILD }}}
@@ -88,7 +88,7 @@ class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
         ::?CLASS:D:
         *% (
             Int :$date-local-offset,
-            Str :$txn-dir
+            Str :$include-lib
         )
         --> Hash:D
     )
@@ -106,8 +106,8 @@ class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
             $.date-local-offset if $.date-local-offset.defined;
         %opts<date-local-offset> =
             $date-local-offset if $date-local-offset.defined;
-        %opts<txn-dir> = $.txn-dir if $.txn-dir;
-        %opts<txn-dir> = resolve-path($txn-dir) if $txn-dir;
+        %opts<include-lib> = $.include-lib if $.include-lib;
+        %opts<include-lib> = resolve-path($include-lib) if $include-lib;
 
         mktxn(:$.file, :$pkgname, :$pkgver, :$pkgrel, |%opts);
     }
