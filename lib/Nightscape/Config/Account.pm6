@@ -9,7 +9,6 @@ unit class Nightscape::Config::Account;
 has Silo:D $.silo is required;
 has VarName:D $.entity is required;
 has VarName:D @.path is required;
-
 has Range $.open;
 
 # end class attributes }}}

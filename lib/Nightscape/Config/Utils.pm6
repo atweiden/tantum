@@ -101,9 +101,14 @@ sub gen-var-name-bare(Str:D $s where .so --> VarNameBare:D) is export
 # end sub gen-var-name }}}
 # sub resolve-path {{{
 
-sub resolve-path(Str:D $path where .so --> Str:D) is export
+multi sub resolve-path(Str:D $path where .so --> Str:D) is export
 {
-    ~$path.subst(/^'~/'/, "$*HOME/").IO.resolve;
+    my Str:D $resolve-path = ~resolve-path('~/', $path).IO.resolve;
+}
+
+multi sub resolve-path('~/', Str:D $path where .so --> Str:D) is export
+{
+    my Str:D $resolve-path = $path.subst(/^'~/'/, "$*HOME/");
 }
 
 # end sub resolve-path }}}

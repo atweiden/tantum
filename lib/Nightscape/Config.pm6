@@ -44,23 +44,25 @@ my AbsolutePath:D $default-log-dir = "$default-app-dir/log";
 my AbsolutePath:D $default-pkg-dir = "$default-app-dir/pkg";
 my AbsolutePath:D $default-price-dir = "$default-app-dir/prices";
 my AbsolutePath:D $default-app-file = "$default-app-dir/nightscape.toml";
-my Str:D $default-app-file-contents = to-toml(%(
-    :app-dir($default-app-dir),
-    :log-dir($default-log-dir),
-    :pkg-dir($default-pkg-dir),
-    :price-dir($default-price-dir)
-));
+my Str:D $default-app-file-contents =
+    to-toml(%(
+        :app-dir($default-app-dir),
+        :log-dir($default-log-dir),
+        :pkg-dir($default-pkg-dir),
+        :price-dir($default-price-dir)
+    ));
 
 # scene settings
 has AbsolutePath:D $.scene-dir is required;
 has AbsolutePath:D $.scene-file is required;
 my AbsolutePath:D $default-scene-dir = "$*CWD/.nightscape";
 my AbsolutePath:D $default-scene-file = "$default-scene-dir/scene.toml";
-my Str:D $default-scene-file-contents = to-toml(%(
-    :base-costing("$default-base-costing"),
-    :base-currency($default-base-currency),
-    :fiscal-year-end($default-fiscal-year-end)
-));
+my Str:D $default-scene-file-contents =
+    to-toml(%(
+        :base-costing("$default-base-costing"),
+        :base-currency($default-base-currency),
+        :fiscal-year-end($default-fiscal-year-end)
+    ));
 
 # --- end setup }}}
 
@@ -197,20 +199,20 @@ multi sub gen-settings(:$ledger! --> Nil)
 # end sub gen-settings }}}
 # sub prepare-config-dirs {{{
 
-sub prepare-config-dirs(*@dir --> Nil)
+sub prepare-config-dirs(*@config-dir --> Nil)
 {
-    @dir.map({ prepare-config-dir($_) });
+    @config-dir.map({ prepare-config-dir($_) });
 }
 
-multi sub prepare-config-dir(Str:D $dir where .so --> Nil)
+multi sub prepare-config-dir(Str:D $config-dir where .so --> Nil)
 {
-    my Bool:D %show{Str:D} = File::Presence.show($dir);
-    prepare-config-dir($dir, %show);
+    my Bool:D %show{Str:D} = File::Presence.show($config-dir);
+    prepare-config-dir($config-dir, %show);
 }
 
 multi sub prepare-config-dir(
-    Str:D $dir,
-    %show (
+    Str:D $config-dir,
+    % (
         Bool:D :d($),
         Bool:D :e($) where .not,
         Bool:D :f($),
@@ -222,13 +224,13 @@ multi sub prepare-config-dir(
 )
 {
     my Str:D $text = 'Could not prepare config dir, failed to create dir';
-    mkdir($dir)
+    mkdir($config-dir)
         or die(X::Nightscape::Config::Mkdir::Failed.new(:$text));
 }
 
 multi sub prepare-config-dir(
-    Str:D $dir,
-    %show (
+    Str:D $,
+    % (
         Bool:D :d($),
         Bool:D :e($),
         Bool:D :f($),
@@ -243,8 +245,8 @@ multi sub prepare-config-dir(
 }
 
 multi sub prepare-config-dir(
-    Str:D $dir,
-    %show (
+    Str:D $,
+    % (
         Bool:D :d($),
         Bool:D :e($),
         Bool:D :f($),
@@ -259,8 +261,8 @@ multi sub prepare-config-dir(
 }
 
 multi sub prepare-config-dir(
-    Str:D $dir,
-    %show (
+    Str:D $,
+    % (
         Bool:D :d($) where .not,
         Bool:D :e($),
         Bool:D :f($),
@@ -291,7 +293,7 @@ multi sub prepare-config-file(
 multi sub prepare-config-file(
     Str:D $config-file,
     Str:D $config-file-contents,
-    %show (
+    % (
         Bool:D :d($),
         Bool:D :e($) where .not,
         Bool:D :f($),
@@ -303,14 +305,15 @@ multi sub prepare-config-file(
 )
 {
     my Str:D $config-file-basedir = $config-file.IO.dirname;
-    mkdir($config-file-basedir) unless $config-file-basedir.IO.d;
+    $config-file-basedir.IO.d
+        or mkdir($config-file-basedir);
     spurt($config-file, "$config-file-contents\n", :createonly);
 }
 
 multi sub prepare-config-file(
-    Str:D $config-file,
-    Str:D $config-file-contents,
-    %show (
+    Str:D $,
+    Str:D $,
+    % (
         Bool:D :d($),
         Bool:D :e($),
         Bool:D :f($),
@@ -325,9 +328,9 @@ multi sub prepare-config-file(
 }
 
 multi sub prepare-config-file(
-    Str:D $config-file,
-    Str:D $config-file-contents,
-    %show (
+    Str:D $,
+    Str:D $,
+    % (
         Bool:D :d($),
         Bool:D :e($),
         Bool:D :f($),
@@ -342,9 +345,9 @@ multi sub prepare-config-file(
 }
 
 multi sub prepare-config-file(
-    Str:D $config-file,
-    Str:D $config-file-contents,
-    %show (
+    Str:D $,
+    Str:D $,
+    % (
         Bool:D :d($),
         Bool:D :e($),
         Bool:D :f($) where .not,
