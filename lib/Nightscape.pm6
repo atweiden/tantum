@@ -106,33 +106,25 @@ method sync(
 # method !clean {{{
 
 method !clean(--> Nil)
-{
-    True;
-}
+{*}
 
 # end method !clean }}}
 # method !reup {{{
 
 method !reup(--> Nil)
-{
-    True;
-}
+{*}
 
 # end method !reup }}}
 # method !serve {{{
 
 method !serve(--> Nil)
-{
-    True;
-}
+{*}
 
 # end method !serve }}}
 # method !show {{{
 
 method !show(--> Nil)
-{
-    True;
-}
+{*}
 
 # end method !show }}}
 # method !sync {{{
