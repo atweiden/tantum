@@ -40,8 +40,8 @@ has AbsolutePath:D $.log-dir is required;
 has AbsolutePath:D $.pkg-dir is required;
 has AbsolutePath:D $.price-dir is required;
 my AbsolutePath:D $default-app-dir = "$*HOME/.config/nightscape";
-my AbsolutePath:D $default-log-dir = "$default-app-dir/logs";
-my AbsolutePath:D $default-pkg-dir = "$default-app-dir/pkgs";
+my AbsolutePath:D $default-log-dir = "$default-app-dir/log";
+my AbsolutePath:D $default-pkg-dir = "$default-app-dir/pkg";
 my AbsolutePath:D $default-price-dir = "$default-app-dir/prices";
 my AbsolutePath:D $default-app-file = "$default-app-dir/nightscape.toml";
 my Str:D $default-app-file-contents = to-toml(%(
