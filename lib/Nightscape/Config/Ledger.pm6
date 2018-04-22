@@ -2,11 +2,50 @@ use v6;
 use File::Presence;
 use Nightscape::Config::Utils;
 use Nightscape::Types;
-use TXN;
 use TXN::Parser::ParseTree;
 use TXN::Parser::Types;
 use TXN::Remarshal;
+use TXN;
 use X::Nightscape;
+
+# p6doc {{{
+
+=begin pod
+=head NAME
+
+C<Nightscape::Config::Ledger>
+
+=head DESCRIPTION
+
+C<Nightscape::Config::Ledger> handles C<[[ledger]]> arraytables declared
+in TOML config.
+
+We ascertain the type of ledger declared in each TOML config arraytable
+based on the keys provided in the arraytable. These keys are dispatched
+against C<multi method new> of class C<Nightscape::Config::Ledger>.
+
+One set of keys will instantiate a
+C<Nightscape::Config::Ledger::FromFile>, reflecting the user's desire
+to parse TXN from file.
+
+Another set of keys will instantiate a
+C<Nightscape::Config::Ledger::FromPkg>, reflecting the user's desire to
+use the contents of an existing TXN package.
+
+While it might seem cleaner to use parameterized roles to accomplish
+this, taking the object variant approach allows us to C<.map>
+against every discovered TOML C<[[ledger]]> arraytable, running
+C<Nightscape::Config::Ledger.new> for each one.
+
+If any C<[[ledger]]> arraytable section contains keys which fail to adhere
+to the proper format of either C<Nightscape::Config::Ledger::FromFile>
+or C<Nightscape::Config::Ledger::FromPkg>, we raise the exception
+C<X::Nightscape::Config::Ledger::Malformed>.
+
+Credit: L<https://gist.github.com/zoffixznet/c5d602ee46651613dec964737a0774fa>
+=end pod
+
+# end p6doc }}}
 
 class Nightscape::Config::Ledger::FromFile {...}
 class Nightscape::Config::Ledger::FromPkg {...}
@@ -15,8 +54,6 @@ class Nightscape::Config::Ledger::FromPkg {...}
 
 class Nightscape::Config::Ledger
 {
-    # --- method new {{{
-
     multi method new(
         *%opts (
             Str:D :code($)! where .so,
@@ -46,25 +83,39 @@ class Nightscape::Config::Ledger
     {
         die(X::Nightscape::Config::Ledger::Malformed.new);
     }
-
-    # --- end method new }}}
 }
 
 # end Nightscape::Config::Ledger }}}
 # Nightscape::Config::Ledger::FromFile {{{
 
+=begin pod
+=head NAME
+
+C<Nightscape::Config::Ledger::FromFile>
+
+=head DESCRIPTION
+
+Class attributes store values from parsed TOML config.
+
+=head METHODS
+
+=head2 C<made>
+
+Takes optional C<Int :$date-local-offset, Str :$include-lib>, which are
+passed as args from Nightscape cmdline. Any args passed from Nightscape
+cmdline which conflict with C<Nightscape::Config::Ledger::FromFile>
+class attributes override the class attributes.
+
+For example, C<$date-local-offset> if passed, overrides
+C<$.date-local-offset>. Similarly, C<$include-lib> if passed, overrides
+C<$.include-lib>.
+=end pod
 class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
 {
-    # --- class attributes {{{
-
     has VarNameBare:D $.code is required;
     has AbsolutePath:D $.file is required;
     has Int $.date-local-offset;
     has AbsolutePath $.include-lib;
-
-    # --- end class attributes }}}
-
-    # --- submethod BUILD {{{
 
     submethod BUILD(
         Str:D :$code! where .so,
@@ -79,9 +130,6 @@ class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
         $!date-local-offset = $date-local-offset if $date-local-offset.defined;
         $!include-lib = resolve-path($include-lib) if $include-lib;
     }
-
-    # --- end submethod BUILD }}}
-    # --- method made {{{
 
     method made(
         ::?CLASS:D:
@@ -99,7 +147,8 @@ class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
         my Version $pkgver .= new('0.0.1');
         my UInt:D $pkgrel = 1;
 
-        # settings passed as args override class attributes
+        # settings passed as args from Nightscape cmdline override class
+        # attributes gleaned from parsing TOML
         my %opts{Str:D};
         %opts<date-local-offset> =
             $.date-local-offset if $.date-local-offset.defined;
@@ -110,8 +159,6 @@ class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
 
         my %made = mktxn(:$.file, :$pkgname, :$pkgver, :$pkgrel, |%opts);
     }
-
-    # --- end method made }}}
 }
 
 # end Nightscape::Config::Ledger::FromFile }}}
@@ -119,15 +166,9 @@ class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
 
 class Nightscape::Config::Ledger::FromPkg is Nightscape::Config::Ledger
 {
-    # --- class attributes {{{
-
     has VarNameBare:D $.pkgname is required;
     has Version:D $.pkgver is required;
     has UInt:D $.pkgrel = 1;
-
-    # --- end class attributes }}}
-
-    # --- submethod BUILD {{{
 
     submethod BUILD(
         Str:D :$pkgname! where .so,
@@ -140,9 +181,6 @@ class Nightscape::Config::Ledger::FromPkg is Nightscape::Config::Ledger
         $!pkgver = Version.new($pkgver);
         $!pkgrel = $pkgrel if $pkgrel;
     }
-
-    # --- end submethod BUILD }}}
-    # --- method made {{{
 
     method made(::?CLASS:D: AbsolutePath:D :$pkg-dir! where .so --> Hash:D)
     {
@@ -192,8 +230,6 @@ class Nightscape::Config::Ledger::FromPkg is Nightscape::Config::Ledger
 
         my %made = :@entry, :%txn-info;
     }
-
-    # --- end method made }}}
 }
 
 # end Nightscape::Config::Ledger::FromPkg }}}
