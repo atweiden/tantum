@@ -147,11 +147,9 @@ class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
     {
         exists-readable-file($.file)
             or die(X::Nightscape::Config::Ledger::FromFile::DNERF.new);
-
         my VarNameBare:D $pkgname = $.code;
         my Version $pkgver .= new('0.0.1');
         my UInt:D $pkgrel = 1;
-
         # settings passed as args from Nightscape cmdline override class
         # attributes gleaned from parsing TOML
         my %opts{Str:D};
@@ -161,7 +159,6 @@ class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
             $date-local-offset if $date-local-offset.defined;
         %opts<include-lib> = $.include-lib if $.include-lib;
         %opts<include-lib> = resolve-path($include-lib) if $include-lib;
-
         my %made =
             mktxn(:$pkgname, :$pkgver, :$pkgrel, :source($.file), |%opts);
     }
@@ -190,21 +187,38 @@ class Nightscape::Config::Ledger::FromPkg is Nightscape::Config::Ledger
 
     method made(::?CLASS:D: AbsolutePath:D :$pkg-dir! where .so --> Hash:D)
     {
+        my AbsolutePath:D $build-root =
+            sprintf(Q{%s/%s-%s-%s}, $*TMPDIR, $.pkgname, $.pkgver, $.pkgrel);
+        made('extract', $pkg-dir, $build-root, $.pkgname, $.pkgver, $.pkgrel);
+        my Str:D $txn-json = made('slurp', 'txn.json', $build-root);
+        my Str:D $txn-info-json = made('slurp', '.TXNINFO', $build-root);
+        my Entry:D @entry = remarshal($txn-json, :if<json>, :of<entry>);
+        my %txn-info{Str:D} = Rakudo::Internals::JSON.from-json($txn-info-json);
+        made('clean', $build-root);
+        my %made = :@entry, :%txn-info;
+    }
+
+    multi sub made(
+        'extract',
+        AbsolutePath:D $pkg-dir,
+        AbsolutePath:D $build-root,
+        VarNameBare:D $pkgname,
+        Version:D $pkgver,
+        UInt:D $pkgrel
+        --> Nil
+    )
+    {
+        # extract tarball to tmpdir
         my AbsolutePath:D $tarball =
             sprintf(
                 Q{%s/%s-%s-%s.txn.pkg.tar.xz},
                 $pkg-dir,
-                $.pkgname,
-                $.pkgver,
-                $.pkgrel
+                $pkgname,
+                $pkgver,
+                $pkgrel
             );
-
         exists-readable-file($tarball)
             or die(X::Nightscape::Config::Ledger::FromPkg::DNERF.new);
-
-        # extract tarball to tmpdir
-        my AbsolutePath:D $build-root =
-            sprintf(Q{%s/%s-%s-%s}, $*TMPDIR, $.pkgname, $.pkgver, $.pkgrel);
         mkdir($build-root) or do {
             my Str:D $text =
                 'Could not create tmpdir build root for ledger pkg tarball';
@@ -213,28 +227,46 @@ class Nightscape::Config::Ledger::FromPkg is Nightscape::Config::Ledger
         my Str:D $tar-cmdline =
             sprintf(Q{tar -xvf %s -C %s}, $tarball, $build-root);
         run($tar-cmdline);
+    }
 
+    multi sub made(
+        'slurp',
+        'txn.json',
+        AbsolutePath:D $build-root
+        --> Str:D
+    )
+    {
         # ensure txn.json exists in ledger pkg tarball then slurp
         my AbsolutePath:D $txn-json-path = sprintf(Q{%s/txn.json}, $build-root);
         exists-readable-file($txn-json-path)
             or die(X::Nightscape::Config::Ledger::FromPkg::TXNJSON::DNERF.new);
         my Str:D $txn-json = slurp($txn-json-path);
+    }
 
+    multi sub made(
+        'slurp',
+        '.TXNINFO',
+        AbsolutePath:D $build-root
+        --> Str:D
+    )
+    {
         # ensure .TXNINFO exists in ledger pkg tarball then slurp
         my AbsolutePath:D $txn-info-json-path =
             sprintf(Q{%s/.TXNINFO}, $build-root);
         exists-readable-file($txn-info-json-path)
             or die(X::Nightscape::Config::Ledger::FromPkg::TXNINFO::DNERF.new);
         my Str:D $txn-info-json = slurp($txn-info-json-path);
+    }
 
-        my Entry:D @entry = remarshal($txn-json, :if<json>, :of<entry>);
-        my %txn-info{Str:D} = Rakudo::Internals::JSON.from-json($txn-info-json);
-
+    multi sub made(
+        'clean',
+        AbsolutePath:D $build-root
+        --> Nil
+    )
+    {
         # clean up build root
         dir($build-root).hyper.map({ .unlink });
         rmdir($build-root);
-
-        my %made = :@entry, :%txn-info;
     }
 }
 
