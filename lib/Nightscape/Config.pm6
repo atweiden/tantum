@@ -373,7 +373,10 @@ multi sub prepare-config-file(
 # end sub prepare-config-file }}}
 # sub resolve-dir {{{
 
-multi sub resolve-dir(*@ (Str:D $first, *@rest) --> Str:D)
+multi sub resolve-dir(
+    *@ (Str:D $first, *@rest)
+    --> Str:D
+)
 {
     my Str:D %dir{Str:D};
     %dir<default-dir> = $first;
