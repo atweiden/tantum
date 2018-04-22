@@ -10,7 +10,7 @@ Double-entry accounting system
 - Rakudo Perl6
 - [Config::TOML](https://github.com/atweiden/config-toml)
 - [File::Presence](https://github.com/atweiden/file-presence)
-- [TXN](https://github.com/atweiden/mktxn)
+- [mktxn](https://github.com/atweiden/mktxn)
 
 ### Test Dependencies
 
