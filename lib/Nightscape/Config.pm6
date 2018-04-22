@@ -23,7 +23,8 @@ has Costing:D $.base-costing = $default-base-costing;
 my AssetCode:D $default-base-currency = 'USD';
 has AssetCode:D $.base-currency = $default-base-currency;
 
-my Date:D $default-fiscal-year-end = Date.new(now.Date.year ~ '-12-31');
+my Str:D $now-year-end = sprintf(Q{%s-12-31}, now.Date.year);
+my Date:D $default-fiscal-year-end = Date.new($now-year-end);
 has Date:D $.fiscal-year-end = $default-fiscal-year-end;
 
 has Nightscape::Config::Account:D @.account;
@@ -315,7 +316,7 @@ multi sub prepare-config-file(
     my Str:D $config-file-basedir = $config-file.IO.dirname;
     $config-file-basedir.IO.d
         or mkdir($config-file-basedir);
-    spurt($config-file, "$config-file-contents\n", :createonly);
+    spurt($config-file, $config-file-contents ~ "\n", :createonly);
 }
 
 multi sub prepare-config-file(
@@ -372,12 +373,12 @@ multi sub prepare-config-file(
 # end sub prepare-config-file }}}
 # sub resolve-dir {{{
 
-multi sub resolve-dir(*@dir --> Str:D)
+multi sub resolve-dir(*@ (Str:D $first, *@rest) --> Str:D)
 {
     my Str:D %dir{Str:D};
-    %dir<default-dir> = @dir[0] if @dir[0];
-    %dir<toml-dir> = @dir[1] if @dir[1];
-    %dir<user-override-dir> = @dir[2] if @dir[2];
+    %dir<default-dir> = $first;
+    %dir<toml-dir> = shift(@rest) if @rest.so;
+    %dir<user-override-dir> = shift(@rest) if @rest.so;
     my Str:D $resolve-dir = resolve-dir(|%dir);
     my Str:D $dir = resolve-path($resolve-dir);
 }

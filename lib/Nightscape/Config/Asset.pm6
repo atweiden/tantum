@@ -94,13 +94,13 @@ sub gen-dates-and-prices(
 {
     my Price:D %dates-and-prices{Date:D} =
         %asset-code-keypairs
-        .hyper
-        .grep({ TXN::Parser::Grammar.parse(.key, :rule<date:full-date>) })
-        .map({
-            Rat(.value) ~~ Price
-                or die(X::Nightscape::Config::Asset::Price::Malformed.new);
-            Date.new(.key) => Rat(.value)
-        });
+            .hyper
+            .grep({ TXN::Parser::Grammar.parse(.key, :rule<date:full-date>) })
+            .map({
+                Rat(.value) ~~ Price
+                    or die(X::Nightscape::Config::Asset::Price::Malformed.new);
+                Date.new(.key) => Rat(.value)
+            });
 }
 
 multi sub gen-dates-and-prices-from-file(
@@ -110,9 +110,10 @@ multi sub gen-dates-and-prices-from-file(
 )
 {
     my Str $price-file =
-        %asset-code-keypairs.grep({ .key.isa(Str) })
-                            .first({ .key eq 'price-file' })
-                            .value;
+        %asset-code-keypairs
+            .grep({ .key.isa(Str) })
+            .first({ .key eq 'price-file' })
+            .value;
 
     # gather date-price pairs from C<$price-file> if it exists
     my Price:D %dates-and-prices-from-file{Date:D} =
@@ -138,15 +139,9 @@ multi sub gen-dates-and-prices-from-file(
     #
     # thus relative paths appearing within the scene config file must
     # be resolved relative to the scene config file
-    my Str:D $file = join('/', $scene-file.IO.dirname, $price-file)
-        if resolve-path('~/', $price-file).IO.is-relative;
-
-    # resolve absolute paths potentially beginning with C<~/>
-    $file = resolve-path($file);
-
+    my Str:D $file = gen-price-file($price-file, $scene-file);
     exists-readable-file($file)
         or die(X::Nightscape::Config::Asset::PriceFile::DNERF.new);
-
     my %toml = from-toml(:$file);
     my Price:D %dates-and-prices-from-file{Date:D} = gen-price-sheet(%toml);
 }
@@ -159,6 +154,25 @@ multi sub gen-dates-and-prices-from-file(
 )
 {
     my Price:D %dates-and-prices-from-file{Date:D};
+}
+
+multi sub gen-price-file(
+    Str:D $file where { resolve-path('~/', $_).IO.is-relative },
+    Str:D $scene-file
+    --> Str:D
+)
+{
+    my Str:D $f = join('/', $scene-file.IO.dirname, $file);
+    my Str:D $price-file = resolve-path($f);
+}
+
+multi sub gen-price-file(
+    Str:D $file,
+    Str:D $
+    --> Str:D
+)
+{
+    my Str:D $price-file = resolve-path($file);
 }
 
 # end sub gen-price-sheet }}}
