@@ -76,8 +76,7 @@ class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
     {
         $!code = gen-var-name-bare($code);
         $!file = resolve-path($file);
-        $!date-local-offset =
-            $date-local-offset if $date-local-offset.defined;
+        $!date-local-offset = $date-local-offset if $date-local-offset.defined;
         $!include-lib = resolve-path($include-lib) if $include-lib;
     }
 
@@ -97,7 +96,7 @@ class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
             or die(X::Nightscape::Config::Ledger::FromFile::DNERF.new);
 
         my VarNameBare:D $pkgname = $.code;
-        my Str:D $pkgver = '0.0.1';
+        my Version $pkgver .= new('0.0.1');
         my UInt:D $pkgrel = 1;
 
         # settings passed as args override class attributes
@@ -109,7 +108,7 @@ class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
         %opts<include-lib> = $.include-lib if $.include-lib;
         %opts<include-lib> = resolve-path($include-lib) if $include-lib;
 
-        mktxn(:$.file, :$pkgname, :$pkgver, :$pkgrel, |%opts);
+        my %made = mktxn(:$.file, :$pkgname, :$pkgver, :$pkgrel, |%opts);
     }
 
     # --- end method made }}}
@@ -148,29 +147,38 @@ class Nightscape::Config::Ledger::FromPkg is Nightscape::Config::Ledger
     method made(::?CLASS:D: AbsolutePath:D :$pkg-dir! where .so --> Hash:D)
     {
         my AbsolutePath:D $tarball =
-            "$pkg-dir/$.pkgname-$.pkgver-$.pkgrel.txn.tar.xz";
+            sprintf(
+                Q{%s/%s-%s-%s.txn.pkg.tar.xz},
+                $pkg-dir,
+                $.pkgname,
+                $.pkgver,
+                $.pkgrel
+            );
 
         exists-readable-file($tarball)
             or die(X::Nightscape::Config::Ledger::FromPkg::DNERF.new);
 
         # extract tarball to tmpdir
-        my AbsolutePath:D $build-root = "$*TMPDIR/$.pkgname-$.pkgver-$.pkgrel";
-        mkdir($build-root)
-            or do {
-                my Str:D $text =
-                    'Could not create tmpdir build root for ledger pkg tarball';
-                die(X::Nightscape::Config::Mkdir::Failed.new(:$text));
-            }
-        run qqw<tar -xvf $tarball -C $build-root>;
+        my AbsolutePath:D $build-root =
+            sprintf(Q{%s/%s-%s-%s}, $*TMPDIR, $.pkgname, $.pkgver, $.pkgrel);
+        mkdir($build-root) or do {
+            my Str:D $text =
+                'Could not create tmpdir build root for ledger pkg tarball';
+            die(X::Nightscape::Config::Mkdir::Failed.new(:$text));
+        }
+        my Str:D $tar-cmdline =
+            sprintf(Q{tar -xvf %s -C %s}, $tarball, $build-root);
+        run($tar-cmdline);
 
         # ensure txn.json exists in ledger pkg tarball then slurp
-        my AbsolutePath:D $txn-json-path = "$build-root/txn.json";
+        my AbsolutePath:D $txn-json-path = sprintf(Q{%s/txn.json}, $build-root);
         exists-readable-file($txn-json-path)
             or die(X::Nightscape::Config::Ledger::FromPkg::TXNJSON::DNERF.new);
         my Str:D $txn-json = slurp($txn-json-path);
 
         # ensure .TXNINFO exists in ledger pkg tarball then slurp
-        my AbsolutePath:D $txn-info-json-path = "$build-root/.TXNINFO";
+        my AbsolutePath:D $txn-info-json-path =
+            sprintf(Q{%s/.TXNINFO}, $build-root);
         exists-readable-file($txn-info-json-path)
             or die(X::Nightscape::Config::Ledger::FromPkg::TXNINFO::DNERF.new);
         my Str:D $txn-info-json = slurp($txn-info-json-path);
@@ -182,7 +190,7 @@ class Nightscape::Config::Ledger::FromPkg is Nightscape::Config::Ledger
         dir($build-root).hyper.map({ .unlink });
         rmdir($build-root);
 
-        %(:@entry, :%txn-info);
+        my %made = :@entry, :%txn-info;
     }
 
     # --- end method made }}}
