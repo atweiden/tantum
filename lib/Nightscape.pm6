@@ -154,7 +154,7 @@ multi sub sync(
     --> List:D
 )
 {
-    @ledger.map({ sync($_, |%opts) }).List;
+    my List:D $sync = @ledger.map({ sync($_, |%opts) });
 }
 
 multi sub sync(
@@ -167,7 +167,7 @@ multi sub sync(
     --> Hash:D
 )
 {
-    $ledger.made(|%opts);
+    my %sync = $ledger.made(|%opts);
 }
 
 multi sub sync(
@@ -180,7 +180,7 @@ multi sub sync(
     --> Hash:D
 )
 {
-    $ledger.made(:$pkg-dir);
+    my %sync = $ledger.made(:$pkg-dir);
 }
 
 # end sub sync }}}
