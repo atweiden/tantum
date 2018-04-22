@@ -162,7 +162,8 @@ class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
         %opts<include-lib> = $.include-lib if $.include-lib;
         %opts<include-lib> = resolve-path($include-lib) if $include-lib;
 
-        my %made = mktxn(:$.file, :$pkgname, :$pkgver, :$pkgrel, |%opts);
+        my %made =
+            mktxn(:$pkgname, :$pkgver, :$pkgrel, :source($.file), |%opts);
     }
 }
 
