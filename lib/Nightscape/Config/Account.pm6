@@ -25,7 +25,7 @@ submethod BUILD(
 {
     $!silo = gen-silo($silo);
     $!entity = gen-var-name($entity);
-    @!path = @path.map({ gen-var-name($_) });
+    @!path = @path.hyper.map({ gen-var-name($_) });
     $!open = gen-date-range($open) if $open;
 }
 

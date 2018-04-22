@@ -168,26 +168,34 @@ method new(
 multi sub gen-settings(:@account! --> Array:D)
 {
     my Nightscape::Config::Account:D @a =
-        @account.map({ Nightscape::Config::Account.new(|$_) });
+        @account.hyper.map({
+            Nightscape::Config::Account.new(|$_)
+        });
 }
 
 multi sub gen-settings(:@asset!, :$scene-file! --> Array:D)
 {
     my Nightscape::Config::Asset:D @a =
-        @asset.map({ Nightscape::Config::Asset.new(|$_, :$scene-file) });
+        @asset.hyper.map({
+            Nightscape::Config::Asset.new(|$_, :$scene-file)
+        });
 }
 
 multi sub gen-settings(:@entity!, :$scene-file! --> Array:D)
 {
     my Nightscape::Config::Entity:D @a =
-        @entity.map({ Nightscape::Config::Entity.new(|$_, :$scene-file) });
+        @entity.hyper.map({
+            Nightscape::Config::Entity.new(|$_, :$scene-file)
+        });
 }
 
 # ledger specified
 multi sub gen-settings(:@ledger! --> Array[Nightscape::Config::Ledger:D])
 {
     my Nightscape::Config::Ledger:D @a =
-        @ledger.map({ Nightscape::Config::Ledger.new(|$_) });
+        @ledger.hyper.map({
+            Nightscape::Config::Ledger.new(|$_)
+        });
 }
 
 # ledger unspecified

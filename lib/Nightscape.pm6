@@ -154,7 +154,7 @@ multi sub sync(
     --> List:D
 )
 {
-    my List:D $sync = @ledger.map({ sync($_, |%opts) });
+    my List:D $sync = @ledger.hyper.map({ sync($_, |%opts) });
 }
 
 multi sub sync(
