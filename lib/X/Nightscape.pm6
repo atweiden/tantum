@@ -7,7 +7,8 @@ class Config::Account::Malformed is Exception
 {
     method message(--> Str:D)
     {
-        my Str:D $message = 'Malformed account in scene config file';
+        my Str:D $message =
+            'Malformed account in scene config file';
     }
 }
 
@@ -18,7 +19,8 @@ class Config::Asset::Malformed is Exception
 {
     method message(--> Str:D)
     {
-        my Str:D $message = 'Malformed asset in scene config file';
+        my Str:D $message =
+            'Malformed asset in scene config file';
     }
 }
 
@@ -29,7 +31,8 @@ class Config::Asset::Price::Malformed is Exception
 {
     method message(--> Str:D)
     {
-        my Str:D $message = 'Malformed asset pricing in scene config file';
+        my Str:D $message =
+            'Malformed asset pricing in scene config file';
     }
 }
 
@@ -42,7 +45,7 @@ class Config::Asset::PriceFile::DNERF is Exception
     {
         my Str:D $message =
             'Asset price file given in scene config file '
-            ~ 'but does not exist in readable form';
+                ~ 'but does not exist in readable form';
     }
 }
 
@@ -53,7 +56,8 @@ class Config::Entity::Malformed is Exception
 {
     method message(--> Str:D)
     {
-        my Str:D $message = 'Malformed entity in scene config file';
+        my Str:D $message =
+            'Malformed entity in scene config file';
     }
 }
 
@@ -66,7 +70,7 @@ class Config::Ledger::FromFile::DNERF is Exception
     {
         my Str:D $message =
             'Ledger source from file given in scene config file '
-            ~ 'but does not exist in readable form';
+                ~ 'but does not exist in readable form';
     }
 }
 
@@ -79,7 +83,7 @@ class Config::Ledger::FromPkg::DNERF is Exception
     {
         my Str:D $message =
             'Ledger source from pkg given in scene config file '
-            ~ 'but does not exist in readable form';
+                ~ 'but does not exist in readable form';
     }
 }
 
@@ -90,7 +94,8 @@ class Config::Ledger::FromPkg::TXNINFO::DNERF is Exception
 {
     method message(--> Str:D)
     {
-        my Str:D $message = 'Could not find .TXNINFO in ledger pkg';
+        my Str:D $message =
+            'Could not find .TXNINFO in ledger pkg';
     }
 }
 
@@ -101,7 +106,8 @@ class Config::Ledger::FromPkg::TXNJSON::DNERF is Exception
 {
     method message(--> Str:D)
     {
-        my Str:D $message = 'Could not find txn.json in ledger pkg';
+        my Str:D $message =
+            'Could not find txn.json in ledger pkg';
     }
 }
 
@@ -112,7 +118,8 @@ class Config::Ledger::Malformed is Exception
 {
     method message(--> Str:D)
     {
-        my Str:D $message = 'Malformed ledger sources in scene config file';
+        my Str:D $message =
+            'Malformed ledger sources in scene config file';
     }
 }
 
@@ -123,7 +130,8 @@ class Config::Ledger::Missing is Exception
 {
     method message(--> Str:D)
     {
-        my Str:D $message = 'Missing ledger sources in scene config file';
+        my Str:D $message =
+            'Missing ledger sources in scene config file';
     }
 }
 

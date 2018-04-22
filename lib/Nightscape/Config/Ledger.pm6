@@ -88,6 +88,8 @@ class Nightscape::Config::Ledger
 # end Nightscape::Config::Ledger }}}
 # Nightscape::Config::Ledger::FromFile {{{
 
+# --- p6doc {{{
+
 =begin pod
 =head NAME
 
@@ -110,6 +112,9 @@ For example, C<$date-local-offset> if passed, overrides
 C<$.date-local-offset>. Similarly, C<$include-lib> if passed, overrides
 C<$.include-lib>.
 =end pod
+
+# --- end p6doc }}}
+
 class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
 {
     has VarNameBare:D $.code is required;
