@@ -108,7 +108,8 @@ multi sub resolve-path(Str:D $path where .so --> Str:D) is export
 
 multi sub resolve-path('~/', Str:D $path where .so --> Str:D) is export
 {
-    my Str:D $resolve-path = $path.subst(/^'~/'/, "$*HOME/");
+    my Str:D $subst = sprintf(Q{%s/}, $*HOME);
+    my Str:D $resolve-path = $path.subst(/^'~/'/, $subst);
 }
 
 # end sub resolve-path }}}

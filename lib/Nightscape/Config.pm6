@@ -40,11 +40,16 @@ has AbsolutePath:D $.app-file is required;
 has AbsolutePath:D $.log-dir is required;
 has AbsolutePath:D $.pkg-dir is required;
 has AbsolutePath:D $.price-dir is required;
-my AbsolutePath:D $default-app-dir = "$*HOME/.config/nightscape";
-my AbsolutePath:D $default-log-dir = "$default-app-dir/log";
-my AbsolutePath:D $default-pkg-dir = "$default-app-dir/pkg";
-my AbsolutePath:D $default-price-dir = "$default-app-dir/prices";
-my AbsolutePath:D $default-app-file = "$default-app-dir/nightscape.toml";
+my AbsolutePath:D $default-app-dir =
+    sprintf(Q{%s/.config/nightscape}, $*HOME);
+my AbsolutePath:D $default-log-dir =
+    sprintf(Q{%s/log}, $default-app-dir);
+my AbsolutePath:D $default-pkg-dir =
+    sprintf(Q{%s/pkg}, $default-app-dir);
+my AbsolutePath:D $default-price-dir =
+    sprintf(Q{%s/prices}, $default-app-dir);
+my AbsolutePath:D $default-app-file =
+    sprintf(Q{%s/nightscape.toml}, $default-app-dir);
 my Str:D $default-app-file-contents =
     to-toml(%(
         :app-dir($default-app-dir),
@@ -56,11 +61,13 @@ my Str:D $default-app-file-contents =
 # scene settings
 has AbsolutePath:D $.scene-dir is required;
 has AbsolutePath:D $.scene-file is required;
-my AbsolutePath:D $default-scene-dir = "$*CWD/.nightscape";
-my AbsolutePath:D $default-scene-file = "$default-scene-dir/scene.toml";
+my AbsolutePath:D $default-scene-dir =
+    sprintf(Q{%s/.nightscape}, $*CWD);
+my AbsolutePath:D $default-scene-file =
+    sprintf(Q{%s/scene.toml}, $default-scene-dir);
 my Str:D $default-scene-file-contents =
     to-toml(%(
-        :base-costing("$default-base-costing"),
+        :base-costing(~$default-base-costing),
         :base-currency($default-base-currency),
         :fiscal-year-end($default-fiscal-year-end)
     ));
