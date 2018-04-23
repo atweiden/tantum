@@ -74,7 +74,10 @@ multi method new(*% --> Nil)
 # end method new }}}
 # sub gen-settings {{{
 
-multi sub gen-settings(:@account! --> Array[Nightscape::Config::Account:D])
+multi sub gen-settings(
+    :@account!
+    --> Array[Nightscape::Config::Account:D]
+)
 {
     my Nightscape::Config::Account:D @a =
         @account.hyper.map(-> %toml {
