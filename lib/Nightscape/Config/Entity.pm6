@@ -77,7 +77,9 @@ multi method new(*% --> Nil)
 multi sub gen-settings(:@account! --> Array[Nightscape::Config::Account:D])
 {
     my Nightscape::Config::Account:D @a =
-        @account.hyper.map({ Nightscape::Config::Account.new(|$_) });
+        @account.hyper.map(-> %toml {
+            Nightscape::Config::Account.new(|%toml)
+        });
 }
 
 multi sub gen-settings(
@@ -87,7 +89,9 @@ multi sub gen-settings(
 )
 {
     my Nightscape::Config::Asset:D @a =
-        @asset.hyper.map({ Nightscape::Config::Asset.new(|$_, :$scene-file) });
+        @asset.hyper.map(-> %toml {
+            Nightscape::Config::Asset.new(|%toml, :$scene-file)
+        });
 }
 
 # end sub gen-settings }}}

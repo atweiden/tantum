@@ -1,5 +1,6 @@
 use v6;
 use Nightscape::Config;
+use Nightscape::Types;
 use TXN::Parser;
 use TXN::Parser::Types;
 unit class Nightscape;
@@ -137,7 +138,8 @@ method !sync(
     --> Nil
 )
 {
-    my List:D $pkg = sync($.config.ledger, :pkg-dir($.config.pkg-dir), |%opts);
+    my AbsolutePath:D $pkg-dir = $.config.pkg-dir;
+    my List:D $pkg = sync($.config.ledger, :$pkg-dir, |%opts);
     .perl.say for $pkg.map({ $_<txn-info> });
 }
 
@@ -154,7 +156,10 @@ multi sub sync(
     --> List:D
 )
 {
-    my List:D $sync = @ledger.hyper.map({ sync($_, |%opts) });
+    my List:D $sync =
+        @ledger.hyper.map(-> Nightscape::Config::Ledger:D $ledger {
+            sync($ledger, |%opts)
+        });
 }
 
 multi sub sync(

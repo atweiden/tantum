@@ -175,24 +175,24 @@ method new(
 multi sub gen-settings(:@account! --> Array:D)
 {
     my Nightscape::Config::Account:D @a =
-        @account.hyper.map({
-            Nightscape::Config::Account.new(|$_)
+        @account.hyper.map(-> %toml {
+            Nightscape::Config::Account.new(|%toml)
         });
 }
 
 multi sub gen-settings(:@asset!, :$scene-file! --> Array:D)
 {
     my Nightscape::Config::Asset:D @a =
-        @asset.hyper.map({
-            Nightscape::Config::Asset.new(|$_, :$scene-file)
+        @asset.hyper.map(-> %toml {
+            Nightscape::Config::Asset.new(|%toml, :$scene-file)
         });
 }
 
 multi sub gen-settings(:@entity!, :$scene-file! --> Array:D)
 {
     my Nightscape::Config::Entity:D @a =
-        @entity.hyper.map({
-            Nightscape::Config::Entity.new(|$_, :$scene-file)
+        @entity.hyper.map(-> %toml {
+            Nightscape::Config::Entity.new(|%toml, :$scene-file)
         });
 }
 
@@ -200,8 +200,8 @@ multi sub gen-settings(:@entity!, :$scene-file! --> Array:D)
 multi sub gen-settings(:@ledger! --> Array[Nightscape::Config::Ledger:D])
 {
     my Nightscape::Config::Ledger:D @a =
-        @ledger.hyper.map({
-            Nightscape::Config::Ledger.new(|$_)
+        @ledger.hyper.map(-> %toml {
+            Nightscape::Config::Ledger.new(|%toml)
         });
 }
 
@@ -216,7 +216,9 @@ multi sub gen-settings(:$ledger! --> Nil)
 
 sub prepare-config-dirs(*@config-dir --> Nil)
 {
-    @config-dir.map({ prepare-config-dir($_) });
+    @config-dir.map(-> Str:D $config-dir {
+        prepare-config-dir($config-dir)
+    });
 }
 
 multi sub prepare-config-dir(Str:D $config-dir where .so --> Nil)
