@@ -213,14 +213,9 @@ class Nightscape::Config::Ledger::FromPkg is Nightscape::Config::Ledger
     )
     {
         # extract tarball to tmpdir
-        my AbsolutePath:D $tarball =
-            sprintf(
-                Q{%s/%s-%s-%s.txn.pkg.tar.xz},
-                $pkg-dir,
-                $pkgname,
-                $pkgver,
-                $pkgrel
-            );
+        my Str:D $txn-pkg-file =
+            TXN.gen-txn-pkg-file($pkgname, $pkgver, $pkgrel);
+        my AbsolutePath:D $tarball = sprintf(Q{%s/%s}, $pkg-dir, $txn-pkg-file);
         exists-readable-file($tarball)
             or die(X::Nightscape::Config::Ledger::FromPkg::DNERF.new);
         mkdir($build-root) or do {
