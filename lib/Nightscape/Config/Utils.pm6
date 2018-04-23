@@ -2,8 +2,23 @@ use v6;
 use Nightscape::Types;
 use TXN::Parser;
 use TXN::Parser::Types;
-unit module Nightscape::Config::Utils;
+unit class Nightscape::Config::Utils;
 
+# method resolve-path {{{
+
+multi method resolve-path(Str:D $path where .so --> Str:D)
+{
+    my Str:D $resolve-path =
+        ~Nightscape::Config::Utils.resolve-path('~/', $path).IO.resolve;
+}
+
+multi method resolve-path('~/', Str:D $path where .so --> Str:D)
+{
+    my Str:D $subst = sprintf(Q{%s/}, $*HOME);
+    my Str:D $resolve-path = $path.subst(/^'~/'/, $subst);
+}
+
+# end method resolve-path }}}
 # sub gen-asset-code {{{
 
 sub gen-asset-code(Str:D $s where .so --> AssetCode:D) is export
@@ -99,19 +114,5 @@ sub gen-var-name-bare(Str:D $s where .so --> VarNameBare:D) is export
 }
 
 # end sub gen-var-name }}}
-# sub resolve-path {{{
-
-multi sub resolve-path(Str:D $path where .so --> Str:D) is export
-{
-    my Str:D $resolve-path = ~resolve-path('~/', $path).IO.resolve;
-}
-
-multi sub resolve-path('~/', Str:D $path where .so --> Str:D) is export
-{
-    my Str:D $subst = sprintf(Q{%s/}, $*HOME);
-    my Str:D $resolve-path = $path.subst(/^'~/'/, $subst);
-}
-
-# end sub resolve-path }}}
 
 # vim: set filetype=perl6 foldmethod=marker foldlevel=0:

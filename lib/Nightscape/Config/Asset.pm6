@@ -157,13 +157,15 @@ multi sub gen-dates-and-prices-from-file(
 }
 
 multi sub gen-price-file(
-    Str:D $file where { resolve-path('~/', $_).IO.is-relative },
+    Str:D $file where {
+        Nightscape::Config::Utils.resolve-path('~/', $_).IO.is-relative
+    },
     Str:D $scene-file
     --> Str:D
 )
 {
     my Str:D $f = join('/', $scene-file.IO.dirname, $file);
-    my Str:D $price-file = resolve-path($f);
+    my Str:D $price-file = Nightscape::Config::Utils.resolve-path($f);
 }
 
 multi sub gen-price-file(
@@ -172,7 +174,7 @@ multi sub gen-price-file(
     --> Str:D
 )
 {
-    my Str:D $price-file = resolve-path($file);
+    my Str:D $price-file = Nightscape::Config::Utils.resolve-path($file);
 }
 
 # end sub gen-price-sheet }}}

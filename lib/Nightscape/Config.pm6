@@ -93,7 +93,7 @@ submethod BUILD(
 
     # if option C<app-file> is passed to instantiate
     # C<Nightscape::Config>, use that, otherwise use default
-    $!app-file = $app-file ?? resolve-path($app-file) !! $default-app-file;
+    $!app-file = resolve-path($default-app-file, $app-file);
     prepare-config-file($!app-file, $default-app-file-contents);
 
     # attempt to parse C<$!app-file>
@@ -104,10 +104,10 @@ submethod BUILD(
     # name contained in C<$!app-file>
     #
     # if no setting is provided, use defaults
-    $!app-dir = resolve-dir($default-app-dir, %app<app-dir>, $app-dir);
-    $!log-dir = resolve-dir($default-log-dir, %app<log-dir>, $log-dir);
-    $!pkg-dir = resolve-dir($default-pkg-dir, %app<pkg-dir>, $pkg-dir);
-    $!price-dir = resolve-dir($default-price-dir, %app<price-dir>, $price-dir);
+    $!app-dir = resolve-path($default-app-dir, %app<app-dir>, $app-dir);
+    $!log-dir = resolve-path($default-log-dir, %app<log-dir>, $log-dir);
+    $!pkg-dir = resolve-path($default-pkg-dir, %app<pkg-dir>, $pkg-dir);
+    $!price-dir = resolve-path($default-price-dir, %app<price-dir>, $price-dir);
     prepare-config-dirs($!app-dir, $!log-dir, $!pkg-dir, $!price-dir);
 
     # --- end application settings }}}
@@ -115,8 +115,7 @@ submethod BUILD(
 
     # if option C<scene-file> is passed to instantiate
     # C<Nightscape::Config>, use that, otherwise use default
-    $!scene-file =
-        $scene-file ?? resolve-path($scene-file) !! $default-scene-file;
+    $!scene-file = resolve-path($default-scene-file, $scene-file);
     prepare-config-file($!scene-file, $default-scene-file-contents);
 
     # attempt to parse C<$!scene-file>
@@ -127,7 +126,7 @@ submethod BUILD(
     #
     # if no setting is provided, use defaults
     $!scene-dir =
-        resolve-dir($default-scene-dir, %scene<scene-dir>, $scene-dir);
+        resolve-path($default-scene-dir, %scene<scene-dir>, $scene-dir);
     prepare-config-dirs($!scene-dir);
 
     try
@@ -378,51 +377,51 @@ multi sub prepare-config-file(
 }
 
 # end sub prepare-config-file }}}
-# sub resolve-dir {{{
+# sub resolve-path {{{
 
-multi sub resolve-dir(
-    *@ (Str:D $first, *@rest)
+multi sub resolve-path(
+    *@ (Str:D $default, *@rest)
     --> Str:D
 )
 {
-    my Str:D %dir{Str:D};
-    %dir<default-dir> = $first;
-    %dir<toml-dir> = shift(@rest) if @rest.so;
-    %dir<user-override-dir> = shift(@rest) if @rest.so;
-    my Str:D $resolve-dir = resolve-dir(|%dir);
-    my Str:D $dir = resolve-path($resolve-dir);
+    my Str:D %path{Str:D};
+    %path<default> = $default;
+    %path<secondary> = shift(@rest) if @rest.so;
+    %path<primary> = shift(@rest) if @rest.so;
+    my Str:D $r = resolve-path(|%path);
+    my Str:D $resolve-path = Nightscape::Config::Utils.resolve-path($r);
 }
 
-multi sub resolve-dir(
-    Str:D :default-dir($)! where .so,
-    Str:D :toml-dir($)! where .so,
-    Str:D :$user-override-dir! where .so
+multi sub resolve-path(
+    Str:D :default($)! where .so,
+    Str:D :secondary($)! where .so,
+    Str:D :$primary! where .so
     --> Str:D
 )
 {
-    my Str:D $dir = $user-override-dir;
+    my Str:D $resolve-path = $primary;
 }
 
-multi sub resolve-dir(
-    Str:D :default-dir($)! where .so,
-    Str:D :$toml-dir! where .so,
-    Str :user-override-dir($)
+multi sub resolve-path(
+    Str:D :default($)! where .so,
+    Str:D :$secondary! where .so,
+    Str :primary($)
     --> Str:D
 )
 {
-    my Str:D $dir = $toml-dir;
+    my Str:D $resolve-path = $secondary;
 }
 
-multi sub resolve-dir(
-    Str:D :$default-dir! where .so,
-    Str :toml-dir($),
-    Str :user-override-dir($)
+multi sub resolve-path(
+    Str:D :$default! where .so,
+    Str :secondary($),
+    Str :primary($)
     --> Str:D
 )
 {
-    my Str:D $dir = $default-dir;
+    my Str:D $resolve-path = $default;
 }
 
-# end sub resolve-dir }}}
+# end sub resolve-path }}}
 
 # vim: set filetype=perl6 foldmethod=marker foldlevel=0:

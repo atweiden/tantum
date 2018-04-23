@@ -131,9 +131,11 @@ class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
     )
     {
         $!code = gen-var-name-bare($code);
-        $!file = resolve-path($file);
-        $!date-local-offset = $date-local-offset if $date-local-offset.defined;
-        $!include-lib = resolve-path($include-lib) if $include-lib;
+        $!file = Nightscape::Config::Utils.resolve-path($file);
+        $!date-local-offset = $date-local-offset
+            if $date-local-offset.defined;
+        $!include-lib = Nightscape::Config::Utils.resolve-path($include-lib)
+            if $include-lib;
     }
 
     method made(
@@ -153,12 +155,14 @@ class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
         # settings passed as args from Nightscape cmdline override class
         # attributes gleaned from parsing TOML
         my %opts{Str:D};
-        %opts<date-local-offset> =
-            $.date-local-offset if $.date-local-offset.defined;
-        %opts<date-local-offset> =
-            $date-local-offset if $date-local-offset.defined;
-        %opts<include-lib> = $.include-lib if $.include-lib;
-        %opts<include-lib> = resolve-path($include-lib) if $include-lib;
+        %opts<date-local-offset> = $.date-local-offset
+            if $.date-local-offset.defined;
+        %opts<date-local-offset> = $date-local-offset
+            if $date-local-offset.defined;
+        %opts<include-lib> = $.include-lib
+            if $.include-lib;
+        %opts<include-lib> = Nightscape::Config::Utils.resolve-path($include-lib)
+            if $include-lib;
         my %made =
             mktxn(:$pkgname, :$pkgver, :$pkgrel, :source($.file), |%opts);
     }
