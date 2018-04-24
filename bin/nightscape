@@ -124,7 +124,7 @@ multi sub MAIN(
     Nightscape.new(|%setup-opts).sync(|%opts);
 }
 
-multi sub MAIN(Str $command, *% --> Nil)
+multi sub MAIN($?, *% --> Nil)
 {
     USAGE();
 }
