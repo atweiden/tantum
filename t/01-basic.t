@@ -1,8 +1,6 @@
 use v6;
 use lib 'lib';
-use Nightscape::Types;
 use Nightscape;
-use TXN::Parser::Types;
 use lib 't/lib';
 use NightscapeTest;
 # use Test;
