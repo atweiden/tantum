@@ -50,13 +50,6 @@ my AbsolutePath:D $default-price-dir =
     sprintf(Q{%s/prices}, $default-app-dir);
 my AbsolutePath:D $default-app-file =
     sprintf(Q{%s/nightscape.toml}, $default-app-dir);
-my Str:D $default-app-file-contents =
-    to-toml(%(
-        :app-dir($default-app-dir),
-        :log-dir($default-log-dir),
-        :pkg-dir($default-pkg-dir),
-        :price-dir($default-price-dir)
-    ));
 
 # scene settings
 has AbsolutePath:D $.scene-dir is required;
@@ -65,12 +58,6 @@ my AbsolutePath:D $default-scene-dir =
     sprintf(Q{%s/.nightscape}, $*CWD);
 my AbsolutePath:D $default-scene-file =
     sprintf(Q{%s/scene.toml}, $default-scene-dir);
-my Str:D $default-scene-file-contents =
-    to-toml(%(
-        :base-costing(~$default-base-costing),
-        :base-currency($default-base-currency),
-        :fiscal-year-end($default-fiscal-year-end)
-    ));
 
 # --- end setup }}}
 
@@ -93,41 +80,66 @@ submethod BUILD(
 
     # if option C<app-file> is passed to instantiate
     # C<Nightscape::Config>, use that, otherwise use default
-    $!app-file = resolve-path($default-app-file, $app-file);
-    prepare-config-file($!app-file, $default-app-file-contents);
+    my %app-file-content;
+    $!app-file =
+        resolve-path($default-app-file, $app-file);
+    %app-file-content<app-dir> =
+        resolve-path($default-app-dir, $app-dir);
+    %app-file-content<log-dir> =
+        resolve-path($default-log-dir, $log-dir);
+    %app-file-content<pkg-dir> =
+        resolve-path($default-pkg-dir, $pkg-dir);
+    %app-file-content<price-dir> =
+        resolve-path($default-price-dir, $price-dir);
+    %app-file-content<scene-dir> =
+        resolve-path($default-scene-dir, $scene-dir);
+    %app-file-content<scene-file> =
+        resolve-path($default-scene-file, $scene-file);
+
+    # write values to C<$!app-file> if C<$!app-file> DNE
+    my Str:D $app-file-content = to-toml(%app-file-content);
+    prepare-config-file($!app-file, $app-file-content);
 
     # attempt to parse C<$!app-file>
     my %app = from-toml(:file($!app-file));
 
-    # options C<app-dir>, C<log-dir>, C<pkg-dir>, C<price-dir>, passed
-    # to instantiate C<Nightscape::Config> override settings of the same
-    # name contained in C<$!app-file>
+    # options C<app-dir>, C<log-dir>, C<pkg-dir>, C<price-dir>,
+    # C<scene-dir>, passed to instantiate C<Nightscape::Config> override
+    # settings of the same name contained in C<$!app-file>
     #
     # if no setting is provided, use defaults
     $!app-dir = resolve-path($default-app-dir, %app<app-dir>, $app-dir);
     $!log-dir = resolve-path($default-log-dir, %app<log-dir>, $log-dir);
     $!pkg-dir = resolve-path($default-pkg-dir, %app<pkg-dir>, $pkg-dir);
     $!price-dir = resolve-path($default-price-dir, %app<price-dir>, $price-dir);
-    prepare-config-dirs($!app-dir, $!log-dir, $!pkg-dir, $!price-dir);
+    $!scene-dir = resolve-path($default-scene-dir, %app<scene-dir>, $scene-dir);
+    prepare-config-dirs(
+        $!app-dir,
+        $!log-dir,
+        $!pkg-dir,
+        $!price-dir,
+        $!scene-dir
+    );
 
     # --- end application settings }}}
     # --- scene settings {{{
 
     # if option C<scene-file> is passed to instantiate
-    # C<Nightscape::Config>, use that, otherwise use default
-    $!scene-file = resolve-path($default-scene-file, $scene-file);
-    prepare-config-file($!scene-file, $default-scene-file-contents);
+    # C<Nightscape::Config> override settings of the same name contained
+    # in C<$!app-file>
+    #
+    # if no setting is provided, use default
+    $!scene-file =
+        resolve-path($default-scene-file, %app<scene-file>, $scene-file);
+    my %scene-file-content;
+    %scene-file-content<base-costing> = ~$default-base-costing;
+    %scene-file-content<base-currency> = $default-base-currency;
+    %scene-file-content<fiscal-year-end> = $default-fiscal-year-end;
+    my Str:D $scene-file-content = to-toml(%scene-file-content);
+    prepare-config-file($!scene-file, $scene-file-content);
 
     # attempt to parse C<$!scene-file>
     my %scene = from-toml(:file($!scene-file));
-
-    # option C<scene-dir> passed to instantiate C<Nightscape::Config>
-    # overrides setting of the same name contained in C<$!scene-file>
-    #
-    # if no setting is provided, use defaults
-    $!scene-dir =
-        resolve-path($default-scene-dir, %scene<scene-dir>, $scene-dir);
-    prepare-config-dirs($!scene-dir);
 
     try
     {
@@ -230,12 +242,12 @@ multi sub prepare-config-dir(Str:D $config-dir where .so --> Nil)
 multi sub prepare-config-dir(
     Str:D $config-dir,
     % (
-        Bool:D :d($),
-        Bool:D :e($) where .not,
-        Bool:D :f($),
-        Bool:D :r($),
-        Bool:D :w($),
-        Bool:D :x($)
+        Bool:D :d($)!,
+        Bool:D :e($)! where .not,
+        Bool:D :f($)!,
+        Bool:D :r($)!,
+        Bool:D :w($)!,
+        Bool:D :x($)!
     )
     --> Nil
 )
@@ -248,12 +260,12 @@ multi sub prepare-config-dir(
 multi sub prepare-config-dir(
     Str:D $,
     % (
-        Bool:D :d($),
-        Bool:D :e($),
-        Bool:D :f($),
-        Bool:D :r($) where .not,
-        Bool:D :w($),
-        Bool:D :x($)
+        Bool:D :d($)!,
+        Bool:D :e($)!,
+        Bool:D :f($)!,
+        Bool:D :r($)! where .not,
+        Bool:D :w($)!,
+        Bool:D :x($)!
     )
     --> Nil
 )
@@ -264,12 +276,12 @@ multi sub prepare-config-dir(
 multi sub prepare-config-dir(
     Str:D $,
     % (
-        Bool:D :d($),
-        Bool:D :e($),
-        Bool:D :f($),
-        Bool:D :r($),
-        Bool:D :w($) where .not,
-        Bool:D :x($)
+        Bool:D :d($)!,
+        Bool:D :e($)!,
+        Bool:D :f($)!,
+        Bool:D :r($)!,
+        Bool:D :w($)! where .not,
+        Bool:D :x($)!
     )
     --> Nil
 )
@@ -280,12 +292,12 @@ multi sub prepare-config-dir(
 multi sub prepare-config-dir(
     Str:D $,
     % (
-        Bool:D :d($) where .not,
-        Bool:D :e($),
-        Bool:D :f($),
-        Bool:D :r($),
-        Bool:D :w($),
-        Bool:D :x($)
+        Bool:D :d($)! where .not,
+        Bool:D :e($)!,
+        Bool:D :f($)!,
+        Bool:D :r($)!,
+        Bool:D :w($)!,
+        Bool:D :x($)!
     )
     --> Nil
 )
@@ -293,30 +305,44 @@ multi sub prepare-config-dir(
     die(X::Nightscape::Config::PrepareConfigDir::NotADirectory.new);
 }
 
+multi sub prepare-config-dir(
+    Str:D $,
+    % (
+        Bool:D :d($)!,
+        Bool:D :e($)!,
+        Bool:D :f($)!,
+        Bool:D :r($)!,
+        Bool:D :w($)!,
+        Bool:D :x($)!
+    )
+    --> Nil
+)
+{*}
+
 # end sub prepare-config-dirs }}}
 # sub prepare-config-file {{{
 
 multi sub prepare-config-file(
     Str:D $config-file where .so,
-    Str:D $config-file-contents where .so
+    Str:D $config-file-content where .so
     --> Nil
 )
 {
     my Bool:D %show{Str:D} = File::Presence.show($config-file);
-    prepare-config-file($config-file, $config-file-contents, %show);
+    prepare-config-file($config-file, $config-file-content, %show);
 }
 
 # create config file if DNE
 multi sub prepare-config-file(
     Str:D $config-file,
-    Str:D $config-file-contents,
+    Str:D $config-file-content,
     % (
-        Bool:D :d($),
-        Bool:D :e($) where .not,
-        Bool:D :f($),
-        Bool:D :r($),
-        Bool:D :w($),
-        Bool:D :x($)
+        Bool:D :d($)!,
+        Bool:D :e($)! where .not,
+        Bool:D :f($)!,
+        Bool:D :r($)!,
+        Bool:D :w($)!,
+        Bool:D :x($)!
     )
     --> Nil
 )
@@ -324,19 +350,19 @@ multi sub prepare-config-file(
     my Str:D $config-file-basedir = $config-file.IO.dirname;
     $config-file-basedir.IO.d
         or mkdir($config-file-basedir);
-    spurt($config-file, $config-file-contents ~ "\n", :createonly);
+    spurt($config-file, $config-file-content ~ "\n", :createonly);
 }
 
 multi sub prepare-config-file(
     Str:D $,
     Str:D $,
     % (
-        Bool:D :d($),
-        Bool:D :e($),
-        Bool:D :f($),
-        Bool:D :r($) where .not,
-        Bool:D :w($),
-        Bool:D :x($)
+        Bool:D :d($)!,
+        Bool:D :e($)!,
+        Bool:D :f($)!,
+        Bool:D :r($)! where .not,
+        Bool:D :w($)!,
+        Bool:D :x($)!
     )
     --> Nil
 )
@@ -348,12 +374,12 @@ multi sub prepare-config-file(
     Str:D $,
     Str:D $,
     % (
-        Bool:D :d($),
-        Bool:D :e($),
-        Bool:D :f($),
-        Bool:D :r($),
-        Bool:D :w($) where .not,
-        Bool:D :x($)
+        Bool:D :d($)!,
+        Bool:D :e($)!,
+        Bool:D :f($)!,
+        Bool:D :r($)!,
+        Bool:D :w($)! where .not,
+        Bool:D :x($)!
     )
     --> Nil
 )
@@ -365,18 +391,33 @@ multi sub prepare-config-file(
     Str:D $,
     Str:D $,
     % (
-        Bool:D :d($),
-        Bool:D :e($),
-        Bool:D :f($) where .not,
-        Bool:D :r($),
-        Bool:D :w($),
-        Bool:D :x($)
+        Bool:D :d($)!,
+        Bool:D :e($)!,
+        Bool:D :f($)! where .not,
+        Bool:D :r($)!,
+        Bool:D :w($)!,
+        Bool:D :x($)!
     )
     --> Nil
 )
 {
     die(X::Nightscape::Config::PrepareConfigFile::NotAFile.new);
 }
+
+multi sub prepare-config-file(
+    Str:D $,
+    Str:D $,
+    % (
+        Bool:D :d($)!,
+        Bool:D :e($)!,
+        Bool:D :f($)!,
+        Bool:D :r($)!,
+        Bool:D :w($)!,
+        Bool:D :x($)!
+    )
+    --> Nil
+)
+{*}
 
 # end sub prepare-config-file }}}
 # sub resolve-path {{{
