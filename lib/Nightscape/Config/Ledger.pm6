@@ -115,8 +115,10 @@ C<$.include-lib>.
 
 # --- end p6doc }}}
 
-class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
+class Nightscape::Config::Ledger::FromFile
 {
+    also is Nightscape::Config::Ledger;
+
     has VarNameBare:D $.code is required;
     has AbsolutePath:D $.file is required;
     has Int $.date-local-offset;
@@ -171,8 +173,10 @@ class Nightscape::Config::Ledger::FromFile is Nightscape::Config::Ledger
 # end Nightscape::Config::Ledger::FromFile }}}
 # Nightscape::Config::Ledger::FromPkg {{{
 
-class Nightscape::Config::Ledger::FromPkg is Nightscape::Config::Ledger
+class Nightscape::Config::Ledger::FromPkg
 {
+    also is Nightscape::Config::Ledger;
+
     has VarNameBare:D $.pkgname is required;
     has Version:D $.pkgver is required;
     has UInt:D $.pkgrel = 1;
