@@ -184,7 +184,7 @@ multi sub sync(
 multi sub sync(
     Nightscape::Config::Ledger:D :@ledger!,
     *%opts (
-        Str:D :pkg-dir($)! where .so,
+        AbsolutePath:D :pkg-dir($)! where .so,
         Int :date-local-offset($),
         Str :include-lib($)
     )
@@ -199,7 +199,7 @@ multi sub sync(
 
 multi sub sync(
     Nightscape::Config::Ledger::FromFile:D :$ledger!,
-    Str:D :pkg-dir($)! where .so,
+    AbsolutePath:D :pkg-dir($)! where .so,
     *%opts (
         Int :date-local-offset($),
         Str :include-lib($)
@@ -212,7 +212,7 @@ multi sub sync(
 
 multi sub sync(
     Nightscape::Config::Ledger::FromPkg:D :$ledger!,
-    Str:D :$pkg-dir! where .so,
+    AbsolutePath:D :$pkg-dir! where .so,
     *% (
         Int :date-local-offset($),
         Str :include-lib($)
