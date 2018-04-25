@@ -63,9 +63,9 @@ method reup(
     *%opts (
         Int :date-local-offset($),
         Str :include-lib($),
-        :ledger(@),
         Bool :no-sync($)
-    )
+    ),
+    *@ledger
     --> Nil
 )
 {
@@ -96,11 +96,12 @@ method sync(
     *%opts (
         Int :date-local-offset($),
         Str :include-lib($)
-    )
+    ),
+    *@ledger
     --> Nil
 )
 {
-    self!sync(|%opts);
+    self!sync(|%opts, |@ledger);
 }
 
 # end method sync }}}
@@ -134,20 +135,52 @@ method !sync(
     *%opts (
         Int :date-local-offset($),
         Str :include-lib($)
-    )
+    ),
+    *@ledger
     --> Nil
 )
 {
     my AbsolutePath:D $pkg-dir = $.config.pkg-dir;
-    my List:D $pkg = sync($.config.ledger, :$pkg-dir, |%opts);
-    .perl.say for $pkg.map({ $_<txn-info> });
+    sync($.config.ledger, :$pkg-dir, |%opts, |@ledger);
 }
 
 # end method !sync }}}
 # sub sync {{{
 
 multi sub sync(
+    Nightscape::Config::Ledger:D @l,
+    *%opts (
+        AbsolutePath:D :pkg-dir($)!,
+        Int :date-local-offset($),
+        Str :include-lib($)
+    ),
+    *@request where .so
+    --> Nil
+)
+{
+    my Nightscape::Config::Ledger:D @ledger =
+        grep-ledger-for-request(@l, @request);
+    my List:D $pkg = sync(:@ledger, |%opts);
+    sync(:$pkg);
+}
+
+multi sub sync(
     Nightscape::Config::Ledger:D @ledger,
+    *%opts (
+        AbsolutePath:D :pkg-dir($)!,
+        Int :date-local-offset($),
+        Str :include-lib($)
+    ),
+    *@
+    --> Nil
+)
+{
+    my List:D $pkg = sync(:@ledger, |%opts);
+    sync(:$pkg);
+}
+
+multi sub sync(
+    Nightscape::Config::Ledger:D :@ledger!,
     *%opts (
         Str:D :pkg-dir($)! where .so,
         Int :date-local-offset($),
@@ -158,12 +191,12 @@ multi sub sync(
 {
     my List:D $sync =
         @ledger.hyper.map(-> Nightscape::Config::Ledger:D $ledger {
-            sync($ledger, |%opts)
+            sync(:$ledger, |%opts)
         });
 }
 
 multi sub sync(
-    Nightscape::Config::Ledger::FromFile:D $ledger,
+    Nightscape::Config::Ledger::FromFile:D :$ledger!,
     Str:D :pkg-dir($)! where .so,
     *%opts (
         Int :date-local-offset($),
@@ -176,7 +209,7 @@ multi sub sync(
 }
 
 multi sub sync(
-    Nightscape::Config::Ledger::FromPkg:D $ledger,
+    Nightscape::Config::Ledger::FromPkg:D :$ledger!,
     Str:D :$pkg-dir! where .so,
     *% (
         Int :date-local-offset($),
@@ -188,6 +221,53 @@ multi sub sync(
     my %sync = $ledger.made(:$pkg-dir);
 }
 
+multi sub sync(
+    List:D :$pkg!
+    --> Nil
+)
+{
+    .perl.say for $pkg.map({ $_<txn-info> });
+}
+
 # end sub sync }}}
+
+
+# -----------------------------------------------------------------------------
+# helper functions
+# -----------------------------------------------------------------------------
+
+# sub grep-ledger-for-request {{{
+
+sub grep-ledger-for-request(
+    Nightscape::Config::Ledger:D @ledger,
+    Str:D @request
+    --> Array[Nightscape::Config::Ledger:D]
+)
+{
+    my Nightscape::Config::Ledger:D @grep-ledger-for-request =
+        @ledger.hyper.grep(-> Nightscape::Config::Ledger:D $ledger {
+            is-ledger-for-request($ledger, @request)
+        });
+}
+
+multi sub is-ledger-for-request(
+    Nightscape::Config::Ledger::FromFile:D $ledger,
+    Str:D @request
+    --> Bool:D
+)
+{
+    my Bool:D $is-ledger-for-request = @request.grep($ledger.code).so;
+}
+
+multi sub is-ledger-for-request(
+    Nightscape::Config::Ledger::FromPkg:D $ledger,
+    Str:D @request
+    --> Bool:D
+)
+{
+    my Bool:D $is-ledger-for-request = @request.grep($ledger.pkgname).so;
+}
+
+# end sub grep-ledger-for-request }}}
 
 # vim: set filetype=perl6 foldmethod=marker foldlevel=0:
