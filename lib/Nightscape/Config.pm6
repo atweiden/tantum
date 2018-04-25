@@ -72,7 +72,8 @@ submethod BUILD(
     Str :$pkg-dir,
     Str :$price-dir,
     Str :$scene-dir,
-    Str :$scene-file
+    Str :$scene-file,
+    Nightscape::Config::Ledger:D :@ledger
     --> Nil
 )
 {
@@ -144,7 +145,8 @@ submethod BUILD(
     try
     {
         CATCH { default { say(.message); exit(1) } };
-        @!ledger = gen-settings(:ledger(%scene<ledger>));
+        @!ledger =
+            @ledger // gen-settings(:ledger(%scene<ledger>, :$!scene-file));
         @!account = gen-settings(:account(%scene<account>))
             if %scene<account>;
         @!asset = gen-settings(:asset(%scene<asset>), :$!scene-file)
@@ -173,7 +175,8 @@ method new(
         Str :pkg-dir($),
         Str :price-dir($),
         Str :scene-dir($),
-        Str :scene-file($)
+        Str :scene-file($),
+        Nightscape::Config::Ledger:D :ledger(@)
     )
     --> Nightscape::Config:D
 )
@@ -184,7 +187,10 @@ method new(
 # end method new }}}
 # sub gen-settings {{{
 
-multi sub gen-settings(:@account! --> Array:D)
+multi sub gen-settings(
+    :@account!
+    --> Array[Nightscape::Config::Account:D]
+)
 {
     my Nightscape::Config::Account:D @a =
         @account.hyper.map(-> %toml {
@@ -192,7 +198,11 @@ multi sub gen-settings(:@account! --> Array:D)
         });
 }
 
-multi sub gen-settings(:@asset!, :$scene-file! --> Array:D)
+multi sub gen-settings(
+    :@asset!,
+    :$scene-file!
+    --> Array[Nightscape::Config::Asset:D]
+)
 {
     my Nightscape::Config::Asset:D @a =
         @asset.hyper.map(-> %toml {
@@ -200,7 +210,11 @@ multi sub gen-settings(:@asset!, :$scene-file! --> Array:D)
         });
 }
 
-multi sub gen-settings(:@entity!, :$scene-file! --> Array:D)
+multi sub gen-settings(
+    :@entity!,
+    :$scene-file!
+    --> Array[Nightscape::Config::Entity:D]
+)
 {
     my Nightscape::Config::Entity:D @a =
         @entity.hyper.map(-> %toml {
@@ -209,16 +223,23 @@ multi sub gen-settings(:@entity!, :$scene-file! --> Array:D)
 }
 
 # ledger specified
-multi sub gen-settings(:@ledger! --> Array[Nightscape::Config::Ledger:D])
+multi sub gen-settings(
+    :@ledger!,
+    :$scene-file!
+    --> Array[Nightscape::Config::Ledger:D]
+)
 {
     my Nightscape::Config::Ledger:D @a =
         @ledger.hyper.map(-> %toml {
-            Nightscape::Config::Ledger.new(|%toml)
+            Nightscape::Config::Ledger.new(|%toml, :$scene-file)
         });
 }
 
 # ledger unspecified
-multi sub gen-settings(:$ledger! --> Nil)
+multi sub gen-settings(
+    :$ledger!
+    --> Nil
+)
 {
     die(X::Nightscape::Config::Ledger::Missing.new);
 }

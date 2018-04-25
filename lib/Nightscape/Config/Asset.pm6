@@ -120,14 +120,14 @@ multi sub gen-dates-and-prices-from-file(
         gen-dates-and-prices-from-file(
             %asset-code-keypairs,
             $scene-file,
-            $price-file
+            :$price-file
         );
 }
 
 multi sub gen-dates-and-prices-from-file(
     %asset-code-keypairs where .so,
     AbsolutePath:D $scene-file where .so,
-    Str:D $price-file where .so
+    Str:D :$price-file! where .so
     --> Hash[Price:D,Date:D]
 )
 {
@@ -139,7 +139,11 @@ multi sub gen-dates-and-prices-from-file(
     #
     # thus relative paths appearing within the scene config file must
     # be resolved relative to the scene config file
-    my Str:D $file = gen-price-file($price-file, $scene-file);
+    my Str:D $file =
+        Nightscape::Config::Utils.resolve-path-relative(
+            $price-file,
+            $scene-file
+        );
     exists-readable-file($file)
         or die(X::Nightscape::Config::Asset::PriceFile::DNERF.new);
     my %toml = from-toml(:$file);
@@ -149,32 +153,11 @@ multi sub gen-dates-and-prices-from-file(
 multi sub gen-dates-and-prices-from-file(
     %asset-code-keypairs where .so,
     AbsolutePath:D $scene-file where .so,
-    Str $price-file
+    Str :price-file($)!
     --> Hash[Price:D,Date:D]
 )
 {
     my Price:D %dates-and-prices-from-file{Date:D};
-}
-
-multi sub gen-price-file(
-    Str:D $file where {
-        Nightscape::Config::Utils.resolve-path('~/', $_).IO.is-relative
-    },
-    Str:D $scene-file
-    --> Str:D
-)
-{
-    my Str:D $f = join('/', $scene-file.IO.dirname, $file);
-    my Str:D $price-file = Nightscape::Config::Utils.resolve-path($f);
-}
-
-multi sub gen-price-file(
-    Str:D $file,
-    Str:D $
-    --> Str:D
-)
-{
-    my Str:D $price-file = Nightscape::Config::Utils.resolve-path($file);
 }
 
 # end sub gen-price-sheet }}}

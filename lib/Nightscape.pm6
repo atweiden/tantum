@@ -20,7 +20,8 @@ submethod BUILD(
         Str :pkg-dir($),
         Str :price-dir($),
         Str :scene-dir($),
-        Str :scene-file($)
+        Str :scene-file($),
+        Nightscape::Config::Ledger:D :ledger(@)
     )
     --> Nil
 )
@@ -39,7 +40,8 @@ method new(
         Str :pkg-dir($),
         Str :price-dir($),
         Str :scene-dir($),
-        Str :scene-file($)
+        Str :scene-file($),
+        Nightscape::Config::Ledger:D :ledger(@)
     )
     --> Nightscape:D
 )
@@ -160,7 +162,7 @@ multi sub sync(
 {
     my Nightscape::Config::Ledger:D @ledger =
         grep-ledger-for-request(@l, @request);
-    my List:D $pkg = sync(:@ledger, |%opts);
+    my List:D $pkg = sync(:@ledger, |%opts).List;
     sync(:$pkg);
 }
 
@@ -175,7 +177,7 @@ multi sub sync(
     --> Nil
 )
 {
-    my List:D $pkg = sync(:@ledger, |%opts);
+    my List:D $pkg = sync(:@ledger, |%opts).List;
     sync(:$pkg);
 }
 
@@ -192,7 +194,7 @@ multi sub sync(
     my List:D $sync =
         @ledger.hyper.map(-> Nightscape::Config::Ledger:D $ledger {
             sync(:$ledger, |%opts)
-        });
+        }).List;
 }
 
 multi sub sync(

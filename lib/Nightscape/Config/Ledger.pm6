@@ -49,6 +49,7 @@ Credit: L<https://gist.github.com/zoffixznet/c5d602ee46651613dec964737a0774fa>
 
 class Nightscape::Config::Ledger::FromFile {...}
 class Nightscape::Config::Ledger::FromPkg {...}
+my role ToHash { method hash() {...} }
 
 # Nightscape::Config::Ledger {{{
 
@@ -58,6 +59,7 @@ class Nightscape::Config::Ledger
         *%opts (
             Str:D :code($)! where .so,
             Str:D :file($)! where .so,
+            AbsolutePath:D :scene-file($)! where .so,
             Int :date-local-offset($),
             Str :include-lib($)
         )
@@ -70,8 +72,9 @@ class Nightscape::Config::Ledger
     multi method new(
         *%opts (
             Str:D :pkgname($)! where .so,
-            Str:D :pkgver($)! where .so,
-            Int :pkgrel($)
+            :pkgver($)! where .defined,
+            Int :pkgrel($),
+            *%
         )
         --> Nightscape::Config::Ledger::FromPkg:D
     )
@@ -118,6 +121,7 @@ C<$.include-lib>.
 class Nightscape::Config::Ledger::FromFile
 {
     also is Nightscape::Config::Ledger;
+    also does ToHash;
 
     has VarNameBare:D $.code is required;
     has AbsolutePath:D $.file is required;
@@ -127,17 +131,46 @@ class Nightscape::Config::Ledger::FromFile
     submethod BUILD(
         Str:D :$code! where .so,
         Str:D :$file! where .so,
+        AbsolutePath:D :$scene-file! where .so,
         Int :$date-local-offset,
         Str :$include-lib
         --> Nil
     )
     {
         $!code = gen-var-name-bare($code);
-        $!file = Nightscape::Config::Utils.resolve-path($file);
+        $!file =
+            Nightscape::Config::Utils.resolve-path-relative($file, $scene-file);
         $!date-local-offset = $date-local-offset
             if $date-local-offset.defined;
-        $!include-lib = Nightscape::Config::Utils.resolve-path($include-lib)
-            if $include-lib;
+        $!include-lib =
+            Nightscape::Config::Utils.resolve-path-relative(
+                $include-lib,
+                $scene-file
+            ) if $include-lib;
+    }
+
+    method new(
+        *%opts (
+            Str:D :code($)! where .so,
+            Str:D :file($)! where .so,
+            AbsolutePath:D :scene-file($) where .so,
+            Int :date-local-offset($),
+            Str :include-lib($)
+        )
+        --> Nil
+    )
+    {
+        self.bless(|%opts);
+    }
+
+    method hash(::?CLASS:D: --> Hash:D)
+    {
+        my %hash;
+        %hash<code> = $.code;
+        %hash<file> = $.file;
+        %hash<date-local-offset> = $.date-local-offset if $.date-local-offset;
+        %hash<include-lib> = $.include-lib if $.include-lib;
+        %hash;
     }
 
     method made(
@@ -163,8 +196,9 @@ class Nightscape::Config::Ledger::FromFile
             if $date-local-offset.defined;
         %opts<include-lib> = $.include-lib
             if $.include-lib;
-        %opts<include-lib> = Nightscape::Config::Utils.resolve-path($include-lib)
-            if $include-lib;
+        %opts<include-lib> =
+            Nightscape::Config::Utils.resolve-path($include-lib)
+                if $include-lib;
         my %made =
             mktxn(:$pkgname, :$pkgver, :$pkgrel, :source($.file), |%opts);
     }
@@ -176,6 +210,7 @@ class Nightscape::Config::Ledger::FromFile
 class Nightscape::Config::Ledger::FromPkg
 {
     also is Nightscape::Config::Ledger;
+    also does ToHash;
 
     has VarNameBare:D $.pkgname is required;
     has Version:D $.pkgver is required;
@@ -183,7 +218,7 @@ class Nightscape::Config::Ledger::FromPkg
 
     submethod BUILD(
         Str:D :$pkgname! where .so,
-        Str:D :$pkgver! where .so,
+        :$pkgver! where .defined,
         Int :$pkgrel
         --> Nil
     )
@@ -191,6 +226,15 @@ class Nightscape::Config::Ledger::FromPkg
         $!pkgname = gen-var-name($pkgname);
         $!pkgver = Version.new($pkgver);
         $!pkgrel = $pkgrel if $pkgrel;
+    }
+
+    method hash(::?CLASS:D: --> Hash:D)
+    {
+        my %hash;
+        %hash<pkgname> = $.pkgname;
+        %hash<pkgver> = $.pkgver;
+        %hash<pkgrel> = $.pkgrel;
+        %hash;
     }
 
     method made(::?CLASS:D: AbsolutePath:D :$pkg-dir! where .so --> Hash:D)
