@@ -255,7 +255,10 @@ sub prepare-config-dirs(*@config-dir --> Nil)
     });
 }
 
-multi sub prepare-config-dir(Str:D $config-dir where .so --> Nil)
+multi sub prepare-config-dir(
+    Str:D $config-dir where .so
+    --> Nil
+)
 {
     my Bool:D %show{Str:D} = File::Presence.show($config-dir);
     prepare-config-dir($config-dir, %show);
