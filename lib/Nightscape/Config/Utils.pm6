@@ -2,7 +2,7 @@ use v6;
 use Nightscape::Types;
 use TXN::Parser;
 use TXN::Parser::Types;
-unit class Nightscape::Config::Utils;
+unit module Nightscape::Config::Utils;
 
 # sub gen-asset-code {{{
 
