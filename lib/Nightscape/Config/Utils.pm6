@@ -99,5 +99,30 @@ sub gen-var-name-bare(Str:D $s where .so --> VarNameBare:D) is export
 }
 
 # end sub gen-var-name }}}
+# sub to-string {{{
+
+multi sub to-string(Range:D $r --> Str:D) is export
+{
+    my Str:D $min = to-string($r.min);
+    my Str:D $max = to-string($r.max);
+    my Str:D $s = sprintf(Q{%s .. %s}, $min, $max);
+}
+
+multi sub to-string(Inf --> Str:D)
+{
+    my Str:D $s = '*';
+}
+
+multi sub to-string(-Inf --> Str:D)
+{
+    my Str:D $s = '*';
+}
+
+multi sub to-string($v --> Str:D)
+{
+    my Str:D $s = ~$v;
+}
+
+# end sub to-string }}}
 
 # vim: set filetype=perl6 foldmethod=marker foldlevel=0:

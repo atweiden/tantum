@@ -58,6 +58,36 @@ multi method new(*% --> Nil)
 }
 
 # end method new }}}
+# method hash {{{
+
+method hash(::?CLASS:D: --> Hash:D)
+{
+    my %hash;
+    %hash<code> = $.code;
+    %hash<costing> = ~$.costing if $.costing;
+    %hash<name> = $.name if $.name;
+    %hash<price> = hash(:%.price) if %.price;
+    %hash;
+}
+
+# convert C<Date>s into C<Str>s for passing to C<sub to-toml>
+proto sub hash(|) {*}
+multi sub hash(:%price! --> Hash[Hash[Price:D,Str:D],AssetCode:D])
+{
+    my Hash[Price:D,Str:D] %h{AssetCode:D} =
+        %price.map({
+            my Price:D %dates-and-prices{Date:D} = .values.first;
+            .keys.first => hash(:%dates-and-prices)
+        });
+}
+
+multi sub hash(:%dates-and-prices! --> Hash[Price:D,Str:D])
+{
+    my Price:D %h{Str:D} =
+        %dates-and-prices.map({ ~.keys.first => .values.first });
+}
+
+# end method hash }}}
 # sub gen-price-sheet {{{
 
 sub gen-price-sheet(

@@ -228,7 +228,7 @@ class Nightscape::Config::Ledger::FromPkg
     {
         my %hash;
         %hash<pkgname> = $.pkgname;
-        %hash<pkgver> = $.pkgver;
+        %hash<pkgver> = ~$.pkgver;
         %hash<pkgrel> = $.pkgrel;
         %hash;
     }

@@ -74,7 +74,13 @@ submethod BUILD(
     Str :$price-dir,
     Str :$scene-dir,
     Str :$scene-file,
-    Nightscape::Config::Ledger:D :@ledger
+    :$base-costing,
+    :$base-currency,
+    :$fiscal-year-end,
+    :@account,
+    :@asset,
+    :@entity,
+    :@ledger
     --> Nil
 )
 {
@@ -82,9 +88,9 @@ submethod BUILD(
 
     # if option C<app-file> is passed to instantiate
     # C<Nightscape::Config>, use that, otherwise use default
-    my %app-file-content;
     $!app-file =
         resolve-path($default-app-file, $app-file);
+    my %app-file-content;
     %app-file-content<app-dir> =
         resolve-path($default-app-dir, $app-dir);
     %app-file-content<log-dir> =
@@ -134,9 +140,20 @@ submethod BUILD(
     $!scene-file =
         resolve-path($default-scene-file, %app<scene-file>, $scene-file);
     my %scene-file-content;
-    %scene-file-content<base-costing> = ~$default-base-costing;
-    %scene-file-content<base-currency> = $default-base-currency;
-    %scene-file-content<fiscal-year-end> = $default-fiscal-year-end;
+    %scene-file-content<base-costing> =
+        (~$base-costing if $base-costing) // ~$default-base-costing;
+    %scene-file-content<base-currency> =
+        $base-currency // $default-base-currency;
+    %scene-file-content<fiscal-year-end> =
+        $fiscal-year-end // $default-fiscal-year-end;
+    %scene-file-content<account> =
+        @account.hyper.map({ .hash }).Array if @account;
+    %scene-file-content<asset> =
+        @asset.hyper.map({ .hash }).Array if @asset;
+    %scene-file-content<entity> =
+        @entity.hyper.map({ .hash }).Array if @entity;
+    %scene-file-content<ledger> =
+        @ledger.hyper.map({ .hash }).Array if @ledger;
     my Str:D $scene-file-content = to-toml(%scene-file-content);
     prepare-config-file($!scene-file, $scene-file-content);
 
@@ -146,20 +163,26 @@ submethod BUILD(
     try
     {
         CATCH { default { say(.message); exit(1) } };
-        @!ledger =
-            @ledger // gen-settings(:ledger(%scene<ledger>, :$!scene-file));
-        @!account = gen-settings(:account(%scene<account>))
-            if %scene<account>;
-        @!asset = gen-settings(:asset(%scene<asset>), :$!scene-file)
-            if %scene<asset>;
-        @!entity = gen-settings(:entity(%scene<entity>), :$!scene-file)
-            if %scene<entity>;
-        $!base-currency = gen-asset-code(%scene<base-currency>)
-            if %scene<base-currency>;
-        $!base-costing = gen-costing(%scene<base-costing>)
-            if %scene<base-costing>;
-        $!fiscal-year-end = %scene<fiscal-year-end>
-            if %scene<fiscal-year-end>;
+        @!ledger = @ledger
+            // gen-settings(:ledger(%scene<ledger>, :$!scene-file));
+        @!account = @account
+            // (gen-settings(:account(%scene<account>))
+                    if %scene<account>);
+        @!asset = @asset
+            // (gen-settings(:asset(%scene<asset>), :$!scene-file)
+                    if %scene<asset>);
+        @!entity = @entity
+            // (gen-settings(:entity(%scene<entity>), :$!scene-file)
+                    if %scene<entity>);
+        $!base-costing = $base-costing
+            // (gen-costing(%scene<base-costing>)
+                    if %scene<base-costing>);
+        $!base-currency = $base-currency
+            // (gen-asset-code(%scene<base-currency>)
+                    if %scene<base-currency>);
+        $!fiscal-year-end = $fiscal-year-end
+            // (%scene<fiscal-year-end>
+                    if %scene<fiscal-year-end>);
     }
 
     # --- end scene settings }}}
@@ -177,7 +200,13 @@ method new(
         Str :price-dir($),
         Str :scene-dir($),
         Str :scene-file($),
-        Nightscape::Config::Ledger:D :ledger(@)
+        :base-costing($),
+        :base-currency($),
+        :fiscal-year-end($),
+        :account(@),
+        :asset(@),
+        :entity(@),
+        :ledger(@)
     )
     --> Nightscape::Config:D
 )

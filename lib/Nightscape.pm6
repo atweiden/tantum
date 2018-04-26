@@ -25,7 +25,13 @@ submethod BUILD(
         Str :price-dir($),
         Str :scene-dir($),
         Str :scene-file($),
-        Nightscape::Config::Ledger:D :ledger(@)
+        :base-costing($),
+        :base-currency($),
+        :fiscal-year-end($),
+        :account(@),
+        :asset(@),
+        :entity(@),
+        :ledger(@)
     )
     --> Nil
 )
@@ -45,7 +51,13 @@ method new(
         Str :price-dir($),
         Str :scene-dir($),
         Str :scene-file($),
-        Nightscape::Config::Ledger:D :ledger(@)
+        :base-costing($),
+        :base-currency($),
+        :fiscal-year-end($),
+        :account(@),
+        :asset(@),
+        :entity(@),
+        :ledger(@)
     )
     --> Nightscape:D
 )

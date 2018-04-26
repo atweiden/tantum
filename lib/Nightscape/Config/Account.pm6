@@ -51,5 +51,18 @@ multi method new(*%)
 }
 
 # end method new }}}
+# method hash {{{
+
+method hash(::?CLASS:D: --> Hash:D)
+{
+    my %hash;
+    %hash<silo> = $.silo;
+    %hash<entity> = $.entity;
+    %hash<path> = @.path;
+    %hash<open> = to-string($.open) if $.open;
+    %hash;
+}
+
+# end method hash }}}
 
 # vim: set filetype=perl6 foldmethod=marker foldlevel=0:

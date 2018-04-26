@@ -72,6 +72,23 @@ multi method new(*% --> Nil)
 }
 
 # end method new }}}
+# method hash {{{
+
+method hash(::?CLASS:D: --> Hash:D)
+{
+    my %hash;
+    %hash<code> = $.code;
+    %hash<account> = @.account.hyper.map({ .hash }).Array if @.account;
+    %hash<asset> = @.asset.hyper.map({ .hash }).Array if @.asset;
+    %hash<base-costing> = $.base-costing if $.base-costing;
+    %hash<base-currency> = $.base-currency if $.base-currency;
+    %hash<fiscal-year-end> = $.fiscal-year-end if $.fiscal-year-end;
+    %hash<name> = $.name if $.name;
+    %hash<open> = to-string($.open) if $.open;
+    %hash;
+}
+
+# end method hash }}}
 # sub gen-settings {{{
 
 multi sub gen-settings(
