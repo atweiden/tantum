@@ -10,6 +10,10 @@ use NightscapeTest;
 # subtest({
     my %setup = NightscapeTest.setup;
     my Nightscape $nightscape .= new(|%setup);
+    $nightscape.clean;
+    $nightscape.reup;
+    $nightscape.serve;
+    $nightscape.show;
     $nightscape.sync;
 # });
 
