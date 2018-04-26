@@ -1,4 +1,5 @@
 use v6;
+use File::Path::Resolve;
 use File::Presence;
 use Nightscape::Config::Utils;
 use Nightscape::Types;
@@ -138,15 +139,11 @@ class Nightscape::Config::Ledger::FromFile
     )
     {
         $!code = gen-var-name-bare($code);
-        $!file =
-            Nightscape::Config::Utils.resolve-path-relative($file, $scene-file);
-        $!date-local-offset = $date-local-offset
-            if $date-local-offset.defined;
+        $!file = File::Path::Resolve.relative($file, $scene-file);
+        $!date-local-offset = $date-local-offset if $date-local-offset.defined;
         $!include-lib =
-            Nightscape::Config::Utils.resolve-path-relative(
-                $include-lib,
-                $scene-file
-            ) if $include-lib;
+            File::Path::Resolve.relative($include-lib, $scene-file)
+                if $include-lib;
     }
 
     method new(
@@ -196,9 +193,8 @@ class Nightscape::Config::Ledger::FromFile
             if $date-local-offset.defined;
         %opts<include-lib> = $.include-lib
             if $.include-lib;
-        %opts<include-lib> =
-            Nightscape::Config::Utils.resolve-path($include-lib)
-                if $include-lib;
+        %opts<include-lib> = File::Path::Resolve.absolute($include-lib)
+            if $include-lib;
         my %made =
             mktxn(:$pkgname, :$pkgver, :$pkgrel, :source($.file), |%opts);
     }

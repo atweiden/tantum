@@ -13,7 +13,8 @@
         "source"     : "https://github.com/atweiden/nightscape"
     },
     "provides" : {
-        "Nightscape"   : "lib/Nightscape.pm6",
-        "X:Nightscape" : "lib/X/Nightscape.pm6"
+        "File::Path::Resolve" : "lib/File/Path/Resolve.pm6",
+        "Nightscape"          : "lib/Nightscape.pm6",
+        "X::Nightscape"       : "lib/X/Nightscape.pm6"
     }
 }

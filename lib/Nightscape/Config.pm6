@@ -1,5 +1,6 @@
 use v6;
 use Config::TOML;
+use File::Path::Resolve;
 use File::Presence;
 use Nightscape::Config::Account;
 use Nightscape::Config::Asset;
@@ -453,7 +454,7 @@ multi sub resolve-path(
     %path<secondary> = shift(@rest) if @rest.so;
     %path<primary> = shift(@rest) if @rest.so;
     my Str:D $r = resolve-path(|%path);
-    my Str:D $resolve-path = Nightscape::Config::Utils.resolve-path($r);
+    my Str:D $resolve-path = File::Path::Resolve.absolute($r);
 }
 
 multi sub resolve-path(

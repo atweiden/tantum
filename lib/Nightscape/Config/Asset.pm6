@@ -1,5 +1,6 @@
 use v6;
 use Config::TOML;
+use File::Path::Resolve;
 use File::Presence;
 use Nightscape::Config::Utils;
 use Nightscape::Types;
@@ -139,11 +140,7 @@ multi sub gen-dates-and-prices-from-file(
     #
     # thus relative paths appearing within the scene config file must
     # be resolved relative to the scene config file
-    my Str:D $file =
-        Nightscape::Config::Utils.resolve-path-relative(
-            $price-file,
-            $scene-file
-        );
+    my Str:D $file = File::Path::Resolve.relative($price-file, $scene-file);
     exists-readable-file($file)
         or die(X::Nightscape::Config::Asset::PriceFile::DNERF.new);
     my %toml = from-toml(:$file);

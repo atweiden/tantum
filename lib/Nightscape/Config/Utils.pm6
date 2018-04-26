@@ -4,48 +4,6 @@ use TXN::Parser;
 use TXN::Parser::Types;
 unit class Nightscape::Config::Utils;
 
-# method resolve-path {{{
-
-multi method resolve-path(Str:D $path where .so --> Str:D)
-{
-    my Str:D $resolve-path =
-        ~Nightscape::Config::Utils.resolve-path('~/', $path).IO.resolve;
-}
-
-multi method resolve-path('~/', Str:D $path where .so --> Str:D)
-{
-    my Str:D $subst = sprintf(Q{%s/}, $*HOME);
-    my Str:D $resolve-path = $path.subst(/^'~/'/, $subst);
-}
-
-# end method resolve-path }}}
-# method resolve-path-relative {{{
-
-# resolve C<$file> relative to C<$file-base> if C<$file> is relative path
-multi method resolve-path-relative(
-    Str:D $file where {
-        Nightscape::Config::Utils.resolve-path('~/', $_).IO.is-relative
-    },
-    Str:D $file-base
-    --> Str:D
-)
-{
-    my Str:D $path-relative = join('/', $file-base.IO.dirname, $file);
-    my Str:D $path-absolute =
-        Nightscape::Config::Utils.resolve-path($path-relative);
-}
-
-multi method resolve-path-relative(
-    Str:D $file,
-    Str:D $
-    --> Str:D
-)
-{
-    my Str:D $path-absolute = Nightscape::Config::Utils.resolve-path($file);
-}
-
-# end method resolve-path-relative }}}
-
 # sub gen-asset-code {{{
 
 sub gen-asset-code(Str:D $s where .so --> AssetCode:D) is export
