@@ -69,7 +69,7 @@ method hash(::?CLASS:D: --> Hash:D)
     %hash<code> = $.code;
     %hash<costing> = ~$.costing if $.costing;
     %hash<name> = $.name if $.name;
-    %hash<price> = :%.price if %.price;
+    %hash<price> = %.price if %.price;
     %hash;
 }
 
