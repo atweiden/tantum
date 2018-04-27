@@ -186,7 +186,7 @@ class Nightscape::Config::Ledger::FromFile
         my UInt:D $pkgrel = 1;
         # settings passed as args from Nightscape cmdline override class
         # attributes gleaned from parsing TOML
-        my %opts{Str:D};
+        my %opts;
         %opts<date-local-offset> = $.date-local-offset
             if $.date-local-offset.defined;
         %opts<date-local-offset> = $date-local-offset

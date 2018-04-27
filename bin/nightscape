@@ -61,7 +61,7 @@ multi sub MAIN(
     --> Nil
 )
 {
-    my Str %opts{Str};
+    my %opts;
     %opts<date-local-offset> = $date-local-offset if $date-local-offset.defined;
     %opts<include-lib> = $include-lib if $include-lib;
     %opts<no-sync> = $no-sync if $no-sync;
@@ -121,7 +121,7 @@ multi sub MAIN(
     --> Nil
 )
 {
-    my Str %opts{Str};
+    my %opts;
     %opts<date-local-offset> = $date-local-offset if $date-local-offset.defined;
     %opts<include-lib> = $include-lib if $include-lib;
     Nightscape.new(|%setup-opts).sync(|%opts, |@ledger);
