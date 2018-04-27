@@ -23,10 +23,13 @@ submethod BUILD(
     --> Nil
 )
 {
-    $!silo = gen-silo($silo);
-    $!entity = gen-var-name($entity);
-    @!path = @path.hyper.map(-> $path { gen-var-name($path) });
-    $!open = gen-date-range($open) if $open;
+    $!silo = Nightscape::Config::Utils.gen-silo($silo);
+    $!entity = Nightscape::Config::Utils.gen-var-name($entity);
+    @!path =
+        @path.hyper.map(-> $path {
+            Nightscape::Config::Utils.gen-var-name($path)
+        });
+    $!open = Nightscape::Config::Utils.gen-date-range($open) if $open;
 }
 
 # end submethod BUILD }}}
@@ -59,7 +62,7 @@ method hash(::?CLASS:D: --> Hash:D)
     %hash<silo> = $.silo;
     %hash<entity> = $.entity;
     %hash<path> = @.path;
-    %hash<open> = to-string($.open) if $.open;
+    %hash<open> = Nightscape::Config::Utils.to-string($.open) if $.open;
     %hash;
 }
 

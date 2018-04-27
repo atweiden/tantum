@@ -175,10 +175,10 @@ submethod BUILD(
             // (gen-settings(:entity(%scene<entity>), :$!scene-file)
                     if %scene<entity>);
         $!base-costing = $base-costing
-            // (gen-costing(%scene<base-costing>)
+            // (Nightscape::Config::Utils.gen-costing(%scene<base-costing>)
                     if %scene<base-costing>);
         $!base-currency = $base-currency
-            // (gen-asset-code(%scene<base-currency>)
+            // (Nightscape::Config::Utils.gen-asset-code(%scene<base-currency>)
                     if %scene<base-currency>);
         $!fiscal-year-end = $fiscal-year-end
             // (%scene<fiscal-year-end>

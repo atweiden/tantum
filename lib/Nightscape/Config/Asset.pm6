@@ -29,10 +29,13 @@ submethod BUILD(
     --> Nil
 )
 {
-    $!code = gen-asset-code($code);
-    $!costing = gen-costing($costing) if $costing;
-    $!name = gen-var-name($name) if $name;
-    %!price = gen-price-sheet(%price, $scene-file) if %price;
+    $!code = Nightscape::Config::Utils.gen-asset-code($code);
+    $!costing = Nightscape::Config::Utils.gen-costing($costing)
+        if $costing;
+    $!name = Nightscape::Config::Utils.gen-var-name($name)
+        if $name;
+    %!price = Nightscape::Config::Utils.gen-price-sheet(%price, $scene-file)
+        if %price;
 }
 
 # end submethod BUILD }}}

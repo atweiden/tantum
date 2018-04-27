@@ -35,14 +35,21 @@ submethod BUILD(
     --> Nil
 )
 {
-    $!code = gen-var-name-bare($code);
-    @!account = gen-settings(:@account) if @account;
-    @!asset = gen-settings(:@asset, :$scene-file) if @asset;
-    $!base-costing = gen-costing($base-costing) if $base-costing;
-    $!base-currency = gen-asset-code($base-currency) if $base-currency;
-    $!fiscal-year-end = $fiscal-year-end if $fiscal-year-end;
-    $!name = gen-var-name($name) if $name;
-    $!open = gen-date-range($open) if $open;
+    $!code = Nightscape::Config::Utils.gen-var-name-bare($code);
+    @!account = Nightscape::Config::Utils.gen-settings(:@account)
+        if @account;
+    @!asset = Nightscape::Config::Utils.gen-settings(:@asset, :$scene-file)
+        if @asset;
+    $!base-costing = Nightscape::Config::Utils.gen-costing($base-costing)
+        if $base-costing;
+    $!base-currency = Nightscape::Config::Utils.gen-asset-code($base-currency)
+        if $base-currency;
+    $!fiscal-year-end = $fiscal-year-end
+        if $fiscal-year-end;
+    $!name = Nightscape::Config::Utils.gen-var-name($name)
+        if $name;
+    $!open = Nightscape::Config::Utils.gen-date-range($open)
+        if $open;
 }
 
 # end submethod BUILD }}}
@@ -84,7 +91,7 @@ method hash(::?CLASS:D: --> Hash:D)
     %hash<base-currency> = $.base-currency if $.base-currency;
     %hash<fiscal-year-end> = $.fiscal-year-end if $.fiscal-year-end;
     %hash<name> = $.name if $.name;
-    %hash<open> = to-string($.open) if $.open;
+    %hash<open> = Nightscape::Config::Utils.to-string($.open) if $.open;
     %hash;
 }
 

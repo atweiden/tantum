@@ -138,12 +138,12 @@ class Nightscape::Config::Ledger::FromFile
         --> Nil
     )
     {
-        $!code = gen-var-name-bare($code);
+        $!code = Nightscape::Config::Utils.gen-var-name-bare($code);
         $!file = File::Path::Resolve.relative($file, $scene-file);
-        $!date-local-offset = $date-local-offset if $date-local-offset.defined;
-        $!include-lib =
-            File::Path::Resolve.relative($include-lib, $scene-file)
-                if $include-lib;
+        $!date-local-offset = $date-local-offset
+            if $date-local-offset.defined;
+        $!include-lib = File::Path::Resolve.relative($include-lib, $scene-file)
+            if $include-lib;
     }
 
     method new(
@@ -219,7 +219,7 @@ class Nightscape::Config::Ledger::FromPkg
         --> Nil
     )
     {
-        $!pkgname = gen-var-name($pkgname);
+        $!pkgname = Nightscape::Config::Utils.gen-var-name($pkgname);
         $!pkgver = Version.new($pkgver);
         $!pkgrel = $pkgrel if $pkgrel;
     }
