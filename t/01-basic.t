@@ -173,7 +173,7 @@ multi sub gen-entry-derivative(
 }
 
 multi sub gen-entry-derivative(
-    @ (Entry:D $entry, *@tail),
+    Entry:D @ (Entry:D $entry, *@tail),
     ChartOfAccounts:D :$coa!,
     Hodl:D :$hodl!,
     :@patch!
@@ -181,11 +181,12 @@ multi sub gen-entry-derivative(
 )
 {
     my %e = gen-entry-derivative($entry, :$coa, :$hodl, :@patch);
-    my %entry-derivative = gen-entry-derivative(@tail, |%e);
+    my %entry-derivative =
+        gen-entry-derivative(Array[Entry:D].new(|@tail), |%e);
 }
 
 multi sub gen-entry-derivative(
-    @,
+    Entry:D @,
     ChartOfAccounts:D :$coa!,
     Hodl:D :$hodl!,
     :@patch!
@@ -214,7 +215,7 @@ multi sub gen-entry-derivative(
 # sub gen-posting-derivative {{{
 
 multi sub gen-posting-derivative(
-    @ (Entry::Posting:D $posting, *@tail),
+    Entry::Posting:D @ (Entry::Posting:D $posting, *@tail),
     ChartOfAccounts:D :$coa!,
     Hodl:D :$hodl!,
     :@patch!
@@ -222,11 +223,12 @@ multi sub gen-posting-derivative(
 )
 {
     my %p = gen-posting-derivative($posting, :$coa, :$hodl, :@patch);
-    my %posting-derivative = gen-posting-derivative(@tail, |%p);
+    my %posting-derivative =
+        gen-posting-derivative(Array[Entry::Posting:D].new(|@tail), |%p);
 }
 
 multi sub gen-posting-derivative(
-    @,
+    Entry::Posting:D @,
     ChartOfAccounts:D :$coa!,
     Hodl:D :$hodl!,
     :@patch!
