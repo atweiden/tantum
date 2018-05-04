@@ -40,7 +40,7 @@ history to C<$coa> and C<$hodl>.
 class Account
 {
     has Array[Rat:D] %.balance{AssetCode:D};
-    has Account:D %.subaccount{VarName:D} is rw;
+    has Account:D %.subaccount{VarName:D};
 
     # --- method clone {{{
 
@@ -69,6 +69,14 @@ class Account
     }
 
     # --- end method mkbalance }}}
+    # --- method mksubaccount {{{
+
+    method mksubaccount(::?CLASS:D: VarName:D $subaccount-name --> Nil)
+    {
+        %!subaccount{$subaccount-name} = Account.new;
+    }
+
+    # --- end method mksubaccount }}}
 }
 
 # end class Account }}}
@@ -265,7 +273,7 @@ multi sub in-account(
     *@subaccount ($subaccount-name, *@tail)
 ) is rw
 {
-    $account.subaccount{$subaccount-name} = Account.new;
+    $account.mksubaccount($subaccount-name);
     in-account($account, @subaccount);
 }
 
