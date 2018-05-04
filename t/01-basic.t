@@ -35,19 +35,52 @@ history to C<$coa> and C<$hodl>.
 
 # end p6doc }}}
 
+# class Account {{{
+
 class Account
 {
-    has Array[Rat:D] %.balance{AssetCode:D} is rw;
+    has Array[Rat:D] %.balance{AssetCode:D};
     has Account:D %.subaccount{VarName:D} is rw;
+
+    # --- method clone {{{
+
+    proto method clone(|) {*}
+    multi method clone(::?CLASS:D: --> Account:D)
+    {
+        my Array[Rat:D] %balance{AssetCode:D} =
+            %.balance.kv.hyper.map(->
+                AssetCode:D $asset-code, Rat:D @delta {
+                    $asset-code => @delta.clone
+            });
+        my Account:D %subaccount{VarName:D} =
+            %.subaccount.kv.hyper.map(->
+                VarName:D $subaccount-name, Account:D $account {
+                    $subaccount-name => $account.clone
+            });
+        my Account $account .= new(:%balance, :%subaccount);
+    }
+
+    # --- end method clone }}}
+    # --- method mkbalance {{{
+
+    method mkbalance(::?CLASS:D: AssetCode:D $asset-code, Rat:D $delta --> Nil)
+    {
+        push(%!balance{$asset-code}, $delta);
+    }
+
+    # --- end method mkbalance }}}
 }
 
+# end class Account }}}
 # class ChartOfAccounts {{{
 
 class ChartOfAccounts
 {
     # default is one account per C<Silo>
-    has Account:D %.account{Silo:D} is rw =
+    has Account:D %.account{Silo:D} =
         Silo::.keys.hyper.map({ ::($_) }) Z=> Account.new xx Silo::.keys.elems;
+
+    # --- method new {{{
 
     # new C<ChartOfAccounts> from C<Entry::Posting> and old C<ChartOfAccounts>
     multi method new(
@@ -56,8 +89,8 @@ class ChartOfAccounts
         --> ChartOfAccounts:D
     )
     {
-        # create new C<ChartOfAccounts> from existing
-        my ChartOfAccounts $coa .= new(:account($c.account));
+        # clone new C<ChartOfAccounts> from existing
+        my ChartOfAccounts:D $coa = $c.clone;
 
         # get target account
         my Entry::Posting::Account:D $account = $posting.account;
@@ -72,8 +105,8 @@ class ChartOfAccounts
         my AssetCode:D $asset-code = $amount.asset-code;
         my DecInc:D $decinc = $posting.decinc;
         my Int:D $multiplier = $decinc == INC ?? 1 !! -1;
-        my Rat:D $asset-quantity = $amount.asset-quantity * $multiplier;
-        push($account-target.balance{$asset-code}, $asset-quantity);
+        my Rat:D $delta = $amount.asset-quantity * $multiplier;
+        $account-target.mkbalance($asset-code, $delta);
 
         $coa;
     }
@@ -93,6 +126,21 @@ class ChartOfAccounts
     {
         self.bless;
     }
+
+    # --- end method new }}}
+    # --- method clone {{{
+
+    proto method clone(|) {*}
+    multi method clone(::?CLASS:D: --> ChartOfAccounts:D)
+    {
+        my Account:D %account{Silo:D} =
+            %.account.kv.hyper.map(-> Silo:D $silo, Account:D $account {
+                $silo => $account.clone
+            });
+        my ChartOfAccounts $coa .= new(:%account);
+    }
+
+    # --- end method clone }}}
 }
 
 # end class ChartOfAccounts }}}
@@ -106,88 +154,78 @@ class Hodl
 # sub gen-entry-derivative {{{
 
 multi sub gen-entry-derivative(
-    Entry:D @entry
+    Entry:D @entry (Entry:D $, *@),
     --> Hash:D
 )
 {
     my ChartOfAccounts $coa .= new;
     my Hodl $hodl .= new;
     my @patch;
-    my %opts = :$coa, :$hodl, :@patch;
-    my %entry-derivative = gen-entry-derivative(@entry, |%opts);
+    my %entry-derivative = gen-entry-derivative(@entry, :$coa, :$hodl, :@patch);
 }
 
 multi sub gen-entry-derivative(
-    Entry:D @ (Entry:D $entry, *@tail),
-    *%opts (
-        ChartOfAccounts:D :coa($)!,
-        Hodl:D :hodl($)!,
-        :patch(@)!
-    )
+    @ (Entry:D $entry, *@tail),
+    ChartOfAccounts:D :$coa!,
+    Hodl:D :$hodl!,
+    :@patch!
     --> Hash:D
 )
 {
-    my %e = gen-entry-derivative($entry, |%opts);
+    my %e = gen-entry-derivative($entry, :$coa, :$hodl, :@patch);
     my %entry-derivative = gen-entry-derivative(@tail, |%e);
 }
 
 multi sub gen-entry-derivative(
     @,
-    *%opts (
-        ChartOfAccounts:D :coa($)!,
-        Hodl:D :hodl($)!,
-        :patch(@)!
-    )
+    ChartOfAccounts:D :$coa!,
+    Hodl:D :$hodl!,
+    :@patch!
     --> Hash:D
 )
 {
-    my %entry-derivative = |%opts;
+    my %entry-derivative = :$coa, :$hodl, :@patch;
 }
 
 multi sub gen-entry-derivative(
     Entry:D $entry,
-    *%opts (
-        ChartOfAccounts:D :coa($)!,
-        Hodl:D :hodl($)!,
-        :patch(@)!
-    )
+    ChartOfAccounts:D :$coa!,
+    Hodl:D :$hodl!,
+    :@patch!
     --> Hash:D
 )
 {
     my Entry::Posting:D @posting = $entry.posting;
-    my %posting-derivative = gen-posting-derivative(@posting, |%opts);
+    my %posting-derivative =
+        gen-posting-derivative(@posting, :$coa, :$hodl, :@patch);
     # inspect aggregate entry postings for adjustments to C<$hodl>
-    my %entry-derivative = |%posting-derivative;
+    my %entry-derivative = %posting-derivative;
 }
 
 # end sub gen-entry-derivative }}}
 # sub gen-posting-derivative {{{
 
 multi sub gen-posting-derivative(
-    Entry::Posting:D @ (Entry::Posting:D $posting, *@tail),
-    *%opts (
-        ChartOfAccounts:D :coa($)!,
-        Hodl:D :hodl($)!,
-        :patch(@)!
-    )
+    @ (Entry::Posting:D $posting, *@tail),
+    ChartOfAccounts:D :$coa!,
+    Hodl:D :$hodl!,
+    :@patch!
     --> Hash:D
 )
 {
-    my %p = gen-posting-derivative($posting, |%opts);
+    my %p = gen-posting-derivative($posting, :$coa, :$hodl, :@patch);
     my %posting-derivative = gen-posting-derivative(@tail, |%p);
 }
 
 multi sub gen-posting-derivative(
     @,
-    *%opts (
-        ChartOfAccounts:D :coa($)!,
-        Hodl:D :hodl($)!,
-        :patch(@)!
-    )
+    ChartOfAccounts:D :$coa!,
+    Hodl:D :$hodl!,
+    :@patch!
     --> Hash:D
 )
 {
-    my %posting-derivative = |%opts;
+    my %posting-derivative = :$coa, :$hodl, :@patch;
 }
 
 multi sub gen-posting-derivative(
