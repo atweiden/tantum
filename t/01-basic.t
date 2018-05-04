@@ -262,6 +262,7 @@ multi sub in-account(
         },
         *@tail
     )
+    --> Account:D
 ) is rw
 {
     my Account:D $subaccount := $account.subaccount{$subaccount-name};
@@ -271,6 +272,7 @@ multi sub in-account(
 multi sub in-account(
     Account:D $account,
     *@subaccount ($subaccount-name, *@tail)
+    --> Account:D
 ) is rw
 {
     $account.mksubaccount($subaccount-name);
@@ -280,6 +282,7 @@ multi sub in-account(
 multi sub in-account(
     Account:D $account,
     *@
+    --> Account:D
 ) is rw
 {
     $account;
