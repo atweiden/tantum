@@ -126,7 +126,7 @@ method sync(
         Str :include-lib($)
     ),
     *@ledger
-    --> Nil
+    --> List:D
 )
 {
     my Nightscape::Config:D $*config = $.config;

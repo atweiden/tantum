@@ -11,10 +11,10 @@ method sync(
         Str :include-lib($)
     ),
     *@ledger
-    --> Nil
+    --> List:D
 )
 {
-    self!sync(|%opts, |@ledger);
+    my List:D $pkg = self!sync(|%opts, |@ledger);
 }
 
 # end method sync }}}
@@ -26,11 +26,11 @@ method !sync(
         Str :include-lib($)
     ),
     *@ledger
-    --> Nil
+    --> List:D
 )
 {
     my AbsolutePath:D $pkg-dir = $*config.pkg-dir;
-    sync($*config.ledger, :$pkg-dir, |%opts, |@ledger);
+    my List:D $pkg = sync($*config.ledger, :$pkg-dir, |%opts, |@ledger);
 }
 
 # end method !sync }}}
@@ -44,13 +44,12 @@ multi sub sync(
         Str :include-lib($)
     ),
     *@request where .so
-    --> Nil
+    --> List:D
 )
 {
     my Nightscape::Config::Ledger:D @ledger =
         grep-ledger-for-request(@l, @request);
     my List:D $pkg = sync(:@ledger, |%opts).List;
-    sync(:$pkg);
 }
 
 multi sub sync(
@@ -61,11 +60,10 @@ multi sub sync(
         Str :include-lib($)
     ),
     *@
-    --> Nil
+    --> List:D
 )
 {
     my List:D $pkg = sync(:@ledger, |%opts).List;
-    sync(:$pkg);
 }
 
 multi sub sync(
@@ -108,14 +106,6 @@ multi sub sync(
 )
 {
     my %sync = $ledger.made(:$pkg-dir);
-}
-
-multi sub sync(
-    List:D :$pkg!
-    --> Nil
-)
-{
-    .perl.say for $pkg.map({ $_<txn-info> });
 }
 
 # end sub sync }}}
