@@ -169,44 +169,50 @@ multi sub gen-entry-derivative(
     my ChartOfAccounts $coa .= new;
     my Hodl $hodl .= new;
     my @patch;
-    my %entry-derivative = gen-entry-derivative(@entry, :$coa, :$hodl, :@patch);
+    my %opts = :$coa, :$hodl, :@patch;
+    my %entry-derivative = gen-entry-derivative(@entry, |%opts);
 }
 
 multi sub gen-entry-derivative(
     Entry:D @ (Entry:D $entry, *@tail),
-    ChartOfAccounts:D :$coa!,
-    Hodl:D :$hodl!,
-    :@patch!
+    *%opts (
+        ChartOfAccounts:D :coa($)!,
+        Hodl:D :hodl($)!,
+        :patch(@)!
+    )
     --> Hash:D
 )
 {
-    my %e = gen-entry-derivative($entry, :$coa, :$hodl, :@patch);
+    my %e = gen-entry-derivative($entry, |%opts);
     my %entry-derivative =
         gen-entry-derivative(Array[Entry:D].new(|@tail), |%e);
 }
 
 multi sub gen-entry-derivative(
     Entry:D @,
-    ChartOfAccounts:D :$coa!,
-    Hodl:D :$hodl!,
-    :@patch!
+    *%opts (
+        ChartOfAccounts:D :coa($)!,
+        Hodl:D :hodl($)!,
+        :patch(@)!
+    )
     --> Hash:D
 )
 {
-    my %entry-derivative = :$coa, :$hodl, :@patch;
+    my %entry-derivative = |%opts;
 }
 
 multi sub gen-entry-derivative(
     Entry:D $entry,
-    ChartOfAccounts:D :$coa!,
-    Hodl:D :$hodl!,
-    :@patch!
+    *%opts (
+        ChartOfAccounts:D :coa($)!,
+        Hodl:D :hodl($)!,
+        :patch(@)!
+    )
     --> Hash:D
 )
 {
     my Entry::Posting:D @posting = $entry.posting;
-    my %posting-derivative =
-        gen-posting-derivative(@posting, :$coa, :$hodl, :@patch);
+    my %posting-derivative = gen-posting-derivative(@posting, |%opts);
     # inspect aggregate entry postings for adjustments to C<$hodl>
     my %entry-derivative = %posting-derivative;
 }
@@ -216,26 +222,30 @@ multi sub gen-entry-derivative(
 
 multi sub gen-posting-derivative(
     Entry::Posting:D @ (Entry::Posting:D $posting, *@tail),
-    ChartOfAccounts:D :$coa!,
-    Hodl:D :$hodl!,
-    :@patch!
+    *%opts (
+        ChartOfAccounts:D :coa($)!,
+        Hodl:D :hodl($)!,
+        :patch(@)!
+    )
     --> Hash:D
 )
 {
-    my %p = gen-posting-derivative($posting, :$coa, :$hodl, :@patch);
+    my %p = gen-posting-derivative($posting, |%opts);
     my %posting-derivative =
         gen-posting-derivative(Array[Entry::Posting:D].new(|@tail), |%p);
 }
 
 multi sub gen-posting-derivative(
     Entry::Posting:D @,
-    ChartOfAccounts:D :$coa!,
-    Hodl:D :$hodl!,
-    :@patch!
+    *%opts (
+        ChartOfAccounts:D :coa($)!,
+        Hodl:D :hodl($)!,
+        :patch(@)!
+    )
     --> Hash:D
 )
 {
-    my %posting-derivative = :$coa, :$hodl, :@patch;
+    my %posting-derivative = |%opts;
 }
 
 multi sub gen-posting-derivative(
