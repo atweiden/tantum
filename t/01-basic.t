@@ -277,7 +277,7 @@ multi sub in-account(
 
 multi sub in-account(
     Account:D $account,
-    *@subaccount ($subaccount-name, *@tail)
+    *@subaccount ($subaccount-name, *@)
     --> Account:D
 ) is rw
 {
