@@ -82,6 +82,12 @@ class Account
 # end class Account }}}
 # class ChartOfAccounts {{{
 
+=begin pod
+maybe what this needs is a closure generator where missing items
+include C<Account::Changeset>. or perhaps a function which returns
+C<Account::Changeset>.
+=end pod
+
 class ChartOfAccounts
 {
     # default is one account per C<Silo>
