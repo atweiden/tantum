@@ -97,7 +97,7 @@ class ChartOfAccounts
         --> ChartOfAccounts:D
     )
     {
-        # clone new C<ChartOfAccounts> from existing
+        # clone new C<ChartOfAccounts> from old
         my ChartOfAccounts:D $coa = $c.clone;
 
         # get target account
@@ -184,8 +184,8 @@ multi sub gen-entry-derivative(
 )
 {
     my %e = gen-entry-derivative($entry, |%opts);
-    my %entry-derivative =
-        gen-entry-derivative(Array[Entry:D].new(|@tail), |%e);
+    my Entry:D @entry = |@tail;
+    my %entry-derivative = gen-entry-derivative(@entry, |%e);
 }
 
 multi sub gen-entry-derivative(
@@ -231,8 +231,8 @@ multi sub gen-posting-derivative(
 )
 {
     my %p = gen-posting-derivative($posting, |%opts);
-    my %posting-derivative =
-        gen-posting-derivative(Array[Entry::Posting:D].new(|@tail), |%p);
+    my Entry::Posting:D @posting = |@tail;
+    my %posting-derivative = gen-posting-derivative(@posting, |%p);
 }
 
 multi sub gen-posting-derivative(
