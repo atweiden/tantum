@@ -267,21 +267,29 @@ multi sub gen-posting-derivative(
 
 multi sub in-account(
     Account:D $account,
-    *@ ($subaccount-name where { $account.subaccount{$_}:exists }, *@tail)
+    *@ (
+        VarName:D $subaccount-name where { $account.subaccount{$_}:exists },
+        *@tail
+    )
     --> Account:D
 ) is rw
 {
     my Account:D $subaccount := $account.subaccount{$subaccount-name};
-    in-account($subaccount, @tail);
+    my VarName:D @subaccount = @tail;
+    in-account($subaccount, @subaccount);
 }
 
 multi sub in-account(
     Account:D $account,
-    *@subaccount ($subaccount-name, *@)
+    *@s (
+        VarName:D $subaccount-name,
+        *@
+    )
     --> Account:D
 ) is rw
 {
     $account.mksubaccount($subaccount-name);
+    my VarName:D @subaccount = @s;
     in-account($account, @subaccount);
 }
 
