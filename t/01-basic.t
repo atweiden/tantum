@@ -17,20 +17,18 @@ my Entry:D @entry = $pkg.first<entry>.&ls-entries(:sort);
 =begin pod
 =head SUBROUTINES
 
-=head2 C<gen-entry-derivative>
+=head2 C<gen-entryʹ>
 
-C<gen-entry-derivative> chains C<$coa>, C<$hodl>, and C<@patch> through
+C<gen-entryʹ> chains C<$coa>, C<$hodl>, and C<@patch> through
 related subroutines.
 
-C<$coa> contains C<ChartOfAccounts>.
+c<$coa> contains entity I<Chart of Accounts>.
 
 C<$hodl> contains C<Holdings>, which tracks entity holdings for
 acquisition and disbursal.
 
 C<$coa> and C<$hodl> are modified
-L<Faux-O|https://www.destroyallsoftware.com/talks/boundaries> style while
-C<@patch> accrues patch sets. Patch sets are reflective of modification
-history to C<$coa> and C<$hodl>.
+L<Faux-O|https://www.destroyallsoftware.com/talks/boundaries> style.
 =end pod
 
 # end p6doc }}}
@@ -80,15 +78,15 @@ class Account
 }
 
 # end class Account }}}
-# class ChartOfAccounts {{{
+# class Coa {{{
 
 =begin pod
-maybe what this needs is a closure generator where missing items
+Maybe what this needs is a closure generator where missing items
 include C<Account::Changeset>. or perhaps a function which returns
 C<Account::Changeset>.
 =end pod
 
-class ChartOfAccounts
+class Coa
 {
     # default is one account per C<Silo>
     has Account:D %.account{Silo:D} =
@@ -96,15 +94,15 @@ class ChartOfAccounts
 
     # --- method new {{{
 
-    # new C<ChartOfAccounts> from C<Entry::Posting> and old C<ChartOfAccounts>
+    # new C<Coa> from C<Entry::Posting> and old C<Coa>
     multi method new(
-        ChartOfAccounts:D :coa($c)!,
+        Coa:D :coa($c)!,
         Entry::Posting:D :$posting!
-        --> ChartOfAccounts:D
+        --> Coa:D
     )
     {
-        # clone new C<ChartOfAccounts> from old
-        my ChartOfAccounts:D $coa = $c.clone;
+        # clone new C<Coa> from old
+        my Coa:D $coa = $c.clone;
 
         # get target account
         my Entry::Posting::Account:D $account = $posting.account;
@@ -127,7 +125,7 @@ class ChartOfAccounts
 
     multi method new(
         :%account!
-        --> ChartOfAccounts:D
+        --> Coa:D
     )
     {
         self.bless(:%account);
@@ -135,7 +133,7 @@ class ChartOfAccounts
 
     multi method new(
         *%
-        --> ChartOfAccounts:D
+        --> Coa:D
     )
     {
         self.bless;
@@ -145,130 +143,236 @@ class ChartOfAccounts
     # --- method clone {{{
 
     proto method clone(|) {*}
-    multi method clone(::?CLASS:D: --> ChartOfAccounts:D)
+    multi method clone(::?CLASS:D: --> Coa:D)
     {
         my Account:D %account{Silo:D} =
             %.account.kv.hyper.map(-> Silo:D $silo, Account:D $account {
                 $silo => $account.clone
             });
-        my ChartOfAccounts $coa .= new(:%account);
+        my Coa $coa .= new(:%account);
     }
 
     # --- end method clone }}}
 }
 
-# end class ChartOfAccounts }}}
+# end class Coa }}}
 # class Hodl {{{
 
-class Hodl
-{*}
+class Hodl {*}
 
 # end class Hodl }}}
+# class Entryʹ {{{
 
-# sub gen-entry-derivative {{{
+class Entryʹ
+{
+    # C<Entry> from which C<Entry′> is derived
+    has Entry:D $.entry is required;
+    has Entry::Postingʹ:D @.postingʹ is required;
+    has Coa:D $.coa is required;
+    has Hodl:D $.hodl is required;
 
-multi sub gen-entry-derivative(
+    method new(Entry:D $entry, Entry::Postingʹ:D @postingʹ --> Entryʹ:D)
+    {
+        my %bless = apply-hooks($entry, @postingʹ);
+        self.bless(|%bless);
+    }
+}
+
+# end class Entryʹ }}}
+# class Entry::Postingʹ {{{
+
+class Entry::Postingʹ
+{
+    # C<Entry::Posting> from which C<Entry::Posting′> is derived
+    has Entry::Posting:D $.posting is required;
+    has Coa:D $.coa is required;
+    has Hodl:D $.hodl is required;
+
+    proto method new(
+        Entry::Posting:D $posting,
+        *%opts (
+            Coa:D :coa($)!,
+            Hodl:D :hodl($)!
+        )
+        --> Entry::Postingʹ:D
+    )
+    {
+        my %*bless = apply-hooks($posting, |%opts);
+            # my Coa $coa .= new(:coa($c), :$posting);
+        {*}
+    }
+
+    multi method new(
+        Entry::Posting:D $posting,
+        *% (
+            Coa:D :coa($)!,
+            Hodl:D :hodl($)!
+        )
+        --> Entry::Postingʹ:D
+    )
+    {
+        my Entry::Postingʹ:D $postingʹ = self.bless(:$posting, |%*bless);
+    }
+
+    method made(::?CLASS:D: --> Hash:D)
+    {
+        my %made = :$.coa, :$.hodl;
+    }
+}
+
+# end class Entry::Postingʹ }}}
+
+# role Grep {{{
+
+role Grep
+{
+    method is-match(--> Bool:D) {...}
+}
+
+role Grep::Entry['All']
+{
+    also does Grep;
+
+    # match all entries
+    method is-match(Entry:D $ --> Bool:D)
+    {
+        my Bool:D $is-match = True;
+    }
+}
+
+role Grep::Entry::Posting['All']
+{
+    also does Grep;
+
+    # match all postings
+    method is-match(Entry::Posting:D $ --> Bool:D)
+    {
+        my Bool:D $is-match = True;
+    }
+}
+
+# end role Grep }}}
+# role Map {{{
+
+role Map::Entry::Posting['All']
+{
+    method new(--> Entry::Posting′:D)
+    {
+
+    }
+}
+
+# end role Map }}}
+
+# sub gen-entryʹ {{{
+
+multi sub gen-entryʹ(
     Entry:D @entry (Entry:D $, *@),
-    --> Hash:D
+    --> Array[Entryʹ:D]
 )
 {
-    my ChartOfAccounts $coa .= new;
+    my Coa $coa .= new;
     my Hodl $hodl .= new;
-    my @patch;
-    my %opts = :$coa, :$hodl, :@patch;
-    my %entry-derivative = gen-entry-derivative(@entry, |%opts);
+    my %opts = :$coa, :$hodl;
+    my Entryʹ:D @entryʹ = gen-entryʹ(@entry, %opts);
 }
 
-multi sub gen-entry-derivative(
+multi sub gen-entryʹ(
     Entry:D @ (Entry:D $entry, *@tail),
-    *%opts (
-        ChartOfAccounts:D :coa($)!,
-        Hodl:D :hodl($)!,
-        :patch(@)!
-    )
-    --> Hash:D
+    %opts (
+        Coa:D :coa($)!,
+        Hodl:D :hodl($)!
+    ),
+    Entryʹ:D :carry(@c)
+    --> Array[Entryʹ:D]
 )
 {
-    my %e = gen-entry-derivative($entry, |%opts);
+    # C<$entryʹ> is derivative of C<$entry> given Coa and Hodl
+    my Entryʹ:D $entryʹ = gen-entryʹ($entry, %opts);
+    # C<@entry> contains remaining C<Entry>s
     my Entry:D @entry = |@tail;
-    my %entry-derivative = gen-entry-derivative(@entry, |%e);
+    # C<%made> contains latest state of Coa and Hodl
+    my %made = $entryʹ.made;
+    # we append C<$entryʹ> to C<@carry> and handle remaining C<Entry>s
+    my Entryʹ:D @carry = |@c, $entryʹ;
+    # next C<Entry> handled gets latest state of Coa and Hodl via C<%made>
+    my Entryʹ:D @entryʹ = gen-entryʹ(@entry, %made, :@carry);
 }
 
-multi sub gen-entry-derivative(
+multi sub gen-entryʹ(
     Entry:D @,
-    *%opts (
-        ChartOfAccounts:D :coa($)!,
-        Hodl:D :hodl($)!,
-        :patch(@)!
-    )
-    --> Hash:D
+    % (
+        Coa:D :coa($)!,
+        Hodl:D :hodl($)!
+    ),
+    Entryʹ:D :@carry
+    --> Array[Entryʹ:D]
 )
 {
-    my %entry-derivative = |%opts;
+    # no more C<Entry>s remain to be handled
+    my Entryʹ:D @entry = @carry;
 }
 
-multi sub gen-entry-derivative(
+multi sub gen-entryʹ(
     Entry:D $entry,
-    *%opts (
-        ChartOfAccounts:D :coa($)!,
-        Hodl:D :hodl($)!,
-        :patch(@)!
+    %opts (
+        Coa:D :coa($)!,
+        Hodl:D :hodl($)!
     )
-    --> Hash:D
+    --> Entryʹ:D
 )
 {
     my Entry::Posting:D @posting = $entry.posting;
-    my %posting-derivative = gen-posting-derivative(@posting, |%opts);
-    # inspect aggregate entry postings for adjustments to C<$hodl>
-    my %entry-derivative = %posting-derivative;
+    my Entry::Postingʹ:D @postingʹ = gen-postingʹ(@posting, %opts);
+    my Entryʹ $entryʹ .= new($entry, @postingʹ);
 }
 
-# end sub gen-entry-derivative }}}
-# sub gen-posting-derivative {{{
+# end sub gen-entryʹ }}}
+# sub gen-postingʹ {{{
 
-multi sub gen-posting-derivative(
+multi sub gen-postingʹ(
     Entry::Posting:D @ (Entry::Posting:D $posting, *@tail),
-    *%opts (
-        ChartOfAccounts:D :coa($)!,
-        Hodl:D :hodl($)!,
-        :patch(@)!
-    )
-    --> Hash:D
+    %opts (
+        Coa:D :coa($)!,
+        Hodl:D :hodl($)!
+    ),
+    Entry::Postingʹ:D :carry(@c)
+    --> Array[Entry::Postingʹ:D]
 )
 {
-    my %p = gen-posting-derivative($posting, |%opts);
     my Entry::Posting:D @posting = |@tail;
-    my %posting-derivative = gen-posting-derivative(@posting, |%p);
+    my %made = $postingʹ.made;
+    my Entry::Postingʹ:D $postingʹ = gen-postingʹ($posting, %opts);
+    my Entry::Postingʹ:D @carry = |@c, $postingʹ;
+    my Entry::Postingʹ:D @postingʹ = gen-postingʹ(@posting, %made, :@carry);
 }
 
-multi sub gen-posting-derivative(
+multi sub gen-postingʹ(
     Entry::Posting:D @,
-    *%opts (
-        ChartOfAccounts:D :coa($)!,
-        Hodl:D :hodl($)!,
-        :patch(@)!
-    )
-    --> Hash:D
+    % (
+        Coa:D :coa($)!,
+        Hodl:D :hodl($)!
+    ),
+    Entry::Postingʹ:D :@carry
+    --> Array[Entry::Postingʹ:D]
 )
 {
-    my %posting-derivative = |%opts;
+    my Entry::Postingʹ:D @postingʹ = @carry;
 }
 
-multi sub gen-posting-derivative(
+multi sub gen-postingʹ(
     Entry::Posting:D $posting,
-    ChartOfAccounts:D :coa($c)!,
-    Hodl:D :$hodl!,
-    :patch(@p)!
-    --> Hash:D
+    %opts (
+        Coa:D :coa($)!,
+        Hodl:D :hodl($)!
+    ),
+    --> Entry::Postingʹ:D
 )
 {
-    my ChartOfAccounts $coa .= new(:coa($c), :$posting);
-    my %patch;
-    my @patch = |@p, %patch;
-    my %posting-derivative = :$coa, :$hodl, :@patch;
+    my Entry::Postingʹ $postingʹ .= new(|%opts);
 }
 
-# end sub gen-posting-derivative }}}
+# end sub gen-postingʹ }}}
 # sub in-account {{{
 
 multi sub in-account(
@@ -327,7 +431,7 @@ multi sub ls-entries(Entry:D @e, Bool :sort($) --> Array[Entry:D])
 
 # end sub ls-entries }}}
 
-my %entry-derivative = gen-entry-derivative(@entry);
-%entry-derivative.perl.say;
+my Entryʹ:D $entryʹ = gen-entryʹ(@entry);
+$entryʹ.perl.say;
 
 # vim: set filetype=perl6 foldmethod=marker foldlevel=0:
