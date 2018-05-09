@@ -64,11 +64,10 @@ multi sub send-to-hooks(
     --> Entry::Postingʹ:D
 )
 {
-    my Entry::Postingʹ $qʹ .= new(:$posting, :$coa, :$hodl);
     my Entry::Postingʹ:D $postingʹ =
         @hook
         .grep({ .is-match($posting, $coa, $hodl) })
-        .&send-to-hooks($qʹ, :apply);
+        .&send-to-hooks(Entry::Postingʹ.new(:$posting, :$coa, :$hodl), :apply);
 }
 
 multi sub send-to-hooks(
