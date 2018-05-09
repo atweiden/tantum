@@ -340,7 +340,7 @@ multi sub perl(
     --> Str:D
 )
 {
-    my Str:D $perl = $dependency.perl.subst(/:U$/, '');
+    my Str:D $perl = $dependency.perl.subst(/':U'$/, '');
 }
 
 # end method perl }}}
