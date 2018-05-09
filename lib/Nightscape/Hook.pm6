@@ -282,7 +282,7 @@ method perl(--> Str:D)
         sprintf(
             Q{%s.new(%s)},
             perl('type', $type),
-            perl('attributes', $.name, $.description, $.priority, @.dependency)
+            perl('attr', $.name, $.description, $.priority, @.dependency)
         );
 }
 
@@ -296,7 +296,7 @@ multi sub perl(
 }
 
 multi sub perl(
-    'attributes',
+    'attr',
     Str:D $name,
     Str:D $description,
     Int:D $priority,
