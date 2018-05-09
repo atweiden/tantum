@@ -19,7 +19,7 @@ Nightscape::Hook
 
     my Nightscape::Registry $registry .= new;
 
-    my role Nightscape::Hook::Entry::Posting::All
+    my class Nightscape::Hook::Entry::Posting::All
     {
         also does Nightscape::Hook[POSTING];
 
@@ -94,7 +94,7 @@ Nightscape::Hook
         }
     }
 
-    my role Nightscape::Hook::Coa::All
+    my class Nightscape::Hook::Coa::All
     {
         also does Nightscape::Hook[COA];
 
@@ -109,7 +109,7 @@ Nightscape::Hook
         }
     }
 
-    my role Nightscape::Hook::Hook::All
+    my class Nightscape::Hook::Hook::All
     {
         also does Nightscape::Hook[HOOK];
     }
