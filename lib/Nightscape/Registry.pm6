@@ -6,19 +6,30 @@ unit class Nightscape::Registry;
 
 has Nightscape::Hook:D @!hook;
 
+# method hook {{{
+
 method hook(::?CLASS:D: --> Array[Nightscape::Hook:D])
 {
     my Nightscape::Hook:D @hook = @!hook;
 }
+
+# end method hook }}}
+# method register {{{
 
 method register(Nightscape::Hook:D $hook --> Nil)
 {
     push(@!hook, $hook);
 }
 
+# end method register }}}
+# method unregister {{{
+
 # tbd
 method unregister(Nightscape::Hook:D $hook --> Nil)
 {*}
+
+# end method unregister }}}
+# method query-hooks {{{
 
 # query hooks by type
 method query-hooks(
@@ -30,6 +41,7 @@ method query-hooks(
     my Nightscape::Hook[$type] @hook = @.hook.grep(Nightscape::Hook[$type]);
 }
 
+# end method query-hooks }}}
 # method send-to-hooks {{{
 
 method send-to-hooks(
@@ -38,8 +50,9 @@ method send-to-hooks(
     @arg
 )
 {
-    # find C<Nightscape::Hook>s of this C<HookType>
-    my Nightscape::Hook[$type] @hook = self.query-hooks($type);
+    # sort C<Nightscape::Hook>s of this C<HookType> by priority descending
+    my Nightscape::Hook[$type] @hook =
+        self.query-hooks($type).sort({ $^b.priority > $^a.priority });
     send-to-hooks(@hook, @arg);
 }
 
@@ -55,7 +68,6 @@ multi sub send-to-hooks(
     my Entry::Postingʹ:D $postingʹ =
         @hook
         .grep({ .is-match($posting, $coa, $hodl) })
-        .sort({ $^b.priority > $^a.priority })
         .&send-to-hooks($qʹ, :apply);
 }
 
@@ -95,11 +107,7 @@ multi sub send-to-hooks(
 {
     my COA:D $coa =
         @hook
-        # grep C<Nightscape::Hook>s for matches
         .grep({ .is-match($c, $posting) })
-        # sort C<Nightscape::Hook>s by priority descending
-        .sort({ $^b.priority > $^a.priority })
-        # apply C<Nightscape::Hook>s
         .&send-to-hooks(@arg, :apply);
 }
 
