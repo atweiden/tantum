@@ -1,6 +1,12 @@
 use v6;
+use Nightscape::Hook::Action;
+use Nightscape::Hook::Trigger;
+use Nightscape::Registry;
+use Nightscape::Types;
 use TXN::Parser::Types;
-unit class Nightscape::Hook;
+unit role Nightscape::Hook[HookType $type];
+also does Nightscape::Hook::Action[$type];
+also does Nightscape::Hook::Trigger[$type];
 
 # p6doc {{{
 
@@ -11,35 +17,56 @@ Nightscape::Hook
 
 =head SYNOPSIS
 
-    # fake generate C<Entry::Posting> for this example
-    my Entry::Posting:D $posting = get-posting();
+    my Nightscape::Registry $registry .= new;
+
+    my role Nightscape::Hook::Entry::Posting::All
+    {
+        also does Nightscape::Hook[POSTING];
+
+        has Str:D $.name;
+        has Str:D $.description;
+        has Nightscape::Hook:U @.dependency;
+
+        method apply(
+            Entry::Posting:D $posting,
+            Coa:D $c,
+            Hodl:D $hodl
+            --> Entry::Postingʹ:D
+        )
+        {
+            my COA:D $coa = $registry.send-to-hooks(COA, [$c, $posting]);
+            my Entry::Postingʹ $postingʹ .= new(:$coa, :$hodl, :$posting);
+        }
+
+        method is-match(
+            Entry::Posting:D $posting,
+            Coa:D $coa,
+            Hodl:D $hodl
+            --> Bool:D
+        )
+        {
+            my Bool:D $is-match = True;
+        }
+    }
+
+    my role Nightscape::Hook::Coa::All
+    {
+        also does Nightscape::Hook[COA];
+    }
+
+    my role Nightscape::Hook::Hook::All
+    {
+        also does Nightscape::Hook[HOOK];
+    }
+
+    # generate hypothetical C<Entry::Posting> for this example
+    my Entry::Posting:D $posting = gen-posting();
+
     # instantiate C<Coa> for this example
     my Coa $coa .= new;
+
     # instantiate C<Hodl> for this example
     my Hodl $hodl .= new;
-    my Nightscape::Hook $hook .=
-        new(
-            # for ordering multiple matching hooks
-            :priority(0),
-            # corresponds to Entry::Posting
-            :type<Posting>,
-            # conditions necessary for C<Hook.apply>
-            :trigger({
-                # corresponds to Grep::Entry::Posting['All']
-                :module<All>
-            }),
-            # what to return from C<Hook.apply>
-            :action({
-                # for logs
-                :description(
-                    'modifying entity Chart of Accounts based on Posting...'
-                ),
-                # corresponds to Map::Entry::Posting['All']
-                :module<All>
-            })
-        );
-    my Bool:D $is-match = $hook.is-match($posting, $coa, $hodl);
-    $hook.apply if $is-match;
 
 =head DESCRIPTION
 
@@ -51,16 +78,17 @@ produces a I<Chart of Accounts> and other essential accounting
 reports.
 
 Hooks allow for closely examining and logging each and every step
-a TXN document goes along the way to an essential report, leading
-to increased auditability. Hooks enable fine-grained control over
-what happens every step of the way.
+a TXN document goes through along the way to an essential report,
+leading to increased auditability. Hooks enable a high degree of
+insight and fine-grained control over what happens every step of
+the way.
 
 Pure functions are to be strived for. Side-effects during pipeline
 transformation at the behest of Hooks are strongly discouraged.
 Major datapoints, such as I<Chart of Accounts> (C<Coa>) and I<Holdings>
-(C<Hodl>) are first class citizens in the transformation, for
-instance. If and when other data structures become critical to
-Nightscape report generation, the key elements of the data structures
+(C<Hodl>) are first class citizens throughout the entirety of the
+pipeline, for instance. If and when other data structures become critical
+to Nightscape report generation, the key elements of those data structures
 should be reigned in similar to how C<Coa> and C<Hodl> are handled.
 =end paragraph
 
@@ -149,7 +177,7 @@ arguments:
 
     # an existing Coa
     Coa:D $c,
-    Entry::Posting:D @posting
+    Entry::Posting:D $posting
 
 and which returns:
 
@@ -161,12 +189,75 @@ and which returns:
 B<Hodl>
 
 I<Hodl> hooks are scoped to C<Hodl>s. Each time a C<Hodl> is queued
-for instantiation (e.g. as part of C<Entryʹ> generation), I<Coa>
+for instantiation (e.g. as part of C<Entryʹ> generation), I<Hodl>
 hooks will be filtered for relevancy and the actions inscribed in
 matching hooks executed.
+=end item
+
+=head2 Category: Meta
+
+=begin item
+B<Hook>
+
+I<Hook> hooks are scoped to C<Hook>s. Each time a C<Hook> is queued
+for instantiation or application (e.g. C<Hook.apply>), I<Hook> hooks
+will be filtered for relevancy and the actions inscribed in matching
+hooks executed.
+
+The primary impetus behind I<Hook> hooks is to log which hooks are
+firing and when. I<Hook> hooks might also be used to chain hooks
+together.
 =end item
 =end pod
 
 # end p6doc }}}
+
+# turn these into method stubs {...}
+has Str:D $.name is required;
+has Str:D $.description is required;
+# for declaring C<Nightscape::Hook> types needed in registry
+has Nightscape::Hook:U @.dependency;
+# for ordering multiple matching hooks
+has Int:D $.priority = 0;
+
+# method perl {{{
+
+method perl(--> Str:D)
+{
+    my Str:D $perl =
+        sprintf(
+            Q{%s.new(%s)},
+            perl('type', $type),
+            perl('elements', $.name, $.description, $.priority)
+        );
+}
+
+multi sub perl(
+    'type',
+    HookType $type
+    --> Str:D
+)
+{
+    my Str:D $perl = sprintf(Q{Nightscape::Hook[%s]}, $type);
+}
+
+multi sub perl(
+    'elements',
+    Str:D $name,
+    Str:D $description,
+    Int:D $priority
+    --> Str:D
+)
+{
+    my Str:D $perl =
+        sprintf(
+            Q{:name(%s), :description(%s), :priority(%s)},
+            $name.perl,
+            $description.perl,
+            $priority.perl
+        );
+}
+
+# end method perl }}}
 
 # vim: set filetype=perl6 foldmethod=marker foldlevel=0:

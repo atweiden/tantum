@@ -11,5 +11,10 @@ subset AbsolutePath of Str is export where .IO.is-absolute;
 enum Costing is export <AVCO FIFO LIFO>;
 
 # end Costing }}}
+# HookType {{{
+
+enum HookType is export <POSTING ENTRY LEDGER COA HODL HOOK>;
+
+# end HookType }}}
 
 # vim: set filetype=perl6 foldmethod=marker foldlevel=0:

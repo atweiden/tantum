@@ -188,32 +188,6 @@ class Entry::Postingʹ
     has Coa:D $.coa is required;
     has Hodl:D $.hodl is required;
 
-    proto method new(
-        Entry::Posting:D $posting,
-        *%opts (
-            Coa:D :coa($)!,
-            Hodl:D :hodl($)!
-        )
-        --> Entry::Postingʹ:D
-    )
-    {
-        my %*bless = apply-hooks($posting, |%opts);
-            # my Coa $coa .= new(:coa($c), :$posting);
-        {*}
-    }
-
-    multi method new(
-        Entry::Posting:D $posting,
-        *% (
-            Coa:D :coa($)!,
-            Hodl:D :hodl($)!
-        )
-        --> Entry::Postingʹ:D
-    )
-    {
-        my Entry::Postingʹ:D $postingʹ = self.bless(:$posting, |%*bless);
-    }
-
     method made(::?CLASS:D: --> Hash:D)
     {
         my %made = :$.coa, :$.hodl;
