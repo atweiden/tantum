@@ -315,9 +315,9 @@ multi sub gen-postingʹ(
 )
 {
     my Entry::Posting:D @posting = |@tail;
-    my %made = $postingʹ.made;
     my Entry::Postingʹ:D $postingʹ = gen-postingʹ($posting, %opts);
     my Entry::Postingʹ:D @carry = |@c, $postingʹ;
+    my %made = $postingʹ.made;
     my Entry::Postingʹ:D @postingʹ = gen-postingʹ(@posting, %made, :@carry);
 }
 

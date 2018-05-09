@@ -30,6 +30,8 @@ method query-hooks(
     my Nightscape::Hook[$type] @hook = @.hook.grep(Nightscape::Hook[$type]);
 }
 
+# method send-to-hooks {{{
+
 method send-to-hooks(
     ::?CLASS:D:
     HookType $type,
@@ -40,6 +42,50 @@ method send-to-hooks(
     my Nightscape::Hook[$type] @hook = self.query-hooks($type);
     send-to-hooks(@hook, @arg);
 }
+
+# --- POSTING {{{
+
+multi sub send-to-hooks(
+    Nightscape::Hook[POSTING] @hook,
+    @arg (Entry::Posting:D $posting, Coa:D $c, Hodl:D $hodl)
+    --> Entry::Postingʹ:D
+)
+{
+    my Entry::Postingʹ:D $postingʹ =
+        @hook
+        .grep({ .is-match($c, $posting) })
+        .sort({ $^b.priority > $^a.priority })
+        .&send-to-hooks(@arg, :apply);
+}
+
+multi sub send-to-hooks(
+    Nightscape::Hook[POSTING] @ (Nightscape::Hook[POSTING] $hook, *@tail),
+    @arg (Entry::Posting:D $p, Coa:D $c, Hodl:D $h),
+    Bool:D :apply($)! where .so
+    --> Entry::Postingʹ:D
+)
+{
+    my Nightscape::Hook[POSTING] @hook = |@tail;
+    my Entry::Postingʹ:D $qʹ = $hook.apply($p, $c, $h);
+    my Entry::Posting $posting = $qʹ.posting;
+    my Coa:D $coa = $qʹ.coa;
+    my Hodl:D $hodl = $qʹ.hodl;
+    my Entry::Postingʹ:D $postingʹ =
+        send-to-hooks(@hook, [$posting, $coa, $hodl], :apply);
+}
+
+multi sub send-to-hooks(
+    Nightscape::Hook[POSTING] @,
+    @arg (Entry::Posting:D $posting, Coa:D $coa, Hodl:D $hodl),
+    Bool:D :apply($)! where .so
+    --> Entry::Postingʹ:D
+)
+{
+    my Entry::Postingʹ $postingʹ .= new(:$posting, :$coa, :$hodl);
+}
+
+# --- end POSTING }}}
+# --- COA {{{
 
 multi sub send-to-hooks(
     Nightscape::Hook[COA] @hook,
@@ -78,5 +124,9 @@ multi sub send-to-hooks(
 {
     my Coa:D $coa = $c;
 }
+
+# --- end COA }}}
+
+# end method send-to-hooks }}}
 
 # vim: set filetype=perl6 foldmethod=marker foldlevel=0:
