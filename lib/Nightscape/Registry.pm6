@@ -47,41 +47,41 @@ method send-to-hooks(
 
 multi sub send-to-hooks(
     Nightscape::Hook[POSTING] @hook,
-    @arg (Entry::Posting:D $posting, Coa:D $c, Hodl:D $hodl)
+    @arg (Entry::Posting:D $posting, Coa:D $coa, Hodl:D $hodl)
     --> Entry::Postingʹ:D
 )
 {
+    my Entry::Postingʹ $qʹ .= new(:$posting, :$coa, :$hodl);
     my Entry::Postingʹ:D $postingʹ =
         @hook
-        .grep({ .is-match($c, $posting) })
+        .grep({ .is-match($posting, $coa, $hodl) })
         .sort({ $^b.priority > $^a.priority })
-        .&send-to-hooks(@arg, :apply);
+        .&send-to-hooks($qʹ, :apply);
 }
 
 multi sub send-to-hooks(
     Nightscape::Hook[POSTING] @ (Nightscape::Hook[POSTING] $hook, *@tail),
-    @arg (Entry::Posting:D $p, Coa:D $c, Hodl:D $h),
+    Entry::Postingʹ:D $qʹ,
     Bool:D :apply($)! where .so
     --> Entry::Postingʹ:D
 )
 {
     my Nightscape::Hook[POSTING] @hook = |@tail;
-    my Entry::Postingʹ:D $qʹ = $hook.apply($p, $c, $h);
     my Entry::Posting $posting = $qʹ.posting;
     my Coa:D $coa = $qʹ.coa;
     my Hodl:D $hodl = $qʹ.hodl;
-    my Entry::Postingʹ:D $postingʹ =
-        send-to-hooks(@hook, [$posting, $coa, $hodl], :apply);
+    my Entry::Postingʹ:D $rʹ = $hook.apply($posting, $coa, $hodl);
+    my Entry::Postingʹ:D $postingʹ = send-to-hooks(@hook, $rʹ, :apply);
 }
 
 multi sub send-to-hooks(
     Nightscape::Hook[POSTING] @,
-    @arg (Entry::Posting:D $posting, Coa:D $coa, Hodl:D $hodl),
+    Entry::Postingʹ:D $qʹ,
     Bool:D :apply($)! where .so
     --> Entry::Postingʹ:D
 )
 {
-    my Entry::Postingʹ $postingʹ .= new(:$posting, :$coa, :$hodl);
+    my Entry::Postingʹ:D $postingʹ = $qʹ;
 }
 
 # --- end POSTING }}}

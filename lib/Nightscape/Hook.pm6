@@ -97,6 +97,16 @@ Nightscape::Hook
     my role Nightscape::Hook::Coa::All
     {
         also does Nightscape::Hook[COA];
+
+        method is-match(
+            Entry::Posting:D $posting,
+            Coa:D $coa,
+            Hodl:D $hodl
+            --> Bool:D
+        )
+        {
+            my Bool:D $is-match = True;
+        }
     }
 
     my role Nightscape::Hook::Hook::All
