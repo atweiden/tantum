@@ -269,10 +269,10 @@ together.
 
 method name(--> Str:D) {...}
 method description(--> Str:D) {...}
-# for declaring C<Nightscape::Hook> types needed in registry
-method dependency(--> Array[Nightscape::Hook:U]) {...}
 # for ordering multiple matching hooks
 method priority(--> Int:D) {...}
+# for declaring C<Nightscape::Hook> types needed in registry
+method dependency(--> Array[Nightscape::Hook:U]) {...}
 
 # method perl {{{
 
@@ -282,7 +282,7 @@ method perl(--> Str:D)
         sprintf(
             Q{%s.new(%s)},
             perl('type', $type),
-            perl('elements', $.name, $.description, $.priority)
+            perl('attributes', $.name, $.description, $.priority, @.dependency)
         );
 }
 
@@ -296,20 +296,51 @@ multi sub perl(
 }
 
 multi sub perl(
-    'elements',
+    'attributes',
     Str:D $name,
     Str:D $description,
-    Int:D $priority
+    Int:D $priority,
+    Nightscape::Hook:U @dependency
     --> Str:D
 )
 {
     my Str:D $perl =
         sprintf(
-            Q{:name(%s), :description(%s), :priority(%s)},
+            Q{:name(%s), :description(%s), :priority(%s), :dependency(%s)},
             $name.perl,
             $description.perl,
-            $priority.perl
+            $priority.perl,
+            perl(@dependency)
         );
+}
+
+multi sub perl(
+    Nightscape::Hook:U @ (Nightscape::Hook:U $dependency, *@tail)
+    Str:D :carry(@c)
+    --> Str:D
+)
+{
+    my Nightscape::Hook:U @dependency = |@tail;
+    my Str:D $s = perl($dependency);
+    my Str:D @carry = |@c, $s;
+    my Str:D $perl = perl(@dependency, :@carry);
+}
+
+multi sub perl(
+    Nightscape::Hook:U @,
+    Str:D :@carry
+    --> Array[Str:D]
+)
+{
+    my Str:D $perl = @carry.join(', ');
+}
+
+multi sub perl(
+    Nightscape::Hook:U $dependency
+    --> Str:D
+)
+{
+    my Str:D $perl = $dependency.perl.subst(/:U$/, '');
 }
 
 # end method perl }}}
