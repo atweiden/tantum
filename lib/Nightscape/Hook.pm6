@@ -25,8 +25,32 @@ Nightscape::Hook
 
         has Str:D $!name is required;
         has Str:D $!description is required;
-        has Nightscape::Hook:U @!dependency is required;
-        has Int:D $!priority is required;
+        has Int:D $!priority = 0;
+        has Nightscape::Hook:U @!dependency;
+
+        submethod BUILD(
+            Str:D :$!name!,
+            Str:D :$!description!,
+            Int:D :$!priority!,
+            Nightscape::Hook:U :@dependency
+            --> Nil
+        )
+        {
+            @!dependency = |@dependency if @dependency;
+        }
+
+        method new(
+            *%opts (
+                Str:D :$name!,
+                Str:D :$description!,
+                Int:D :$priority!,
+                Nightscape::Hook:U :@dependency
+            )
+            --> Nightscape::Hook::Entry::Posting::All:D
+        )
+        {
+            self.bless(|%opts);
+        }
 
         method name(::?CLASS:D: --> Str:D)
         {
