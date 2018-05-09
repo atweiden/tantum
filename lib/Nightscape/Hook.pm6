@@ -23,9 +23,30 @@ Nightscape::Hook
     {
         also does Nightscape::Hook[POSTING];
 
-        has Str:D $.name;
-        has Str:D $.description;
-        has Nightscape::Hook:U @.dependency;
+        has Str:D $!name is required;
+        has Str:D $!description is required;
+        has Nightscape::Hook:U @!dependency is required;
+        has Int:D $!priority is required;
+
+        method name(::?CLASS:D: --> Str:D)
+        {
+            my Str:D $name = $!name;
+        }
+
+        method description(::?CLASS:D: --> Str:D)
+        {
+            my Str:D $description = $!description;
+        }
+
+        method dependency(::?CLASS:D: --> Array[Nightscape::Hook:U])
+        {
+            my Nightscape::Hook:U @dependency = @!dependency;
+        }
+
+        method priority(::?CLASS:D: --> Int:D)
+        {
+            my Int:D $priority = $!priority;
+        }
 
         method apply(
             Entry::Posting:D $posting,
@@ -212,13 +233,12 @@ together.
 
 # end p6doc }}}
 
-# turn these into method stubs {...}
-has Str:D $.name is required;
-has Str:D $.description is required;
+method name(--> Str:D) {...}
+method description(--> Str:D) {...}
 # for declaring C<Nightscape::Hook> types needed in registry
-has Nightscape::Hook:U @.dependency;
+method dependency(--> Array[Nightscape::Hook:U]) {...}
 # for ordering multiple matching hooks
-has Int:D $.priority = 0;
+method priority(--> Int:D) {...}
 
 # method perl {{{
 
