@@ -15,128 +15,17 @@ also does Nightscape::Hook::Trigger[$type];
 
 Nightscape::Hook
 
-=head SYNOPSIS
-
-    my Nightscape::Registry $registry .= new;
-
-    my class Nightscape::Hook::Entry::Posting::All
-    {
-        also does Nightscape::Hook[POSTING];
-
-        has Str:D $!name is required;
-        has Str:D $!description is required;
-        has Int:D $!priority = 0;
-        has Nightscape::Hook:U @!dependency;
-
-        submethod BUILD(
-            Str:D :$!name!,
-            Str:D :$!description!,
-            Int:D :$!priority!,
-            Nightscape::Hook:U :@dependency
-            --> Nil
-        )
-        {
-            @!dependency = |@dependency if @dependency;
-        }
-
-        method new(
-            *%opts (
-                Str:D :$name!,
-                Str:D :$description!,
-                Int:D :$priority!,
-                Nightscape::Hook:U :@dependency
-            )
-            --> Nightscape::Hook::Entry::Posting::All:D
-        )
-        {
-            self.bless(|%opts);
-        }
-
-        method name(::?CLASS:D: --> Str:D)
-        {
-            my Str:D $name = $!name;
-        }
-
-        method description(::?CLASS:D: --> Str:D)
-        {
-            my Str:D $description = $!description;
-        }
-
-        method dependency(::?CLASS:D: --> Array[Nightscape::Hook:U])
-        {
-            my Nightscape::Hook:U @dependency = @!dependency;
-        }
-
-        method priority(::?CLASS:D: --> Int:D)
-        {
-            my Int:D $priority = $!priority;
-        }
-
-        method apply(
-            Entry::Posting:D $posting,
-            Coa:D $c,
-            Hodl:D $hodl
-            --> Entry::Postingʹ:D
-        )
-        {
-            my COA:D $coa = $registry.send-to-hooks(COA, [$c, $posting]);
-            my Entry::Postingʹ $postingʹ .= new(:$coa, :$hodl, :$posting);
-        }
-
-        method is-match(
-            Entry::Posting:D $posting,
-            Coa:D $coa,
-            Hodl:D $hodl
-            --> Bool:D
-        )
-        {
-            my Bool:D $is-match = True;
-        }
-    }
-
-    my class Nightscape::Hook::Coa::All
-    {
-        also does Nightscape::Hook[COA];
-
-        method is-match(
-            Entry::Posting:D $posting,
-            Coa:D $coa,
-            Hodl:D $hodl
-            --> Bool:D
-        )
-        {
-            my Bool:D $is-match = True;
-        }
-    }
-
-    my class Nightscape::Hook::Hook::All
-    {
-        also does Nightscape::Hook[HOOK];
-    }
-
-    # generate hypothetical C<Entry::Posting> for this example
-    my Entry::Posting:D $posting = gen-posting();
-
-    # instantiate C<Coa> for this example
-    my Coa $coa .= new;
-
-    # instantiate C<Hodl> for this example
-    my Hodl $hodl .= new;
-
 =head DESCRIPTION
 
 =begin paragraph
-Hooks are the primary means by which Nightscape takes a list of
-standard TXN C<Entry>s parsed from a plain-text TXN document, and
-feeds it through a pipeline of transformations. This pipeline
-produces a I<Chart of Accounts> and other essential accounting
-reports.
+Hooks are the primary means by which Nightscape produces essential
+accounting reports. Through hooks, Nightscape can take a list of standard
+TXN C<Entry>s parsed from a plain-text TXN document and convert it into
+usable data, e.g. a I<Chart of Accounts>.
 
 Hooks allow for closely examining and logging each and every step
 a TXN document goes through along the way to an essential report,
-leading to increased auditability. Hooks enable a high degree of
-insight and fine-grained control over what happens every step of
-the way.
+leading to increased auditability.
 
 Pure functions are to be strived for. Side-effects during pipeline
 transformation at the behest of Hooks are strongly discouraged.
@@ -267,12 +156,21 @@ together.
 
 # end p6doc }}}
 
-method name(--> Str:D) {...}
-method description(--> Str:D) {...}
+# name of hook
+method name(--> Str:D)
+{...}
+
+# description of hook
+method description(--> Str:D)
+{...}
+
 # for ordering multiple matching hooks
-method priority(--> Int:D) {...}
+method priority(--> Int:D)
+{...}
+
 # for declaring C<Nightscape::Hook> types needed in registry
-method dependency(--> Array[Nightscape::Hook:U]) {...}
+method dependency(--> Array[Nightscape::Hook:U])
+{...}
 
 # method perl {{{
 

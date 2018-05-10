@@ -13,6 +13,7 @@ constant $PROGRAM = 'Nightscape';
 constant $VERSION = v0.1.0;
 
 has Nightscape::Config:D $.config is required;
+has Nightscape::Registry:D $!registry = Nightscape::Registry.new;
 
 # submethod BUILD {{{
 
@@ -95,6 +96,7 @@ method reup(
 )
 {
     my Nightscape::Config:D $*config = $.config;
+    my Nightscape::Registry:D $*registry = $!registry;
     Nightscape::Command::Reup.reup(|%opts, |@ledger);
 }
 
@@ -130,6 +132,7 @@ method sync(
 )
 {
     my Nightscape::Config:D $*config = $.config;
+    my Nightscape::Registry:D $*registry = $!registry;
     Nightscape::Command::Sync.sync(|%opts, |@ledger);
 }
 
