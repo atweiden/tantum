@@ -5,6 +5,7 @@ use Nightscape::Command::Serve;
 use Nightscape::Command::Show;
 use Nightscape::Command::Sync;
 use Nightscape::Config;
+use Nightscape::Registry;
 use Nightscape::Types;
 use TXN::Parser::Types;
 unit class Nightscape;
