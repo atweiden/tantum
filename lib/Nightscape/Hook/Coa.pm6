@@ -2,6 +2,7 @@ use v6;
 use Nightscape::Dx;
 use Nightscape::Registry;
 use Nightscape::Types;
+use TXN::Parser::ParseTree;
 use TXN::Parser::Types;
 unit class Nightscape::Hook::Coa;
 also does Nightscape::Hook[COA];

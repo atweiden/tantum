@@ -3,7 +3,6 @@ use Nightscape::Hook::Action;
 use Nightscape::Hook::Trigger;
 use Nightscape::Registry;
 use Nightscape::Types;
-use TXN::Parser::Types;
 unit role Nightscape::Hook[HookType $type];
 also does Nightscape::Hook::Action[$type];
 also does Nightscape::Hook::Trigger[$type];
