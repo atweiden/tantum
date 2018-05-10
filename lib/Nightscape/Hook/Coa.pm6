@@ -1,6 +1,8 @@
 use v6;
 use Nightscape::DX;
 use Nightscape::Registry;
+use Nightscape::Types;
+use TXN::Parser::Types;
 unit class Nightscape::Hook::Coa;
 also does Nightscape::Hook[COA];
 
@@ -55,20 +57,36 @@ method priority(::?CLASS:D: --> Int:D)
 }
 
 method apply(
-    Entry::Posting:D $posting,
     Coa:D $c,
-    Hodl:D $hodl
-    --> Entry::Postingʹ:D
+    Entry::Posting:D $posting
+    --> Coa:D
 )
 {
-    my COA:D $coa = $registry.send-to-hooks(COA, [$c, $posting]);
-    my Entry::Postingʹ $postingʹ .= new(:$coa, :$hodl, :$posting);
+    # clone new C<Coa> from old
+    my Coa:D $coa = $c.clone;
+
+    # get target account
+    my Entry::Posting::Account:D $account = $posting.account;
+    my Silo:D $silo = $account.silo;
+    my VarName:D $entity = $account.entity;
+    my VarName:D @path = $account.path;
+    my Account:D $account-target =
+        Coa.in-account($coa.account{$silo}, $entity, |@path);
+
+    # get target amount
+    my Entry::Posting::Amount:D $amount = $posting.amount;
+    my AssetCode:D $asset-code = $amount.asset-code;
+    my DecInc:D $decinc = $posting.decinc;
+    my Int:D $multiplier = $decinc == INC ?? 1 !! -1;
+    my Rat:D $delta = $amount.asset-quantity * $multiplier;
+    $account-target.mkbalance($asset-code, $delta);
+
+    $coa;
 }
 
 method is-match(
-    Entry::Posting:D $posting,
     Coa:D $coa,
-    Hodl:D $hodl
+    Entry::Posting:D $posting
     --> Bool:D
 )
 {
