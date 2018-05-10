@@ -57,7 +57,7 @@ method priority(::?CLASS:D: --> Int:D)
     my Int:D $priority = $!priority;
 }
 
-method apply(
+multi method apply(
     Entry:D $entry,
     Coa:D $c,
     Hodl:D $h
@@ -73,6 +73,7 @@ method apply(
     my Entryʹ $entryʹ .= new(:$entry, :@postingʹ, :$coa, :$hodl);
 }
 
+# do nothing if passed an C<Entryʹ>
 multi method apply(
     Entryʹ:D $fʹ
     --> Entryʹ:D
