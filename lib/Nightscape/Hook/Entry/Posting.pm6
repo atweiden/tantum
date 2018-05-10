@@ -1,5 +1,5 @@
 use v6;
-use Nightscape::DX;
+use Nightscape::Dx;
 use Nightscape::Registry;
 use Nightscape::Types;
 use TXN::Parser::Types;

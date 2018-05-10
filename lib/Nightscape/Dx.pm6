@@ -8,11 +8,11 @@ use TXN::Parser::Types;
 =begin pod
 =head NAME
 
-Nightscape::DX
+Nightscape::Dx
 
 =head DESCRIPTION
 
-C<Nightscape::DX> contains classes derived from
+C<Nightscape::Dx> contains classes derived from
 C<TXN::Parser::ParseTree>. These classes are useful in the construction
 of accounting reports.
 =end pod
