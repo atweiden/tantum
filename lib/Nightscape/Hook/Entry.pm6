@@ -58,7 +58,7 @@ method priority(::?CLASS:D: --> Int:D)
 }
 
 multi method apply(
-    |c (
+    | (
         Entry:D $entry,
         Coa:D $c,
         Hodl:D $h
@@ -77,7 +77,7 @@ multi method apply(
 
 # do nothing if passed an C<Entryʹ>
 multi method apply(
-    |c (
+    | (
         Entryʹ:D $fʹ
     )
     --> Entryʹ:D

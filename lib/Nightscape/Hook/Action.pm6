@@ -19,7 +19,7 @@ role Nightscape::Hook::Action[POSTING]
     also does Apply;
 
     multi method apply(
-        |c (
+        | (
             Entry::Posting:D $posting,
             Coa:D $coa,
             Hodl:D $hodl
@@ -29,7 +29,7 @@ role Nightscape::Hook::Action[POSTING]
     {...}
 
     multi method apply(
-        |c (
+        | (
             Entry::Postingʹ:D $postingʹ
         )
         --> Entry::Postingʹ:D
@@ -42,7 +42,7 @@ role Nightscape::Hook::Action[ENTRY]
     also does Apply;
 
     multi method apply(
-        |c (
+        | (
             Entry:D $entry,
             Entry::Postingʹ:D @postingʹ
         )
@@ -51,7 +51,7 @@ role Nightscape::Hook::Action[ENTRY]
     {...}
 
     multi method apply(
-        |c (
+        | (
             Entryʹ:D $entryʹ
         )
         --> Entryʹ:D
@@ -63,7 +63,7 @@ role Nightscape::Hook::Action[LEDGER]
 {
     also does Apply;
 
-    multi method apply(|c)
+    multi method apply(|)
     {...}
 }
 
@@ -72,7 +72,7 @@ role Nightscape::Hook::Action[COA]
     also does Apply;
 
     multi method apply(
-        |c (
+        | (
             Coa:D $coa,
             Entry::Posting:D $posting
         )
@@ -85,7 +85,7 @@ role Nightscape::Hook::Action[HODL]
 {
     also does Apply;
 
-    multi method apply(|c)
+    multi method apply(|)
     {...}
 }
 
