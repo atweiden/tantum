@@ -57,9 +57,11 @@ method priority(::?CLASS:D: --> Int:D)
     my Int:D $priority = $!priority;
 }
 
-method apply(
-    Coa:D $c,
-    Entry::Posting:D $posting
+multi method apply(
+    |c (
+        Coa:D $c,
+        Entry::Posting:D $posting
+    )
     --> Coa:D
 )
 {

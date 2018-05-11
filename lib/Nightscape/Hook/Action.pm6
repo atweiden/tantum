@@ -3,12 +3,35 @@ use Nightscape::Types;
 use TXN::Parser::ParseTree;
 use TXN::Parser::Types;
 
+my role Apply
+{
+    proto method apply(|c)
+    {
+        my Str:D $class-name = ::?CLASS.^name;
+        my Str:D $routine-name = &?ROUTINE.name;
+        $registry.send-to-hooks(HOOK, [$class-name, $routine-name, c]);
+        {*}
+    }
+}
+
 role Nightscape::Hook::Action[POSTING]
 {
-    method apply(
-        Entry::Posting:D $posting,
-        Coa:D $coa,
-        Hodl:D $hodl
+    also does Apply;
+
+    multi method apply(
+        |c (
+            Entry::Posting:D $posting,
+            Coa:D $coa,
+            Hodl:D $hodl
+        )
+        --> Entry::Postingʹ:D
+    )
+    {...}
+
+    multi method apply(
+        |c (
+            Entry::Postingʹ:D $postingʹ
+        )
         --> Entry::Postingʹ:D
     )
     {...}
@@ -16,9 +39,21 @@ role Nightscape::Hook::Action[POSTING]
 
 role Nightscape::Hook::Action[ENTRY]
 {
-    method apply(
-        Entry:D $entry,
-        Entry::Postingʹ:D @postingʹ
+    also does Apply;
+
+    multi method apply(
+        |c (
+            Entry:D $entry,
+            Entry::Postingʹ:D @postingʹ
+        )
+        --> Entryʹ:D
+    )
+    {...}
+
+    multi method apply(
+        |c (
+            Entryʹ:D $entryʹ
+        )
         --> Entryʹ:D
     )
     {...}
@@ -26,15 +61,21 @@ role Nightscape::Hook::Action[ENTRY]
 
 role Nightscape::Hook::Action[LEDGER]
 {
-    method apply()
+    also does Apply;
+
+    multi method apply(|c)
     {...}
 }
 
 role Nightscape::Hook::Action[COA]
 {
-    method apply(
-        Coa:D $coa,
-        Entry::Posting:D $posting
+    also does Apply;
+
+    multi method apply(
+        |c (
+            Coa:D $coa,
+            Entry::Posting:D $posting
+        )
         --> Coa:D
     )
     {...}
@@ -42,12 +83,15 @@ role Nightscape::Hook::Action[COA]
 
 role Nightscape::Hook::Action[HODL]
 {
-    method apply()
+    also does Apply;
+
+    multi method apply(|c)
     {...}
 }
 
 role Nightscape::Hook::Action[HOOK]
 {
+    # intentional omission of C<also does Apply> avoids infinite loops
     method apply()
     {...}
 }
