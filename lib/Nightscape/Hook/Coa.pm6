@@ -7,35 +7,10 @@ use TXN::Parser::Types;
 unit class Nightscape::Hook::Coa;
 also does Nightscape::Hook[COA];
 
-has Str:D $!name is required;
-has Str:D $!description is required;
+has Str:D $!name = 'Coa';
+has Str:D $!description = 'catch-all hook for COA';
 has Int:D $!priority = 0;
 has Nightscape::Hook:U @!dependency;
-
-submethod BUILD(
-    Str:D :$!name!,
-    Str:D :$!description!,
-    Int:D :$priority,
-    Nightscape::Hook:U :@dependency
-    --> Nil
-)
-{
-    $!priority = |$priority if $priority;
-    @!dependency = |@dependency if @dependency;
-}
-
-method new(
-    *%opts (
-        Str:D :name($)!,
-        Str:D :description($)!,
-        Int:D :priority($),
-        Nightscape::Hook:U :dependency(@)
-    )
-    --> Nightscape::Hook::Coa:D
-)
-{
-    self.bless(|%opts);
-}
 
 method name(::?CLASS:D: --> Str:D)
 {
