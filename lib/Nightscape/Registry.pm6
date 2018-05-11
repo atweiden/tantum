@@ -5,7 +5,13 @@ use TXN::Parser::ParseTree;
 use TXN::Parser::Types;
 unit class Nightscape::Registry;
 
-has Nightscape::Hook:D @!hook;
+has Nightscape::Hook:D @!hook =
+    Nightscape::Hook::Entry::Posting.new,
+    Nightscape::Hook::Entry.new,
+    Nightscape::Hook::Ledger.new,
+    Nightscape::Hook::Coa.new,
+    Nightscape::Hook::Hodl.new,
+    Nightscape::Hook::Hook.new;
 
 # method hook {{{
 
@@ -163,7 +169,7 @@ multi sub send-to-hooks(
     --> Coa:D
 )
 {
-    my COA:D $coa =
+    my Coa:D $coa =
         @hook
         .grep({ .is-match($c, $posting) })
         .&send-to-hooks(@arg, :apply);
@@ -192,6 +198,40 @@ multi sub send-to-hooks(
 }
 
 # --- end COA }}}
+# --- HOOK {{{
+
+multi sub send-to-hooks(
+    Nightscape::Hook[HOOK] @hook,
+    @arg (Str:D $class-name, Str:D $routine-name, Capture:D $capture)
+    --> Nil
+)
+{
+    @hook
+    .grep({ .is-match(@arg) })
+    .&send-to-hooks(@arg, :apply);
+}
+
+multi sub send-to-hooks(
+    Nightscape::Hook[HOOK] @ (Nightscape::Hook[HOOK] $hook, *@tail),
+    @arg (Str:D $class-name, Str:D $routine-name, Capture:D $capture),
+    Bool:D :apply($)! where .so
+    --> Nil
+)
+{
+    my Nightscape::Hook[HOOK] @hook = |@tail;
+    $hook.apply(@arg);
+    send-to-hooks(@hook, @arg, :apply);
+}
+
+multi sub send-to-hooks(
+    Nightscape::Hook[HOOK] @,
+    @ (Str:D $, Str:D $, Capture:D $),
+    Bool:D :apply($)! where .so
+    --> Nil
+)
+{*}
+
+# --- end HOOK }}}
 
 # end method send-to-hooks }}}
 
