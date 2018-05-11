@@ -10,8 +10,8 @@ my role Apply
         my Str:D $class-name = ::?CLASS.^name;
         my Str:D $routine-name = &?ROUTINE.name;
         my @arg = $class-name, $routine-name, c;
-        LEAVE { $registry.send-to-hooks(HOOK, :finish, @arg); }
-        $registry.send-to-hooks(HOOK, :start, @arg);
+        LEAVE { $registry.send-to-hooks(HOOK, :leave, @arg); }
+        $registry.send-to-hooks(HOOK, :enter, @arg);
         {*}
     }
 }
