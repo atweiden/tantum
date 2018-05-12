@@ -123,6 +123,17 @@ class Coa
 class Hodl {*}
 
 # end class Hodl }}}
+# class Entry::Postingʹ {{{
+
+class Entry::Postingʹ
+{
+    # C<Entry::Posting> from which C<Entry::Posting′> is derived
+    has Entry::Posting:D $.posting is required;
+    has Coa:D $.coa is required;
+    has Hodl:D $.hodl is required;
+}
+
+# end class Entry::Postingʹ }}}
 # class Entryʹ {{{
 
 class Entryʹ
@@ -135,16 +146,17 @@ class Entryʹ
 }
 
 # end class Entryʹ }}}
-# class Entry::Postingʹ {{{
+# class Ledgerʹ {{{
 
-class Entry::Postingʹ
+class Ledgerʹ
 {
-    # C<Entry::Posting> from which C<Entry::Posting′> is derived
-    has Entry::Posting:D $.posting is required;
+    # C<Ledger> from which C<Ledger′> is derived
+    has Ledger:D $.ledger is required;
+    has Entryʹ:D @.entryʹ is required;
     has Coa:D $.coa is required;
     has Hodl:D $.hodl is required;
 }
 
-# end class Entry::Postingʹ }}}
+# end class Ledgerʹ }}}
 
 # vim: set filetype=perl6 foldmethod=marker foldlevel=0:
