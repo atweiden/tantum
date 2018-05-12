@@ -177,36 +177,36 @@ multi sub send-to-hooks(
 
 multi sub send-to-hooks(
     Nightscape::Hook[LEDGER] @ (Nightscape::Hook[LEDGER] $hook, *@tail),
-    @arg (Entry::Posting:D $posting, Coa:D $coa, Hodl:D $hodl),
+    @arg (Ledger:D $ledger, Coa:D $coa, Hodl:D $hodl)
     Bool:D :apply($)! where .so
-    --> Entry::Postingʹ:D
+    --> Ledgerʹ:D
 )
 {
     my Nightscape::Hook[LEDGER] @hook = |@tail;
-    my Entry::Postingʹ:D $qʹ = $hook.apply($posting, $coa, $hodl);
-    my Entry::Postingʹ:D $postingʹ = send-to-hooks(@hook, $qʹ, :apply);
+    my Ledgerʹ:D $mʹ = $hook.apply($ledger, $coa, $hodl);
+    my Ledgerʹ:D $ledgerʹ = send-to-hooks(@hook, $mʹ, :apply);
 }
 
 multi sub send-to-hooks(
     Nightscape::Hook[LEDGER] @ (Nightscape::Hook[LEDGER] $hook, *@tail),
-    Entry::Postingʹ:D $qʹ,
+    Ledgerʹ:D $mʹ,
     Bool:D :apply($)! where .so
-    --> Entry::Postingʹ:D
+    --> Ledgerʹ:D
 )
 {
     my Nightscape::Hook[LEDGER] @hook = |@tail;
-    my Entry::Postingʹ:D $rʹ = $hook.apply($qʹ);
-    my Entry::Postingʹ:D $postingʹ = send-to-hooks(@hook, $rʹ, :apply);
+    my Ledgerʹ:D $nʹ = $hook.apply($mʹ);
+    my Ledgerʹ:D $postingʹ = send-to-hooks(@hook, $nʹ, :apply);
 }
 
 multi sub send-to-hooks(
     Nightscape::Hook[LEDGER] @,
-    Entry::Postingʹ:D $qʹ,
+    Ledgerʹ:D $mʹ,
     Bool:D :apply($)! where .so
-    --> Entry::Postingʹ:D
+    --> Ledgerʹ:D
 )
 {
-    my Entry::Postingʹ:D $postingʹ = $qʹ;
+    my Ledgerʹ:D $ledgerʹ = $mʹ;
 }
 
 # --- end LEDGER }}}
