@@ -11,6 +11,7 @@ my role Apply
         my Str:D $routine-name = &?ROUTINE.name;
         my @arg = $class-name, $routine-name, c;
         LEAVE { $registry.send-to-hooks(HOOK, :leave, @arg); }
+        # ENTER: https://github.com/rakudo/rakudo/issues/1815
         $registry.send-to-hooks(HOOK, :enter, @arg);
         {*}
     }
