@@ -40,10 +40,10 @@ should be reigned in similar to how C<Coa> and C<Hodl> are handled.
 =head3 Category: TXN Primitives
 
 =begin paragraph
-Category I<TXN Primitives> contains hooks designed to operate on
-TXN primitives C<Entry::Posting>, C<Entry>, and C<Ledger>; these
-hooks are tasked with generating derivatives C<Entry::Postingʹ> and
-C<Entryʹ> respectively. I<Ledger> hooks are TBD.
+Category I<TXN Primitives> contains hooks designed to operate on TXN
+primitives C<Entry::Posting>, C<Entry> and C<Ledger>; these hooks are
+tasked with generating derivatives C<Entry::Postingʹ>, C<Entryʹ>
+and C<Ledgerʹ> respectively.
 =end paragraph
 
 =begin item
