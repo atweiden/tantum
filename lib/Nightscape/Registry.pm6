@@ -220,8 +220,8 @@ multi sub send-to-hooks(
 )
 {
     my Nightscape::Hook[COA] @hook = |@tail;
-    my Coa:D $d = $hook.apply($c, $posting);
-    my Coa:D $coa = send-to-hooks(@hook, [$d, $posting], :apply);
+    my Coa:D $d = $hook.apply($c, $entry, $hodl);
+    my Coa:D $coa = send-to-hooks(@hook, [$d, $entry, $hodl], :apply);
 }
 
 multi sub send-to-hooks(
