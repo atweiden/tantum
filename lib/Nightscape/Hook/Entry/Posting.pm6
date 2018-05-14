@@ -34,26 +34,12 @@ method priority(::?CLASS:D: --> Int:D)
 
 multi method apply(
     | (
-        Entry::Posting:D $posting,
-        Coa:D $c,
-        Hodl:D $hodl
+        Entry::Posting:D $p
     )
-    --> Entry::Postingʹ:D
+    --> Entry::Posting:D
 )
 {
-    my COA:D $coa = $registry.send-to-hooks(COA, [$c, $posting]);
-    my Entry::Postingʹ $postingʹ .= new(:$coa, :$hodl, :$posting);
-}
-
-# do nothing if passed an C<Entry::Postingʹ>
-multi method apply(
-    | (
-        Entry::Postingʹ:D $qʹ
-    )
-    --> Entry::Postingʹ:D
-)
-{
-    my Entry::Postingʹ:D $postingʹ = $qʹ;
+    my Entry::Posting $posting = $p;
 }
 
 method is-match(

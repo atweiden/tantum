@@ -34,23 +34,30 @@ method priority(::?CLASS:D: --> Int:D)
 
 multi method apply(
     | (
-        Entry:D $entry,
+        Entry:D $e,
         Coa:D $c,
         Hodl:D $h
     )
     --> Entryʹ:D
 )
 {
-    my Entry::Posting:D @posting = $entry.posting;
-    my Entry::Postingʹ:D @postingʹ = apply(@posting, $c, $h);
-    # last C<Entry::Postingʹ> seen has most up-to-date C<Coa> and C<Hodl>
-    my Entry::Postingʹ:D $postingʹ = @postingʹ.tail;
-    my Coa:D $coa = $postingʹ.coa;
-    my Hodl:D $hodl = $postingʹ.hodl;
-    my Entryʹ $entryʹ .= new(:$entry, :@postingʹ, :$coa, :$hodl);
+    my Entry::Posting:D @p = $entry.posting;
+    my Entry::ID:D $id = $entry.id;
+    my Entry::Header:D $header = $entry.header;
+    # apply POSTING hooks to C<Entry.posting>
+    my Entry::Posting:D @posting = apply(@p, $header);
+    # instantiate new C<Entry> with new C<@.posting>
+    my Entry $entry .= new(:$id, :$header, :@posting);
+    # generate new C<Hodl> from C<Entry>
+    my Hodl:D $hodl = $registry.send-to-hooks(HODL, [$h, $entry]);
+    # generate new C<Coa> from C<Entry>
+    my Coa:D $d = $registry.send-to-hooks(COA, [$c, $entry]);
+    # make changes to C<Coa> per C<Hodl>
+    my Coa:D $coa = apply($d, $hodl);
+    # store the result of computations in C<Entryʹ>
+    my Entryʹ $entryʹ .= new(:$entry, :$coa, :$hodl);
 }
 
-# do nothing if passed an C<Entryʹ>
 multi method apply(
     | (
         Entryʹ:D $fʹ
@@ -62,31 +69,27 @@ multi method apply(
 }
 
 multi sub apply(
-    Entry::Posting:D @ (Entry::Posting:D $posting, *@tail),
-    Coa:D $c,
-    Hodl:D $h,
-    Entry::Postingʹ:D :carry(@c)
-    --> Array[Entry::Postingʹ:D]
+    Entry::Posting:D @ (Entry::Posting:D $p, *@tail),
+    Entry::Header:D $header,
+    Entry::Posting:D :carry(@c)
+    --> Array[Entry::Posting:D]
 )
 {
-    my Entry::Posting:D @posting = |@tail;
-    my Entry::Postingʹ:D $postingʹ =
-        $registry.send-to-hooks(POSTING, [$posting, $c, $h]);
-    my Coa:D $coa = $postingʹ.coa;
-    my Hodl:D $hodl = $postingʹ.hodl;
-    my Entry::Postingʹ:D @carry = |@c, $postingʹ;
-    my Entry::Postingʹ:D @postingʹ = apply(@posting, $coa, $hodl, :@carry);
+    my Entry::Posting:D @p = |@tail;
+    my Entry::Posting:D $posting =
+        $registry.send-to-hooks(POSTING, [$p, $header]);
+    my Entry::Posting:D @carry = |@c, $posting;
+    my Entry::Posting:D @posting = apply(@p, $header, :@carry);
 }
 
 multi sub apply(
     Entry::Posting:D @,
-    Coa:D $,
-    Hodl:D $,
-    Entry::Postingʹ:D :@carry
-    --> Array[Entry::Postingʹ:D]
+    Entry::Header:D $,
+    Entry::Posting:D :@carry
+    --> Array[Entry::Posting:D]
 )
 {
-    my Entry::Postingʹ:D @postingʹ = @carry;
+    my Entry::Posting:D @posting = @carry;
 }
 
 method is-match(

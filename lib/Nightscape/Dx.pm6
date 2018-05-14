@@ -118,29 +118,28 @@ class Coa
 }
 
 # end class Coa }}}
-# class Hodl {{{
+# class Hodling {{{
 
-class Hodl {*}
-
-# end class Hodl }}}
-# class Entry::Postingʹ {{{
-
-class Entry::Postingʹ
+class Hodling
 {
-    # C<Entry::Posting> from which C<Entry::Posting′> is derived
-    has Entry::Posting:D $.posting is required;
-    has Coa:D $.coa is required;
-    has Hodl:D $.hodl is required;
+
 }
 
-# end class Entry::Postingʹ }}}
+# end class Hodling }}}
+# class Hodl {{{
+
+class Hodl
+{
+    has Hodling:D @.hodling is required;
+}
+
+# end class Hodl }}}
 # class Entryʹ {{{
 
 class Entryʹ
 {
     # C<Entry> from which C<Entry′> is derived
     has Entry:D $.entry is required;
-    has Entry::Postingʹ:D @.postingʹ is required;
     has Coa:D $.coa is required;
     has Hodl:D $.hodl is required;
 }

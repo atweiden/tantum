@@ -24,18 +24,9 @@ role Nightscape::Hook::Action[POSTING]
     multi method apply(
         | (
             Entry::Posting:D $posting,
-            Coa:D $coa,
-            Hodl:D $hodl
+            Entry::Header:D $header
         )
-        --> Entry::Postingʹ:D
-    )
-    {...}
-
-    multi method apply(
-        | (
-            Entry::Postingʹ:D $postingʹ
-        )
-        --> Entry::Postingʹ:D
+        --> Entry::Posting:D
     )
     {...}
 }
@@ -47,7 +38,8 @@ role Nightscape::Hook::Action[ENTRY]
     multi method apply(
         | (
             Entry:D $entry,
-            Entry::Postingʹ:D @postingʹ
+            Coa:D $coa,
+            Hodl:D $hodl
         )
         --> Entryʹ:D
     )
@@ -77,7 +69,7 @@ role Nightscape::Hook::Action[COA]
     multi method apply(
         | (
             Coa:D $coa,
-            Entry::Posting:D $posting
+            Entry:D $entry
         )
         --> Coa:D
     )
@@ -88,7 +80,13 @@ role Nightscape::Hook::Action[HODL]
 {
     also does Apply;
 
-    multi method apply(|)
+    multi method apply(
+        | (
+            Hodl:D $hodl,
+            Entry:D $entry
+        )
+        --> Hodl:D
+    )
     {...}
 }
 

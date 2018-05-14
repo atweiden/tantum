@@ -7,8 +7,7 @@ role Nightscape::Hook::Trigger[POSTING]
 {
     method is-match(
         Entry::Posting:D $posting,
-        Coa:D $coa,
-        Hodl:D $hodl
+        Entry::Header:D $header
         --> Bool:D
     )
     {...}
@@ -18,7 +17,8 @@ role Nightscape::Hook::Trigger[ENTRY]
 {
     method is-match(
         Entry:D $entry,
-        Entry::Postingʹ:D @postingʹ
+        Coa:D $coa,
+        Hodl:D $hodl
         --> Bool:D
     )
     {...}
@@ -36,7 +36,7 @@ role Nightscape::Hook::Trigger[COA]
 {
     method is-match(
         Coa:D $coa,
-        Entry::Posting:D $posting
+        Entry:D $entry
         --> Bool:D
     )
     {...}
@@ -45,6 +45,8 @@ role Nightscape::Hook::Trigger[COA]
 role Nightscape::Hook::Trigger[HODL]
 {
     method is-match(
+        Hodl:D $hodl,
+        Entry:D $entry
         --> Bool:D
     )
     {...}
@@ -53,6 +55,9 @@ role Nightscape::Hook::Trigger[HODL]
 role Nightscape::Hook::Trigger[HOOK]
 {
     method is-match(
+        Str:D $class-name,
+        Str:D $routine-name,
+        Capture:D $capture
         --> Bool:D
     )
     {...}
