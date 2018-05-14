@@ -18,9 +18,9 @@ Nightscape::Hook
 
 =begin paragraph
 Hooks are the primary means by which Nightscape produces essential
-accounting reports. Through hooks, Nightscape can take a list of standard
-TXN C<Entry>s parsed from a plain-text TXN document and convert it into
-usable data, e.g. a I<Chart of Accounts>.
+accounting reports. Through hooks, Nightscape can take a list of C<Entry>s
+parsed from a plain-text TXN document and convert it into usable data,
+e.g. a I<Chart of Accounts>.
 
 Hooks allow for closely examining and logging each and every step a TXN
 document goes through along the way to an essential report, leading to
@@ -32,7 +32,7 @@ Major datapoints, such as I<Chart of Accounts> (C<Coa>) and I<Holdings>
 (C<Hodl>) are first class citizens throughout the entirety of the
 pipeline, for instance. If and when other data structures become critical
 to Nightscape report generation, the key elements of those data structures
-should be reigned in similar to how C<Coa> and C<Hodl> are handled.
+should be reined in similar to how C<Coa> and C<Hodl> are handled.
 =end paragraph
 
 =head2 Hooks By Category
@@ -41,37 +41,34 @@ should be reigned in similar to how C<Coa> and C<Hodl> are handled.
 
 =begin paragraph
 Category I<TXN Primitives> contains hooks designed to operate on TXN
-primitives C<Entry::Posting>, C<Entry> and C<Ledger>; these hooks are
-tasked with generating derivatives C<Entry::Postingʹ>, C<Entryʹ>
-and C<Ledgerʹ> respectively.
+primitives C<Entry::Posting>, C<Entry> and C<Ledger>.
 =end paragraph
 
 =begin item
 B<Posting>
 
 I<Posting> hooks are scoped to C<Entry::Posting>s. Each time a new
-C<Entry::Posting> is queued for derivative (C<Entry::Postingʹ>)
-generation, I<Posting> hooks will be filtered for relevancy and the
-actions inscribed in matching hooks executed.
+C<Entry::Posting> is queued for handling, I<Posting> hooks will be
+filtered for relevancy and the actions inscribed in matching hooks
+executed.
 
 I<Posting> hooks must provide a C<method apply> which accepts as
 arguments:
 
-    Entry::Posting:D $posting,
-    Coa:D $coa,
-    Hodl:D $hodl
+    Entry::Posting:D $p,
+    Entry::Header:D $header
 
 and which returns:
 
-    Entry::Postingʹ:D $postingʹ
+    Entry::Posting:D $posting
 =end item
 
 =begin item
 B<Entry>
 
-I<Entry> hooks are scoped to C<Entry>s. Each time a new C<Entry> is queued
-for derivative (C<Entryʹ>) generation, I<Entry> hooks will be filtered
-for relevancy and the actions inscribed in matching hooks executed.
+I<Entry> hooks are scoped to C<Entry>s. Each time a new C<Entry> is
+queued for handling, I<Entry> hooks will be filtered for relevancy and
+the actions inscribed in matching hooks executed.
 
 I<Entry> hooks must provide a C<method apply> which accepts as arguments:
 
@@ -87,10 +84,9 @@ and which returns:
 =begin item
 B<Ledger>
 
-I<Ledger> hooks are scoped to C<Ledger>s. A C<Ledger> is a fully assembled
-TXN document consisting of disparate C<Entry>s. Each time a new C<Ledger>
-is queued for instantiation, I<Ledger> hooks will be filtered for
-relevancy and the actions inscribed in matching hooks executed.
+I<Ledger> hooks are scoped to C<Ledger>s. Each time a new C<Ledger>
+is queued for handling, I<Ledger> hooks will be filtered for relevancy
+and the actions inscribed in matching hooks executed.
 
 I<Ledger> hooks must provide a C<method apply> which accepts as arguments:
 
@@ -107,31 +103,24 @@ and which returns:
 
 =begin paragraph
 Category I<Derivative Components> contains hooks designed to operate on
-derivative components C<Coa> and C<Hodl>; these hooks are tasked with
-generating essential components of derivatives C<Entry::Postingʹ>,
-C<Entryʹ> and C<Ledgerʹ>.
-
-For example, a I<Coa> hook could check for a sufficient balance on an
-Asset account before crediting the account.
+derivative components C<Coa> and C<Hodl>.
 =end paragraph
 
 =begin item
 B<Coa>
 
 I<Coa> hooks are scoped to C<Coa>s, aka I<Chart of Accounts>. Each time a
-C<Coa> is queued for instantiation (e.g. as part of C<Entry::Postingʹ>,
-C<Entryʹ> or C<Ledgerʹ> generation), I<Coa> hooks will be filtered
-for relevancy and the actions inscribed in matching hooks executed.
+C<Coa> is queued for handling, I<Coa> hooks will be filtered for relevancy
+and the actions inscribed in matching hooks executed.
 
 I<Coa> hooks must provide a C<method apply> which accepts as arguments:
 
-    # an existing Coa
     Coa:D $c,
-    Entry::Posting:D $posting
+    Entry:D $entry,
+    Hodl:D $hodl
 
 and which returns:
 
-    # a new Coa if applicable
     Coa:D $coa
 =end item
 
@@ -139,9 +128,17 @@ and which returns:
 B<Hodl>
 
 I<Hodl> hooks are scoped to C<Hodl>s. Each time a C<Hodl> is queued for
-instantiation (e.g. as part of C<Entryʹ> generation), I<Hodl> hooks
-will be filtered for relevancy and the actions inscribed in matching
-hooks executed.
+handling, I<Hodl> hooks will be filtered for relevancy and the actions
+inscribed in matching hooks executed.
+
+I<Hodl> hooks must provide a C<method apply> which accepts as arguments:
+
+    Hodl:D $h,
+    Entry:D $entry
+
+and which returns:
+
+    Hodl:D $hodl
 =end item
 
 =head2 Category: Meta
@@ -156,6 +153,16 @@ hooks executed.
 
 The primary impetus behind I<Hook> hooks is to log which hooks are firing
 and when. I<Hook> hooks might also be used to chain hooks together.
+
+I<Hook> hooks must provide a C<method apply> which accepts as arguments:
+
+    Str:D $class-name,
+    Str:D $routine-name,
+    Capture:D $capture
+
+and which returns:
+
+    Nil
 =end item
 =end pod
 
