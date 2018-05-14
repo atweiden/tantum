@@ -42,7 +42,7 @@ multi method apply(
     --> Nil
 )
 {
-    my Str:D $apply = apply(|@arg);
+    my Str:D $apply = apply(@arg);
     my Str:D $msg = sprintf(Q{[ENTER] %s}, $apply);
 }
 
@@ -56,7 +56,7 @@ multi method apply(
     --> Nil
 )
 {
-    my Str:D $apply = apply(|@arg);
+    my Str:D $apply = apply(@arg);
     my Str:D $msg = sprintf(Q{[LEAVE] %s}, $apply);
 }
 
