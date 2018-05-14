@@ -27,6 +27,9 @@ role Nightscape::Hook::Trigger[ENTRY]
 role Nightscape::Hook::Trigger[LEDGER]
 {
     method is-match(
+        Ledger:D $ledger,
+        Coa:D $coa,
+        Hodl:D $hodl
         --> Bool:D
     )
     {...}
@@ -36,7 +39,8 @@ role Nightscape::Hook::Trigger[COA]
 {
     method is-match(
         Coa:D $coa,
-        Entry:D $entry
+        Entry:D $entry,
+        Hodl:D $hodl
         --> Bool:D
     )
     {...}

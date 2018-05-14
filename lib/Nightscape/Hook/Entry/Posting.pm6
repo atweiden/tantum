@@ -39,13 +39,45 @@ multi method apply(
     --> Entry::Posting:D
 )
 {
-    my Entry::Posting $posting = $p;
+    my Entry::Posting:D $posting =
+        $p
+        # ensure entity is in an open state per config
+        ==> apply(:is-entity-open)
+        # ensure account is in an open state per config
+        ==> apply(:is-account-open)
+        # ensure config contains proper xe rate for aux assets
+        ==> apply(:is-xe-present);
+}
+
+multi sub apply(
+    Entry::Posting:D $posting,
+    Bool:D :is-entity-open($)! where .so
+    --> Entry::Posting:D
+)
+{
+    $posting;
+}
+
+multi sub apply(
+    Entry::Posting:D $posting,
+    Bool:D :is-account-open($)! where .so
+    --> Entry::Posting:D
+)
+{
+    $posting;
+}
+
+multi sub apply(
+    Entry::Posting:D $posting,
+    Bool:D :is-xe-present($)! where .so
+    --> Entry::Posting:D
+)
+{
+    $posting;
 }
 
 method is-match(
-    Entry::Posting:D $posting,
-    Coa:D $coa,
-    Hodl:D $hodl
+    Entry::Posting:D $posting
     --> Bool:D
 )
 {

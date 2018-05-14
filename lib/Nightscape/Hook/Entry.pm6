@@ -50,10 +50,8 @@ multi method apply(
     my Entry $entry .= new(:$id, :$header, :@posting);
     # generate new C<Hodl> from C<Entry>
     my Hodl:D $hodl = $registry.send-to-hooks(HODL, [$h, $entry]);
-    # generate new C<Coa> from C<Entry>
-    my Coa:D $d = $registry.send-to-hooks(COA, [$c, $entry]);
-    # make changes to C<Coa> per C<Hodl>
-    my Coa:D $coa = apply($d, $hodl);
+    # generate new C<Coa> from C<Entry> and C<Hodl>
+    my Coa:D $coa = $registry.send-to-hooks(COA, [$c, $entry, $hodl]);
     # store the result of computations in C<Entryʹ>
     my Entryʹ $entryʹ .= new(:$entry, :$coa, :$hodl);
 }

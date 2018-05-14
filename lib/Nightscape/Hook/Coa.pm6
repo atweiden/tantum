@@ -35,7 +35,8 @@ method priority(::?CLASS:D: --> Int:D)
 multi method apply(
     | (
         Coa:D $c,
-        Entry:D $entry
+        Entry:D $entry,
+        Hodl:D $hodl
     )
     --> Coa:D
 )
@@ -46,7 +47,8 @@ multi method apply(
 
 method is-match(
     Coa:D $coa,
-    Entry:D $entry
+    Entry:D $entry,
+    Hodl:D $hodl
     --> Bool:D
 )
 {

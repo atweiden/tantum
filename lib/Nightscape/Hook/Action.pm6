@@ -69,7 +69,8 @@ role Nightscape::Hook::Action[COA]
     multi method apply(
         | (
             Coa:D $coa,
-            Entry:D $entry
+            Entry:D $entry,
+            Hodl:D $hodl
         )
         --> Coa:D
     )

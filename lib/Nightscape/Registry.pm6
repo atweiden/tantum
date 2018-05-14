@@ -86,12 +86,12 @@ multi sub send-to-hooks(
 {
     my Nightscape::Hook[POSTING] @hook = |@tail;
     my Entry::Posting:D $q = $hook.apply($p, $header);
-    my Entry::Posting:D $posting = send-to-hooks(@hook, $q, :apply);
+    my Entry::Posting:D $posting = send-to-hooks(@hook, [$q, $header], :apply);
 }
 
 multi sub send-to-hooks(
     Nightscape::Hook[POSTING] @,
-    Entry::Posting:D $p,
+    @ (Entry::Posting:D $p, Entry::Header:D $),
     Bool:D :apply($)! where .so
     --> Entry::Posting:D
 )
@@ -202,7 +202,7 @@ multi sub send-to-hooks(
 
 multi sub send-to-hooks(
     Nightscape::Hook[COA] @hook,
-    @arg (Coa:D $c, Entry:D $entry)
+    @arg (Coa:D $c, Entry:D $entry, Hodl:D $hodl)
     --> Coa:D
 )
 {
@@ -214,7 +214,7 @@ multi sub send-to-hooks(
 
 multi sub send-to-hooks(
     Nightscape::Hook[COA] @ (Nightscape::Hook[COA] $hook, *@tail),
-    @arg (Coa:D $c, Entry:D $entry),
+    @arg (Coa:D $c, Entry:D $entry, Hodl:D $hodl),
     Bool:D :apply($)! where .so
     --> Coa:D
 )
@@ -226,7 +226,7 @@ multi sub send-to-hooks(
 
 multi sub send-to-hooks(
     Nightscape::Hook[COA] @,
-    @arg (Coa:D $c, Entry:D $),
+    @arg (Coa:D $c, Entry:D $, Hodl:D $),
     Bool:D :apply($)! where .so
     --> Coa:D
 )
