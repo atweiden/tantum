@@ -3,7 +3,7 @@ use Nightscape::Types;
 use TXN::Parser::ParseTree;
 use TXN::Parser::Types;
 
-my role Apply
+my role Introspection
 {
     proto method apply(|c)
     {
@@ -19,7 +19,7 @@ my role Apply
 
 role Nightscape::Hook::Action[POSTING]
 {
-    also does Apply;
+    also does Introspection;
 
     multi method apply(
         | (
@@ -33,7 +33,7 @@ role Nightscape::Hook::Action[POSTING]
 
 role Nightscape::Hook::Action[ENTRY]
 {
-    also does Apply;
+    also does Introspection;
 
     multi method apply(
         | (
@@ -56,7 +56,7 @@ role Nightscape::Hook::Action[ENTRY]
 
 role Nightscape::Hook::Action[LEDGER]
 {
-    also does Apply;
+    also does Introspection;
 
     multi method apply(|)
     {...}
@@ -64,7 +64,7 @@ role Nightscape::Hook::Action[LEDGER]
 
 role Nightscape::Hook::Action[COA]
 {
-    also does Apply;
+    also does Introspection;
 
     multi method apply(
         | (
@@ -79,7 +79,7 @@ role Nightscape::Hook::Action[COA]
 
 role Nightscape::Hook::Action[HODL]
 {
-    also does Apply;
+    also does Introspection;
 
     multi method apply(
         | (
@@ -93,7 +93,7 @@ role Nightscape::Hook::Action[HODL]
 
 role Nightscape::Hook::Action[HOOK]
 {
-    # intentional omission of C<also does Apply> avoids infinite loops
+    # omit C<also does Introspection> to avoid infinite loops
     method apply()
     {...}
 }
