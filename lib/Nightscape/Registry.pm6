@@ -247,6 +247,43 @@ multi sub send-to-hooks(
 }
 
 # --- end COA }}}
+# --- HODL {{{
+
+multi sub send-to-hooks(
+    Nightscape::Hook[HODL] @hook,
+    @arg (Hodl:D $h, Entryʹ:D $entryʹ)
+    --> Hodl:D
+)
+{
+    my Hodl:D $hodl =
+        @hook
+        .grep({ .is-match($h, $entryʹ) })
+        .&send-to-hooks(@arg, :apply);
+}
+
+multi sub send-to-hooks(
+    Nightscape::Hook[HODL] @ (Nightscape::Hook[HODL] $hook, *@tail),
+    @arg (Hodl:D $h, Entryʹ:D $entryʹ),
+    Bool:D :apply($)! where .so
+    --> Hodl:D
+)
+{
+    my Nightscape::Hook[HODL] @hook = |@tail;
+    my Hodl:D $i = $hook.apply($h, $entryʹ);
+    my Hodl:D $hodl = send-to-hooks(@hook, [$i, $entryʹ], :apply);
+}
+
+multi sub send-to-hooks(
+    Nightscape::Hook[HODL] @,
+    @arg (Hodl:D $h, Entryʹ:D $entryʹ),
+    Bool:D :apply($)! where .so
+    --> Hodl:D
+)
+{
+    my Hodl:D $hodl = $h;
+}
+
+# --- end HODL }}}
 # --- HOOK {{{
 
 multi sub send-to-hooks(
