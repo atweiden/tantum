@@ -37,11 +37,11 @@ should be reined in similar to how C<Coa> and C<Hodl> are handled.
 
 =head2 Hooks By Category
 
-=head3 Category: TXN Primitives
+=head3 Category: Primitive
 
 =begin paragraph
-Category I<TXN Primitives> contains hooks designed to operate on TXN
-primitives C<Entry::Posting>, C<Entry> and C<Ledger>.
+Category I<Primitive> contains hooks designed to operate on TXN primitives
+C<Entry::Posting>, C<Entry> and C<Ledger>.
 =end paragraph
 
 =begin item
@@ -99,11 +99,11 @@ and which returns:
     Ledgerʹ:D $ledgerʹ
 =end item
 
-=head3 Category: Derivative Components
+=head3 Category: Derivative
 
 =begin paragraph
-Category I<Derivative Components> contains hooks designed to operate on
-derivative components C<Coa> and C<Hodl>.
+Category I<Derivative> contains hooks designed to operate on derivative
+components C<Coa> and C<Hodl>.
 =end paragraph
 
 =begin item
