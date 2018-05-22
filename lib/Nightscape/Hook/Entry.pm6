@@ -41,18 +41,13 @@ multi method apply(
     --> Entryʹ:D
 )
 {
-    my Entry::Posting:D @p = $entry.posting;
-    my Entry::ID:D $id = $entry.id;
-    my Entry::Header:D $header = $entry.header;
-    # apply POSTING hooks to C<Entry.posting>
+    my Entry::Posting:D @p = $e.posting;
+    my Entry::ID:D $id = $e.id;
+    my Entry::Header:D $header = $e.header;
     my Entry::Posting:D @posting = apply(@p, $header);
-    # instantiate new C<Entry> with new C<@.posting>
     my Entry $entry .= new(:$id, :$header, :@posting);
-    # generate new C<Hodl> from C<Entry>
     my Hodl:D $hodl = $registry.send-to-hooks(HODL, [$h, $entry]);
-    # generate new C<Coa> from C<Entry> and C<Hodl>
     my Coa:D $coa = $registry.send-to-hooks(COA, [$c, $entry, $hodl]);
-    # store the result of computations in C<Entryʹ>
     my Entryʹ $entryʹ .= new(:$entry, :$coa, :$hodl);
 }
 
