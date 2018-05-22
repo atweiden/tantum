@@ -12,14 +12,14 @@ has Str:D $!description = 'catch-all hook for COA';
 has Int:D $!priority = 0;
 has Nightscape::Hook:U @!dependency;
 
-method description(::?CLASS:D: --> Str:D)
-{
-    my Str:D $description = $!description;
-}
-
 method dependency(::?CLASS:D: --> Array[Nightscape::Hook:U])
 {
     my Nightscape::Hook:U @dependency = @!dependency;
+}
+
+method description(::?CLASS:D: --> Str:D)
+{
+    my Str:D $description = $!description;
 }
 
 method name(::?CLASS:D: --> Str:D)

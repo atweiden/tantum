@@ -167,12 +167,12 @@ and which returns:
 
 # end p6doc }}}
 
-# description of hook
-method description(--> Str:D)
-{...}
-
 # for declaring C<Nightscape::Hook> types needed in registry
 method dependency(--> Array[Nightscape::Hook:U])
+{...}
+
+# description of hook
+method description(--> Str:D)
 {...}
 
 # name of hook
