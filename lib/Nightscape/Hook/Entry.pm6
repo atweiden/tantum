@@ -46,8 +46,8 @@ multi method apply(
     my Entry::Header:D $header = $e.header;
     my Entry::Posting:D @posting = apply(@p, $header);
     my Entry $entry .= new(:$id, :$header, :@posting);
-    my Hodl:D $hodl = $registry.send-to-hooks(HODL, [$h, $entry]);
-    my Coa:D $coa = $registry.send-to-hooks(COA, [$c, $entry, $hodl]);
+    my Hodl:D $hodl = $*registry.send-to-hooks(HODL, [$h, $entry]);
+    my Coa:D $coa = $*registry.send-to-hooks(COA, [$c, $entry, $hodl]);
     my Entryʹ $entryʹ .= new(:$entry, :$coa, :$hodl);
 }
 
@@ -70,7 +70,7 @@ multi sub apply(
 {
     my Entry::Posting:D @p = |@tail;
     my Entry::Posting:D $posting =
-        $registry.send-to-hooks(POSTING, [$p, $header]);
+        $*registry.send-to-hooks(POSTING, [$p, $header]);
     my Entry::Posting:D @carry = |@c, $posting;
     my Entry::Posting:D @posting = apply(@p, $header, :@carry);
 }

@@ -70,8 +70,7 @@ multi sub apply(
 )
 {
     my Entry:D @entry = |@tail;
-    my Entryʹ:D $entryʹ =
-        $registry.send-to-hooks(ENTRY, [$entry, $c, $h]);
+    my Entryʹ:D $entryʹ = $*registry.send-to-hooks(ENTRY, [$entry, $c, $h]);
     my Coa:D $coa = $entryʹ.coa;
     my Hodl:D $hodl = $entryʹ.hodl;
     my Entryʹ:D @carry = |@c, $entryʹ;
