@@ -167,20 +167,20 @@ and which returns:
 
 # end p6doc }}}
 
-# name of hook
-method name(--> Str:D)
-{...}
-
 # description of hook
 method description(--> Str:D)
 {...}
 
-# for ordering multiple matching hooks
-method priority(--> Int:D)
-{...}
-
 # for declaring C<Nightscape::Hook> types needed in registry
 method dependency(--> Array[Nightscape::Hook:U])
+{...}
+
+# name of hook
+method name(--> Str:D)
+{...}
+
+# for ordering multiple matching hooks
+method priority(--> Int:D)
 {...}
 
 # method perl {{{

@@ -12,11 +12,6 @@ has Str:D $!description = 'catch-all hook for HOOK';
 has Int:D $!priority = 0;
 has Nightscape::Hook:U @!dependency;
 
-method name(::?CLASS:D: --> Str:D)
-{
-    my Str:D $name = $!name;
-}
-
 method description(::?CLASS:D: --> Str:D)
 {
     my Str:D $description = $!description;
@@ -25,6 +20,11 @@ method description(::?CLASS:D: --> Str:D)
 method dependency(::?CLASS:D: --> Array[Nightscape::Hook:U])
 {
     my Nightscape::Hook:U @dependency = @!dependency;
+}
+
+method name(::?CLASS:D: --> Str:D)
+{
+    my Str:D $name = $!name;
 }
 
 method priority(::?CLASS:D: --> Int:D)
