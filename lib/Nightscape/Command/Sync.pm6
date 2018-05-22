@@ -14,7 +14,7 @@ method sync(
     --> List:D
 )
 {
-    my List:D $pkg = self!sync(|%opts, |@ledger);
+    my List:D $sync = self!sync(|%opts, |@ledger);
 }
 
 # end method sync }}}
@@ -30,7 +30,7 @@ method !sync(
 )
 {
     my AbsolutePath:D $pkg-dir = $*config.pkg-dir;
-    my List:D $pkg = sync($*config.ledger, :$pkg-dir, |%opts, |@ledger);
+    my List:D $sync = sync($*config.ledger, :$pkg-dir, |%opts, |@ledger);
 }
 
 # end method !sync }}}
@@ -49,7 +49,7 @@ multi sub sync(
 {
     my Nightscape::Config::Ledger:D @ledger =
         grep-ledger-for-request(@l, @request);
-    my List:D $pkg = sync(:@ledger, |%opts).List;
+    my List:D $sync = sync(:@ledger, |%opts).List;
 }
 
 multi sub sync(
@@ -63,7 +63,7 @@ multi sub sync(
     --> List:D
 )
 {
-    my List:D $pkg = sync(:@ledger, |%opts).List;
+    my List:D $sync = sync(:@ledger, |%opts).List;
 }
 
 multi sub sync(
@@ -83,16 +83,21 @@ multi sub sync(
 }
 
 multi sub sync(
-    Nightscape::Config::Ledger::FromFile:D :$ledger!,
+    Nightscape::Config::Ledger::FromFile:D :ledger($cfg-ledger)!,
     AbsolutePath:D :pkg-dir($)! where .so,
     *%opts (
         Int :date-local-offset($),
         Str :include-lib($)
     )
-    --> Hash:D
+    --> Ledgerʹ:D
 )
 {
-    my %sync = $ledger.made(|%opts);
+    my %pkg = $cfg-ledger.made(|%opts);
+    my Ledger:D $ledger = %pkg<ledger>;
+    my Coa $coa .= new;
+    my Hodl $hodl .= new;
+    my Ledgerʹ:D $ledgerʹ =
+        $*registry.send-to-hooks(LEDGER, [$ledger, $coa, $hodl]);
 }
 
 multi sub sync(
@@ -102,10 +107,15 @@ multi sub sync(
         Int :date-local-offset($),
         Str :include-lib($)
     )
-    --> Hash:D
+    --> Ledgerʹ:D
 )
 {
-    my %sync = $ledger.made(:$pkg-dir);
+    my %pkg = $ledger.made(:$pkg-dir);
+    my Ledger:D $ledger = %pkg<ledger>;
+    my Coa $coa .= new;
+    my Hodl $hodl .= new;
+    my Ledgerʹ:D $ledgerʹ =
+        $*registry.send-to-hooks(LEDGER, [$ledger, $coa, $hodl]);
 }
 
 # end sub sync }}}

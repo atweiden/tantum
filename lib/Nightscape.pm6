@@ -134,7 +134,7 @@ method sync(
 {
     my Nightscape::Config:D $*config = $.config;
     my Nightscape::Registry:D $*registry = $!registry;
-    Nightscape::Command::Sync.sync(|%opts, |@ledger);
+    my List:D $sync = Nightscape::Command::Sync.sync(|%opts, |@ledger);
 }
 
 # end method sync }}}
