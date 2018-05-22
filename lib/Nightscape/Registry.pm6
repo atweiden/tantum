@@ -1,6 +1,12 @@
 use v6;
 use Nightscape::Dx;
 use Nightscape::Hook;
+use Nightscape::Hook::Entry::Posting;
+use Nightscape::Hook::Entry;
+use Nightscape::Hook::Ledger;
+use Nightscape::Hook::Coa;
+use Nightscape::Hook::Hodl;
+use Nightscape::Hook::Hook;
 use Nightscape::Types;
 use TXN::Parser::ParseTree;
 use TXN::Parser::Types;

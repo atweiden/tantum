@@ -10,5 +10,6 @@ use NightscapeTest;
 my %setup = NightscapeTest.setup;
 my Nightscape $nightscape .= new(|%setup);
 my List:D $sync = $nightscape.sync;
+$sync.perl.say;
 
 # vim: set filetype=perl6 foldmethod=marker foldlevel=0:

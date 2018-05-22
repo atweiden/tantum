@@ -1,5 +1,6 @@
 use v6;
 use Nightscape::Dx;
+use Nightscape::Hook;
 use Nightscape::Types;
 use TXN::Parser::ParseTree;
 use TXN::Parser::Types;
@@ -33,7 +34,8 @@ method priority(::?CLASS:D: --> Int:D)
 
 multi method apply(
     | (
-        Entry::Posting:D $p
+        Entry::Posting:D $p,
+        Entry::Header:D $header
     )
     --> Entry::Posting:D
 )
