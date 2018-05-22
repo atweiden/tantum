@@ -1,7 +1,6 @@
 use v6;
 use Nightscape::Hook::Action;
 use Nightscape::Hook::Trigger;
-use Nightscape::Registry;
 use Nightscape::Types;
 unit role Nightscape::Hook[HookType $type];
 also does Nightscape::Hook::Action[$type];
@@ -225,7 +224,7 @@ multi sub perl(
 }
 
 multi sub perl(
-    Nightscape::Hook:U @ (Nightscape::Hook:U $dependency, *@tail)
+    Nightscape::Hook:U @ (Nightscape::Hook:U $dependency, *@tail),
     Str:D :carry(@c)
     --> Str:D
 )
