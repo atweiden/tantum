@@ -2,6 +2,7 @@ use v6;
 use Nightscape::Dx;
 use Nightscape::Registry;
 use Nightscape::Types;
+use Nightscape::Utils;
 use TXN::Parser::ParseTree;
 use TXN::Parser::Types;
 unit class Nightscape::Hook::Ledger;
@@ -41,7 +42,8 @@ multi method apply(
     --> Ledgerʹ:D
 )
 {
-    my Entry:D @entry = $ledger.entry;
+    my Entry:D @e = $ledger.entry;
+    my Entry:D @entry = Nightscape::Utils.ls-entries(@e, :sort);
     my Entryʹ:D @entryʹ = apply(@entry, $c, $h);
     # last C<Entryʹ> seen has most up-to-date C<Coa> and C<Hodl>
     my Entryʹ:D $entryʹ = @entryʹ.tail;
