@@ -203,7 +203,7 @@ multi sub send-to-hooks(
     --> Coa:D
 )
 {
-    my Nightscape::Hook[COA] @hook = @h.grep({ .is-match($c, $entry) });
+    my Nightscape::Hook[COA] @hook = @h.grep({ .is-match($c, $entry, $hodl) });
     my Coa:D $coa = send-to-hooks(@hook, @arg, :apply);
 }
 
