@@ -1,6 +1,9 @@
 use v6;
 use Nightscape::Config;
+use Nightscape::Dx;
 use Nightscape::Types;
+use TXN::Parser::ParseTree;
+use TXN::Parser::Types;
 unit class Nightscape::Command::Sync;
 
 # method sync {{{
@@ -101,7 +104,7 @@ multi sub sync(
 }
 
 multi sub sync(
-    Nightscape::Config::Ledger::FromPkg:D :$ledger!,
+    Nightscape::Config::Ledger::FromPkg:D :ledger($cfg-ledger)!,
     AbsolutePath:D :$pkg-dir! where .so,
     *% (
         Int :date-local-offset($),
@@ -110,7 +113,7 @@ multi sub sync(
     --> Ledgerʹ:D
 )
 {
-    my %pkg = $ledger.made(:$pkg-dir);
+    my %pkg = $cfg-ledger.made(:$pkg-dir);
     my Ledger:D $ledger = %pkg<ledger>;
     my Coa $coa .= new;
     my Hodl $hodl .= new;
