@@ -2,9 +2,9 @@ use v6;
 use Nightscape::Hook::Action;
 use Nightscape::Hook::Trigger;
 use Nightscape::Types;
-unit role Nightscape::Hook[HookType $type];
-also does Nightscape::Hook::Action[$type];
-also does Nightscape::Hook::Trigger[$type];
+unit role Nightscape::Hook[HookType ::T];
+also does Nightscape::Hook::Action[T];
+also does Nightscape::Hook::Trigger[T];
 
 # p6doc {{{
 
@@ -190,7 +190,7 @@ method perl(--> Str:D)
     my Str:D $perl =
         sprintf(
             Q{%s.new(%s)},
-            perl('type', $type),
+            perl('type', T),
             perl('attr', $.name, $.description, $.priority, @.dependency)
         );
 }
