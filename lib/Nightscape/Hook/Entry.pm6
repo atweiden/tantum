@@ -1,7 +1,6 @@
 use v6;
 use Nightscape::Dx;
 use Nightscape::Hook;
-use Nightscape::Registry;
 use Nightscape::Types;
 use TXN::Parser::ParseTree;
 use TXN::Parser::Types;
