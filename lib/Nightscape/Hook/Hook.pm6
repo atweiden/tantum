@@ -33,12 +33,10 @@ method priority(::?CLASS:D: --> Int:D)
 }
 
 multi method apply(
-    @arg (
-        Str:D $,
-        Str:D $,
-        Capture:D $
-    ),
-    Bool:D :enter($)! where .so
+    | (
+        @arg (Str:D $, Str:D $, Capture:D $),
+        Bool:D :enter($)! where .so
+    )
     --> Nil
 )
 {
@@ -47,12 +45,10 @@ multi method apply(
 }
 
 multi method apply(
-    @arg (
-        Str:D $,
-        Str:D $,
-        Capture:D $
-    ),
-    Bool:D :leave($)! where .so
+    | (
+        @arg (Str:D $, Str:D $, Capture:D $),
+        Bool:D :leave($)! where .so
+    )
     --> Nil
 )
 {
@@ -61,11 +57,7 @@ multi method apply(
 }
 
 sub apply(
-    @ (
-        Str:D $class-name,
-        Str:D $routine-name,
-        Capture:D $capture
-    )
+    @ (Str:D $class-name, Str:D $routine-name, Capture:D $capture)
     --> Str:D
 )
 {
