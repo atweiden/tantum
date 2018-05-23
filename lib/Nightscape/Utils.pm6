@@ -1,6 +1,5 @@
 use v6;
 use TXN::Parser::ParseTree;
-use TXN::Parser::Types;
 unit class Nightscape::Utils;
 
 # method ls-entries {{{

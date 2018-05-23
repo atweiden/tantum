@@ -9,7 +9,6 @@ use Nightscape::Hook::Hodl;
 use Nightscape::Hook::Hook;
 use Nightscape::Types;
 use TXN::Parser::ParseTree;
-use TXN::Parser::Types;
 unit class Nightscape::Registry;
 
 has Nightscape::Hook:D @!hook =

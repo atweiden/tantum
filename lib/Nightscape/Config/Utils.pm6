@@ -1,6 +1,7 @@
 use v6;
 use Nightscape::Types;
-use TXN::Parser;
+use TXN::Parser::Actions;
+use TXN::Parser::Grammar;
 use TXN::Parser::Types;
 unit class Nightscape::Config::Utils;
 

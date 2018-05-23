@@ -3,7 +3,6 @@ use Nightscape::Config;
 use Nightscape::Dx;
 use Nightscape::Types;
 use TXN::Parser::ParseTree;
-use TXN::Parser::Types;
 unit class Nightscape::Command::Sync;
 
 # method sync {{{

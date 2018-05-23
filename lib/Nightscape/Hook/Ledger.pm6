@@ -4,7 +4,6 @@ use Nightscape::Hook;
 use Nightscape::Types;
 use Nightscape::Utils;
 use TXN::Parser::ParseTree;
-use TXN::Parser::Types;
 unit class Nightscape::Hook::Ledger;
 also does Nightscape::Hook[LEDGER];
 
