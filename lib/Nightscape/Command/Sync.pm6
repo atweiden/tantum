@@ -1,8 +1,6 @@
 use v6;
 use Nightscape::Config;
-use Nightscape::Dx::Coa;
-use Nightscape::Dx::Hodl;
-use Nightscape::Dx::Ledgerʹ;
+use Nightscape::Dx;
 use Nightscape::Types;
 use TXN::Parser::ParseTree;
 unit class Nightscape::Command::Sync;

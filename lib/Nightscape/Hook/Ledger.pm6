@@ -1,8 +1,5 @@
 use v6;
-use Nightscape::Dx::Coa;
-use Nightscape::Dx::Hodl;
-use Nightscape::Dx::Entryʹ;
-use Nightscape::Dx::Ledgerʹ;
+use Nightscape::Dx;
 use Nightscape::Hook;
 use Nightscape::Types;
 use Nightscape::Utils;
@@ -70,7 +67,8 @@ multi sub apply(
     Coa:D $c,
     Hodl:D $h,
     Entryʹ:D :carry(@c)
-    --> Array[Entryʹ:D]
+    # XXX type too complex to form :D constraint
+    --> Array[Entryʹ]
 )
 {
     my Entry:D @entry = |@tail;
@@ -86,7 +84,8 @@ multi sub apply(
     Coa:D $,
     Hodl:D $,
     Entryʹ:D :@carry
-    --> Array[Entryʹ:D]
+    # XXX type too complex to form :D constraint
+    --> Array[Entryʹ]
 )
 {
     my Entryʹ:D @entryʹ = @carry;

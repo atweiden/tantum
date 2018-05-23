@@ -1,8 +1,5 @@
 use v6;
-use Nightscape::Dx::Coa;
-use Nightscape::Dx::Entryʹ;
-use Nightscape::Dx::Hodl;
-use Nightscape::Dx::Ledgerʹ;
+use Nightscape::Dx;
 use Nightscape::Hook;
 use Nightscape::Hook::Entry::Posting;
 use Nightscape::Hook::Entry;
