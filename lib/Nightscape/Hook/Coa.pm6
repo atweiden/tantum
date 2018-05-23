@@ -1,5 +1,6 @@
 use v6;
-use Nightscape::Dx;
+use Nightscape::Dx::Coa;
+use Nightscape::Dx::Hodl;
 use Nightscape::Hook;
 use Nightscape::Types;
 use TXN::Parser::ParseTree;
