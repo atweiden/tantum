@@ -1,9 +1,5 @@
 use v6;
-use Nightscape::Command::Clean;
-use Nightscape::Command::Reup;
-use Nightscape::Command::Serve;
-use Nightscape::Command::Show;
-use Nightscape::Command::Sync;
+use Nightscape::Command;
 use Nightscape::Config;
 use Nightscape::Registry;
 unit class Nightscape;
