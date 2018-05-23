@@ -11,12 +11,12 @@ use TXN::Parser::Types;
 sub EXPORT(--> Map:D)
 {
     my %EXPORT = Map.new(
-        'Account' => Nightscape::Dx::Account,
-        'Coa'     => Nightscape::Dx::Coa,
-        'Hodling' => Nightscape::Dx::Hodling,
-        'Hodl'    => Nightscape::Dx::Hodl,
-        'Entryʹ'  => Nightscape::Dx::Entry,
-        'Ledgerʹ' => Nightscape::Dx::Ledger
+        'Account' => Account,
+        'Coa'     => Coa,
+        'Hodling' => Hodling,
+        'Hodl'    => Hodl,
+        'Entryʹ'  => Entryʹ,
+        'Ledgerʹ' => Ledgerʹ
     );
 }
 

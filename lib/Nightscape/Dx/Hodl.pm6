@@ -1,14 +1,7 @@
 use v6;
 use Nightscape::Dx::Hodling;
+unit class Hodl;
 
-class Nightscape::Dx::Hodl
-{
-    has Hodling:D @.hodling is required;
-}
-
-sub EXPORT(--> Map:D)
-{
-    my %EXPORT = 'Hodl' => Nightscape::Dx::Hodl;
-}
+has Hodling:D @.hodling is required;
 
 # vim: set filetype=perl6 foldmethod=marker foldlevel=0:
