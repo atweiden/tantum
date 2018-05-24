@@ -66,7 +66,7 @@ my AbsolutePath:D $default-scene-file =
 
 # submethod BUILD {{{
 
-submethod BUILD(
+multi submethod BUILD(
     Str :$app-dir,
     Str :$app-file,
     Str :$log-dir,
@@ -84,43 +84,96 @@ submethod BUILD(
     --> Nil
 )
 {
-    # --- application settings {{{
+    self.BUILD(
+        'app-file',
+        [$default-app-file, $app-file],
+        [$default-app-dir, $app-dir],
+        [$default-log-dir, $log-dir],
+        [$default-pkg-dir, $pkg-dir],
+        [$default-price-dir, $price-dir],
+        [$default-scene-dir, $scene-dir],
+        [$default-scene-file, $scene-file]
+    );
+    my %app = from-toml(:file($!app-file));
+    self.BUILD(
+        'dirs',
+        [$default-app-dir, %app<app-dir>, $app-dir],
+        [$default-log-dir, %app<log-dir>, $log-dir],
+        [$default-pkg-dir, %app<pkg-dir>, $pkg-dir],
+        [$default-price-dir, %app<price-dir>, $price-dir],
+        [$default-scene-dir, %app<scene-dir>, $scene-dir]
+    );
+    self.BUILD(
+        'scene-file',
+        [$default-scene-file, %app<scene-file>, $scene-file],
+        [$base-costing, $default-base-costing],
+        [$base-currency, $default-base-currency],
+        [$fiscal-year-end, $default-fiscal-year-end],
+        @account,
+        @asset,
+        @entity,
+        @ledger
+    );
+    my %scene = from-toml(:file($!scene-file));
+    self.BUILD(
+        'attr',
+        [@ledger, %scene<ledger>],
+        [@account, %scene<account>],
+        [@asset, %scene<asset>],
+        [@entity, %scene<entity>],
+        [$base-costing, %scene<base-costing>],
+        [$base-currency, %scene<base-currency>],
+        [$fiscal-year-end, %scene<fiscal-year-end>]
+    );
+}
 
+multi submethod BUILD(
+    'app-file',
+    @app-file ($default-app-file, $app-file),
+    @app-dir ($default-app-dir, $app-dir),
+    @log-dir ($default-log-dir, $log-dir),
+    @pkg-dir ($default-pkg-dir, $pkg-dir),
+    @price-dir ($default-price-dir, $price-dir),
+    @scene-dir ($default-scene-dir, $scene-dir),
+    @scene-file ($default-scene-file, $scene-file)
+    --> Nil
+)
+{
     # if option C<app-file> is passed to instantiate
     # C<Nightscape::Config>, use that, otherwise use default
-    $!app-file =
-        resolve-path($default-app-file, $app-file);
-    my %app-file-content;
-    %app-file-content<app-dir> =
-        resolve-path($default-app-dir, $app-dir);
-    %app-file-content<log-dir> =
-        resolve-path($default-log-dir, $log-dir);
-    %app-file-content<pkg-dir> =
-        resolve-path($default-pkg-dir, $pkg-dir);
-    %app-file-content<price-dir> =
-        resolve-path($default-price-dir, $price-dir);
-    %app-file-content<scene-dir> =
-        resolve-path($default-scene-dir, $scene-dir);
-    %app-file-content<scene-file> =
-        resolve-path($default-scene-file, $scene-file);
-
-    # write values to C<$!app-file> if C<$!app-file> DNE
+    $!app-file = resolve-path(|@app-file);
+    # write TOML to C<$!app-file> if C<$!app-file> DNE
+    my %app-file-content =
+        :app-dir(resolve-path(|@app-dir)),
+        :log-dir(resolve-path(|@log-dir)),
+        :pkg-dir(resolve-path(|@pkg-dir)),
+        :price-dir(resolve-path(|@price-dir)),
+        :scene-dir(resolve-path(|@scene-dir)),
+        :scene-file(resolve-path(|@scene-file));
     my Str:D $app-file-content = to-toml(%app-file-content);
     prepare-config-file($!app-file, $app-file-content);
+}
 
-    # attempt to parse C<$!app-file>
-    my %app = from-toml(:file($!app-file));
-
+multi submethod BUILD(
+    'dirs',
+    @app-dir ($default-app-dir, $app-file-app-dir, $app-dir),
+    @log-dir ($default-log-dir, $app-file-log-dir, $log-dir),
+    @pkg-dir ($default-pkg-dir, $app-file-pkg-dir, $pkg-dir),
+    @price-dir ($default-price-dir, $app-file-price-dir, $price-dir),
+    @scene-dir ($default-scene-dir, $app-file-scene-dir, $scene-dir)
+    --> Nil
+)
+{
     # options C<app-dir>, C<log-dir>, C<pkg-dir>, C<price-dir>,
     # C<scene-dir>, passed to instantiate C<Nightscape::Config> override
     # settings of the same name contained in C<$!app-file>
     #
     # if no setting is provided, use defaults
-    $!app-dir = resolve-path($default-app-dir, %app<app-dir>, $app-dir);
-    $!log-dir = resolve-path($default-log-dir, %app<log-dir>, $log-dir);
-    $!pkg-dir = resolve-path($default-pkg-dir, %app<pkg-dir>, $pkg-dir);
-    $!price-dir = resolve-path($default-price-dir, %app<price-dir>, $price-dir);
-    $!scene-dir = resolve-path($default-scene-dir, %app<scene-dir>, $scene-dir);
+    $!app-dir = resolve-path(|@app-dir);
+    $!log-dir = resolve-path(|@log-dir);
+    $!pkg-dir = resolve-path(|@pkg-dir);
+    $!price-dir = resolve-path(|@price-dir);
+    $!scene-dir = resolve-path(|@scene-dir);
     prepare-config-dirs(
         $!app-dir,
         $!log-dir,
@@ -128,17 +181,27 @@ submethod BUILD(
         $!price-dir,
         $!scene-dir
     );
+}
 
-    # --- end application settings }}}
-    # --- scene settings {{{
-
+multi submethod BUILD(
+    'scene-file',
+    @scene-file ($default-scene-file, $app-file-scene-file, $scene-file),
+    @base-costing ($base-costing, $default-base-costing),
+    @base-currency ($base-currency, $default-base-currency),
+    @fiscal-year-end ($fiscal-year-end, $default-fiscal-year-end),
+    @account,
+    @asset,
+    @entity,
+    @ledger
+    --> Nil
+)
+{
     # if option C<scene-file> is passed to instantiate
     # C<Nightscape::Config> override settings of the same name contained
     # in C<$!app-file>
     #
     # if no setting is provided, use default
-    $!scene-file =
-        resolve-path($default-scene-file, %app<scene-file>, $scene-file);
+    $!scene-file = resolve-path(|@scene-file);
     my %scene-file-content;
     %scene-file-content<base-costing> =
         (~$base-costing if $base-costing) // ~$default-base-costing;
@@ -156,36 +219,40 @@ submethod BUILD(
         @ledger.hyper.map({ .hash }).Array if @ledger;
     my Str:D $scene-file-content = to-toml(%scene-file-content);
     prepare-config-file($!scene-file, $scene-file-content);
+}
 
-    # attempt to parse C<$!scene-file>
-    my %scene = from-toml(:file($!scene-file));
-
-    try
-    {
-        CATCH { default { say(.message); exit(1) } };
-        @!ledger = @ledger
-            // gen-settings(:ledger(%scene<ledger>, :$!scene-file));
-        @!account = @account
-            // (gen-settings(:account(%scene<account>))
-                    if %scene<account>);
-        @!asset = @asset
-            // (gen-settings(:asset(%scene<asset>), :$!scene-file)
-                    if %scene<asset>);
-        @!entity = @entity
-            // (gen-settings(:entity(%scene<entity>), :$!scene-file)
-                    if %scene<entity>);
-        $!base-costing = $base-costing
-            // (Nightscape::Config::Utils.gen-costing(%scene<base-costing>)
-                    if %scene<base-costing>);
-        $!base-currency = $base-currency
-            // (Nightscape::Config::Utils.gen-asset-code(%scene<base-currency>)
-                    if %scene<base-currency>);
-        $!fiscal-year-end = $fiscal-year-end
-            // (%scene<fiscal-year-end>
-                    if %scene<fiscal-year-end>);
-    }
-
-    # --- end scene settings }}}
+multi submethod BUILD(
+    'attr',
+    @ (@ledger, @scene-file-ledger),
+    @ (@account, @scene-file-account),
+    @ (@asset, @scene-file-asset),
+    @ (@entity, @scene-file-entity),
+    @ ($base-costing, $scene-file-base-costing),
+    @ ($base-currency, $scene-file-base-currency),
+    @ ($fiscal-year-end, $scene-file-fiscal-year-end)
+    --> Nil
+)
+{
+    @!ledger = @ledger
+        // gen-settings(:ledger(@scene-file-ledger, :$!scene-file));
+    @!account = @account
+        // (gen-settings(:account(@scene-file-account))
+                if @scene-file-account);
+    @!asset = @asset
+        // (gen-settings(:asset(@scene-file-asset), :$!scene-file)
+                if @scene-file-asset);
+    @!entity = @entity
+        // (gen-settings(:entity(@scene-file-entity), :$!scene-file)
+                if @scene-file-entity);
+    $!base-costing = $base-costing
+        // (Nightscape::Config::Utils.gen-costing($scene-file-base-costing)
+                if $scene-file-base-costing);
+    $!base-currency = $base-currency
+        // (Nightscape::Config::Utils.gen-asset-code($scene-file-base-currency)
+                if $scene-file-base-currency);
+    $!fiscal-year-end = $fiscal-year-end
+        // ($scene-file-fiscal-year-end
+                if $scene-file-fiscal-year-end);
 }
 
 # end submethod BUILD }}}
