@@ -4,6 +4,8 @@ use Nightscape::Dx::Coa;
 use Nightscape::Dx::Entry;
 use Nightscape::Dx::Hodl;
 use Nightscape::Dx::Hodling;
+use Nightscape::Dx::Hodling::Basis;
+use Nightscape::Dx::Hodling::Basis::Lot;
 use Nightscape::Dx::Ledger;
 use TXN::Parser::ParseTree;
 use TXN::Parser::Types;
@@ -11,12 +13,14 @@ use TXN::Parser::Types;
 sub EXPORT(--> Map:D)
 {
     my %EXPORT = Map.new(
-        'Account' => Account,
-        'Coa'     => Coa,
-        'Hodling' => Hodling,
-        'Hodl'    => Hodl,
-        'Entryʹ'  => Entryʹ,
-        'Ledgerʹ' => Ledgerʹ
+        'Account'             => Account,
+        'Coa'                 => Coa,
+        'Hodling'             => Hodling,
+        'Hodling::Basis'      => Hodling::Basis,
+        'Hodling::Basis::Lot' => Hodling::Basis::Lot,
+        'Hodl'                => Hodl,
+        'Entryʹ'              => Entryʹ,
+        'Ledgerʹ'             => Ledgerʹ
     );
 }
 

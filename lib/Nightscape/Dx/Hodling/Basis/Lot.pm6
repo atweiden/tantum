@@ -1,10 +1,12 @@
 use v6;
-use Nightscape::Dx::Hodling::Basis;
 use TXN::Parser::Types;
-unit role Hodling[AssetCode:D $asset-code];
+unit role Hodling::Basis::Lot[AssetCode:D $asset-code];
 
 has AssetCode:D $!asset-code = $asset-code;
-has Hodling::Basis[$asset-code] $.basis is required;
+has Entry::ID:D $.entry-id is required;
+has Date:D $.date is required;
+has Price:D $.price is required;
+has Quantity:D $.quantity is required;
 
 method asset-code(::?CLASS:D: --> AssetCode:D)
 {
