@@ -282,6 +282,67 @@ method new(
 }
 
 # end method new }}}
+# method resolve-entity-base-currency {{{
+
+method resolve-entity-base-currency(
+    ::?CLASS:D:
+    VarName:D $entity-name
+    --> AssetCode:D
+)
+{
+    my AssetCode:D $resolve-entity-base-currency =
+        resolve-entity-base-currency($.base-currency, $entity-name, @.entity);
+}
+
+multi sub resolve-entity-base-currency(
+    AssetCode:D $config-base-currency,
+    VarName:D $entity-name,
+    Nightscape::Config::Entity:D @entity where {
+        .first({ .code eq $entity-name }).so
+    }
+    --> AssetCode:D
+)
+{
+    my Nightscape::Config::Entity:D $entity =
+        @entity.first({ .code eq $entity-name });
+    my AssetCode:D $resolve-entity-base-currency =
+        resolve-entity-base-currency(
+            $config-base-currency,
+            $entity.base-currency
+        );
+}
+
+# no matching entity found
+multi sub resolve-entity-base-currency(
+    AssetCode:D $config-base-currency,
+    VarName:D $entity-name,
+    Nightscape::Config::Entity:D @entity
+    --> AssetCode:D
+)
+{
+    my AssetCode:D $resolve-entity-base-currency = $config-base-currency;
+}
+
+multi sub resolve-entity-base-currency(
+    AssetCode:D $config-base-currency,
+    AssetCode:D $entity-base-currency where .so
+    --> AssetCode:D
+)
+{
+    my AssetCode:D $resolve-entity-base-currency = $entity-base-currency;
+}
+
+# C<$entity-base-currency> not present
+multi sub resolve-entity-base-currency(
+    AssetCode:D $config-base-currency,
+    AssetCode $entity-base-currency
+    --> AssetCode:D
+)
+{
+    my AssetCode:D $resolve-entity-base-currency = $config-base-currency;
+}
+
+# end method resolve-entity-base-currency }}}
 # sub gen-settings {{{
 
 multi sub gen-settings(
