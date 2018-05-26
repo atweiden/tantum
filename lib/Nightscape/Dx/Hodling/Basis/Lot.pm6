@@ -1,4 +1,5 @@
 use v6;
+use TXN::Parser::ParseTree;
 use TXN::Parser::Types;
 unit role Hodling::Basis::Lot[AssetCode:D $asset-code];
 
