@@ -58,7 +58,22 @@ role Nightscape::Hook::Action[LEDGER]
 {
     also does Introspection;
 
-    multi method apply(|)
+    multi method apply(
+        | (
+            Ledger:D $ledger,
+            Coa:D $coa,
+            Hodl:D $hodl
+        )
+        --> Ledgerʹ
+    )
+    {...}
+
+    multi method apply(
+        | (
+            Ledgerʹ:D $ledgerʹ
+        )
+        --> Ledgerʹ:D
+    )
     {...}
 }
 
@@ -94,7 +109,14 @@ role Nightscape::Hook::Action[HODL]
 role Nightscape::Hook::Action[HOOK]
 {
     # omit C<also does Introspection> to avoid infinite loops
-    method apply()
+    method apply(
+        | (
+            Str:D $class-name,
+            Str:D $routine-name,
+            Capture:D $capture
+        )
+        --> Nil
+    )
     {...}
 }
 
