@@ -24,9 +24,12 @@ role Nightscape::Hook::Action[POSTING]
     multi method apply(
         | (
             Entry::Posting:D $posting,
-            Entry::Header:D $header
+            Entry::Header:D $header,
+            *%opts (
+                Entry::Postingʹ:D :@carry
+            )
         )
-        --> Entry::Posting:D
+        --> Entry::Postingʹ:D
     )
     {...}
 }
@@ -39,15 +42,10 @@ role Nightscape::Hook::Action[ENTRY]
         | (
             Entry:D $entry,
             Coa:D $coa,
-            Hodl:D $hodl
-        )
-        --> Entryʹ:D
-    )
-    {...}
-
-    multi method apply(
-        | (
-            Entryʹ:D $entryʹ
+            Hodl:D $hodl,
+            *%opts (
+                Entryʹ:D :@carry
+            )
         )
         --> Entryʹ:D
     )
@@ -62,15 +60,10 @@ role Nightscape::Hook::Action[LEDGER]
         | (
             Ledger:D $ledger,
             Coa:D $coa,
-            Hodl:D $hodl
-        )
-        --> Ledgerʹ
-    )
-    {...}
-
-    multi method apply(
-        | (
-            Ledgerʹ:D $ledgerʹ
+            Hodl:D $hodl,
+            *%opts (
+                Ledgerʹ:D :@carry
+            )
         )
         --> Ledgerʹ:D
     )
@@ -85,7 +78,10 @@ role Nightscape::Hook::Action[COA]
         | (
             Coa:D $coa,
             Entry:D $entry,
-            Hodl:D $hodl
+            Hodl:D $hodl,
+            *%opts (
+                Coa:D :@carry
+            )
         )
         --> Coa:D
     )
@@ -99,7 +95,10 @@ role Nightscape::Hook::Action[HODL]
     multi method apply(
         | (
             Hodl:D $hodl,
-            Entry:D $entry
+            Entry:D $entry,
+            *%opts (
+                Hodl:D :@carry
+            )
         )
         --> Hodl:D
     )

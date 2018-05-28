@@ -24,14 +24,6 @@ e.g. a I<Chart of Accounts>.
 Hooks allow for closely examining and logging each and every step a TXN
 document goes through along the way to an essential report, leading to
 increased auditability.
-
-Pure functions are to be strived for. Side-effects during pipeline
-transformation at the behest of Hooks are strongly discouraged.
-Major datapoints, such as I<Chart of Accounts> (C<Coa>) and I<Holdings>
-(C<Hodl>) are first class citizens throughout the entirety of the
-pipeline, for instance. If and when other data structures become critical
-to Nightscape report generation, the key elements of those data structures
-should be reined in similar to how C<Coa> and C<Hodl> are handled.
 =end paragraph
 
 =head2 Hooks By Category
@@ -55,11 +47,12 @@ I<Posting> hooks must provide a C<method apply> which accepts as
 arguments:
 
     Entry::Posting:D $p,
-    Entry::Header:D $header
+    Entry::Header:D $header,
+    Entry::Postingʹ:D :@carry
 
 and which returns:
 
-    Entry::Posting:D $posting
+    Entry::Postingʹ:D $postingʹ
 =end item
 
 =begin item
@@ -73,7 +66,8 @@ I<Entry> hooks must provide a C<method apply> which accepts as arguments:
 
     Entry:D $entry,
     Coa:D $coa,
-    Hodl:D $hodl
+    Hodl:D $hodl,
+    Entryʹ:D :@carry
 
 and which returns:
 
@@ -91,7 +85,8 @@ I<Ledger> hooks must provide a C<method apply> which accepts as arguments:
 
     Ledger:D $ledger,
     Coa:D $coa,
-    Hodl:D $hodl
+    Hodl:D $hodl,
+    Ledgerʹ:D :@carry
 
 and which returns:
 
@@ -116,7 +111,8 @@ I<Coa> hooks must provide a C<method apply> which accepts as arguments:
 
     Coa:D $c,
     Entry:D $entry,
-    Hodl:D $hodl
+    Hodl:D $hodl,
+    Coa:D :@carry
 
 and which returns:
 
@@ -133,7 +129,8 @@ inscribed in matching hooks executed.
 I<Hodl> hooks must provide a C<method apply> which accepts as arguments:
 
     Hodl:D $h,
-    Entry:D $entry
+    Entry:D $entry,
+    Hodl:D :@carry
 
 and which returns:
 
