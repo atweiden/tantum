@@ -5,9 +5,13 @@ use TXN::Parser::ParseTree;
 
 role Nightscape::Hook::Trigger[POSTING]
 {
-    method is-match(
+    multi method is-match(
         Entry::Posting:D $posting,
-        Entry::Header:D $header
+        Entry::Header:D $header,
+        *%opts (
+            Nightscape::Hook:U :@applied,
+            Entry::Postingʹ:D :@carry
+        )
         --> Bool:D
     )
     {...}
@@ -15,10 +19,14 @@ role Nightscape::Hook::Trigger[POSTING]
 
 role Nightscape::Hook::Trigger[ENTRY]
 {
-    method is-match(
+    multi method is-match(
         Entry:D $entry,
         Coa:D $coa,
-        Hodl:D $hodl
+        Hodl:D $hodl,
+        *%opts (
+            Nightscape::Hook:U :@applied,
+            Entryʹ:D :@carry
+        )
         --> Bool:D
     )
     {...}
@@ -26,10 +34,14 @@ role Nightscape::Hook::Trigger[ENTRY]
 
 role Nightscape::Hook::Trigger[LEDGER]
 {
-    method is-match(
+    multi method is-match(
         Ledger:D $ledger,
         Coa:D $coa,
-        Hodl:D $hodl
+        Hodl:D $hodl,
+        *%opts (
+            Nightscape::Hook:U :@applied,
+            Ledgerʹ:D :@carry
+        )
         --> Bool:D
     )
     {...}
@@ -37,10 +49,14 @@ role Nightscape::Hook::Trigger[LEDGER]
 
 role Nightscape::Hook::Trigger[COA]
 {
-    method is-match(
+    multi method is-match(
         Coa:D $coa,
         Entry:D $entry,
-        Hodl:D $hodl
+        Hodl:D $hodl,
+        *%opts (
+            Nightscape::Hook:U :@applied,
+            Coa:D :@carry
+        )
         --> Bool:D
     )
     {...}
@@ -48,9 +64,13 @@ role Nightscape::Hook::Trigger[COA]
 
 role Nightscape::Hook::Trigger[HODL]
 {
-    method is-match(
+    multi method is-match(
         Hodl:D $hodl,
-        Entry:D $entry
+        Entry:D $entry,
+        *%opts (
+            Nightscape::Hook:U :@applied,
+            Hodl:D :@carry
+        )
         --> Bool:D
     )
     {...}
@@ -58,10 +78,14 @@ role Nightscape::Hook::Trigger[HODL]
 
 role Nightscape::Hook::Trigger[HOOK]
 {
-    method is-match(
+    multi method is-match(
+        Str:D $enter-leave,
         Str:D $class-name,
         Str:D $routine-name,
-        Capture:D $capture
+        Capture:D $capture,
+        *%opts (
+            Nightscape::Hook:U :@applied
+        )
         --> Bool:D
     )
     {...}

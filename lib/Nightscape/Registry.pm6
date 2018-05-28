@@ -72,37 +72,44 @@ method send-to-hooks(
 # --- POSTING {{{
 
 multi sub send-to-hooks(
-    Nightscape::Hook[POSTING] @h,
-    @arg (Entry::Posting:D $, Entry::Header:D $)
+    Nightscape::Hook[POSTING] @hook,
+    @arg (Entry::Posting:D $, Entry::Header:D $),
+    *%opts (
+        Nightscape::Hook:U :applied(@),
+        Entry::Postingʹ:D :carry(@)
+    )
     --> Entry::Postingʹ:D
 )
 {
-    my Nightscape::Hook[POSTING] @hook = @h.grep({ .is-match(|@arg) });
-    my Entry::Postingʹ:D $postingʹ = send-to-hooks(@hook, @arg, :apply);
+    my Nightscape::Hook[POSTING] $hook =
+        @hook.first({ .is-match(|@arg, |%opts) });
+    my Entry::Postingʹ:D $postingʹ = send-to-hooks($hook, @hook, @arg, |%opts);
 }
 
 multi sub send-to-hooks(
-    Nightscape::Hook[POSTING] @ (Nightscape::Hook[POSTING] $hook, *@tail),
+    Nightscape::Hook[POSTING] $hook where .defined,
+    Nightscape::Hook[POSTING] @hook,
     @arg (Entry::Posting:D $, Entry::Header:D $),
-    Bool:D :apply($)! where .so,
     *%opts (
+        Nightscape::Hook:U :applied(@a),
         Entry::Postingʹ:D :carry(@c)
     )
     --> Entry::Postingʹ:D
 )
 {
-    my Nightscape::Hook[POSTING] @hook = |@tail;
     my Entry::Posting:D $pʹ = $hook.apply(|@arg, |%opts);
+    my Nightscape::Hook:U @applied = |@a, $hook.WHAT;
     my Entry::Postingʹ:D @carry = |@c, $pʹ;
     my Entry::Postingʹ:D $postingʹ =
-        send-to-hooks(@hook, @arg, :apply, :@carry);
+        send-to-hooks(@hook, @arg, :@applied, :@carry);
 }
 
 multi sub send-to-hooks(
+    Nightscape::Hook[POSTING] $,
     Nightscape::Hook[POSTING] @,
     @ (Entry::Posting:D $, Entry::Header:D $),
-    Bool:D :apply($)! where .so,
     *% (
+        Nightscape::Hook:U :applied(@),
         Entry::Postingʹ:D :@carry! where .so
     )
     --> Entry::Postingʹ:D
@@ -115,36 +122,43 @@ multi sub send-to-hooks(
 # --- ENTRY {{{
 
 multi sub send-to-hooks(
-    Nightscape::Hook[ENTRY] @h,
-    @arg (Entry:D $, Coa:D $, Hodl:D $)
-    --> Entryʹ:D
-)
-{
-    my Nightscape::Hook[ENTRY] @hook = @h.grep({ .is-match(|@arg) });
-    my Entryʹ:D $entryʹ = send-to-hooks(@hook, @arg, :apply);
-}
-
-multi sub send-to-hooks(
-    Nightscape::Hook[ENTRY] @ (Nightscape::Hook[ENTRY] $hook, *@tail),
+    Nightscape::Hook[ENTRY] @hook,
     @arg (Entry:D $, Coa:D $, Hodl:D $),
-    Bool:D :apply($)! where .so,
     *%opts (
+        Nightscape::Hook:U :applied(@),
         Entryʹ:D :carry(@c)
     )
     --> Entryʹ:D
 )
 {
-    my Nightscape::Hook[ENTRY] @hook = |@tail;
-    my Entryʹ:D $eʹ = $hook.apply(|@arg, |%opts);
-    my Entryʹ:D @carry = |@c, $eʹ;
-    my Entryʹ:D $entryʹ = send-to-hooks(@hook, @arg, :apply, :@carry);
+    my Nightscape::Hook[ENTRY] $hook =
+        @hook.first({ .is-match(|@arg, |%opts) });
+    my Entryʹ:D $entryʹ = send-to-hooks($hook, @hook, @arg, |%opts);
 }
 
 multi sub send-to-hooks(
+    Nightscape::Hook[ENTRY] $hook where .defined,
+    Nightscape::Hook[ENTRY] @hook,
+    @arg (Entry:D $, Coa:D $, Hodl:D $),
+    *%opts (
+        Nightscape::Hook:U :applied(@a),
+        Entryʹ:D :carry(@c)
+    )
+    --> Entryʹ:D
+)
+{
+    my Entryʹ:D $eʹ = $hook.apply(|@arg, |%opts);
+    my Nightscape::Hook:U @applied = |@a, $hook.WHAT;
+    my Entryʹ:D @carry = |@c, $eʹ;
+    my Entryʹ:D $entryʹ = send-to-hooks(@hook, @arg, :@applied, :@carry);
+}
+
+multi sub send-to-hooks(
+    Nightscape::Hook[ENTRY] $,
     Nightscape::Hook[ENTRY] @,
     @ (Entry:D $, Coa:D $, Hodl:D $),
-    Bool:D :apply($)! where .so,
     *% (
+        Nightscape::Hook:U :applied(@),
         Entryʹ:D :@carry! where .so
     )
     --> Entryʹ:D
@@ -157,36 +171,43 @@ multi sub send-to-hooks(
 # --- LEDGER {{{
 
 multi sub send-to-hooks(
-    Nightscape::Hook[LEDGER] @h,
-    @arg (Ledger:D $, Coa:D $, Hodl:D $)
+    Nightscape::Hook[LEDGER] @hook,
+    @arg (Ledger:D $, Coa:D $, Hodl:D $),
+    *%opts (
+        Nightscape::Hook:U :applied(@),
+        Ledgerʹ:D :carry(@)
+    )
     --> Ledgerʹ:D
 )
 {
-    my Nightscape::Hook[LEDGER] @hook = @h.grep({ .is-match(|@arg) });
-    my Ledgerʹ:D $ledgerʹ = send-to-hooks(@hook, @arg, :apply);
+    my Nightscape::Hook[LEDGER] $hook =
+        @hook.first({ .is-match(|@arg, |%opts) });
+    my Ledgerʹ:D $ledgerʹ = send-to-hooks($hook, @hook, @arg, |%opts);
 }
 
 multi sub send-to-hooks(
-    Nightscape::Hook[LEDGER] @ (Nightscape::Hook[LEDGER] $hook, *@tail),
+    Nightscape::Hook[LEDGER] $hook where .defined,
+    Nightscape::Hook[LEDGER] @hook,
     @arg (Ledger:D $, Coa:D $, Hodl:D $),
-    Bool:D :apply($)! where .so,
     *%opts (
+        Nightscape::Hook:U :applied(@a),
         Ledgerʹ:D :carry(@c)
     )
     --> Ledgerʹ:D
 )
 {
-    my Nightscape::Hook[LEDGER] @hook = |@tail;
     my Ledgerʹ:D $lʹ = $hook.apply(|@arg, |%opts);
+    my Nightscape::Hook:U @applied = |@a, $hook.WHAT;
     my Ledgerʹ:D @carry = |@c, $lʹ;
-    my Ledgerʹ:D $ledgerʹ = send-to-hooks(@hook, @arg, :apply, :@carry);
+    my Ledgerʹ:D $ledgerʹ = send-to-hooks(@hook, @arg, :@applied, :@carry);
 }
 
 multi sub send-to-hooks(
+    Nightscape::Hook[LEDGER] $,
     Nightscape::Hook[LEDGER] @,
     @ (Ledger:D $, Coa:D $, Hodl:D $),
-    Bool:D :apply($)! where .so,
     *% (
+        Nightscape::Hook:U :applied(@),
         Ledgerʹ:D :@carry! where .so
     )
     --> Ledgerʹ:D
@@ -199,36 +220,42 @@ multi sub send-to-hooks(
 # --- COA {{{
 
 multi sub send-to-hooks(
-    Nightscape::Hook[COA] @h,
+    Nightscape::Hook[COA] @hook,
     @arg (Coa:D $, Entry:D $, Hodl:D $)
+    *%opts (
+        Nightscape::Hook:U :applied(@),
+        Coa:D :carry(@)
+    )
     --> Coa:D
 )
 {
-    my Nightscape::Hook[COA] @hook = @h.grep({ .is-match(|@arg) });
-    my Coa:D $coa = send-to-hooks(@hook, @arg, :apply);
+    my Nightscape::Hook[COA] $hook = @hook.first({ .is-match(|@arg, |%opts) });
+    my Coa:D $coa = send-to-hooks($hook, @hook, @arg, |%opts);
 }
 
 multi sub send-to-hooks(
-    Nightscape::Hook[COA] @ (Nightscape::Hook[COA] $hook, *@tail),
+    Nightscape::Hook[COA] $hook where .defined,
+    Nightscape::Hook[COA] @hook,
     @arg (Coa:D $, Entry:D $, Hodl:D $),
-    Bool:D :apply($)! where .so,
     *%opts (
+        Nightscape::Hook:U :applied(@a),
         Coa:D :carry(@c)
     )
     --> Coa:D
 )
 {
-    my Nightscape::Hook[COA] @hook = |@tail;
     my Coa:D $c = $hook.apply(|@arg, |%opts);
+    my Nightscape::Hook:U @applied = |@a, $hook.WHAT;
     my Coa:D @carry = |@c, $c;
-    my Coa:D $coa = send-to-hooks(@hook, @arg, :apply, :@carry);
+    my Coa:D $coa = send-to-hooks(@hook, @arg, :@applied, :@carry);
 }
 
 multi sub send-to-hooks(
+    Nightscape::Hook[COA] $,
     Nightscape::Hook[COA] @,
-    @arg (Coa:D $, Entry:D $, Hodl:D $),
-    Bool:D :apply($)! where .so,
-    *%opts (
+    @ (Coa:D $, Entry:D $, Hodl:D $),
+    *% (
+        Nightscape::Hook:U :applied(@),
         Coa:D :@carry! where .so
     )
     --> Coa:D
@@ -241,36 +268,42 @@ multi sub send-to-hooks(
 # --- HODL {{{
 
 multi sub send-to-hooks(
-    Nightscape::Hook[HODL] @h,
+    Nightscape::Hook[HODL] @hook,
     @arg (Hodl:D $, Entry:D $)
+    *%opts (
+        Nightscape::Hook:U :applied(@),
+        Hodl:D :carry(@)
+    )
     --> Hodl:D
 )
 {
-    my Nightscape::Hook[HODL] @hook = @h.grep({ .is-match(|@arg) });
-    my Hodl:D $hodl = send-to-hooks(@hook, @arg, :apply);
+    my Nightscape::Hook[HODL] $hook = @hook.first({ .is-match(|@arg, |%opts) });
+    my Hodl:D $hodl = send-to-hooks($hook, @hook, @arg, |%opts);
 }
 
 multi sub send-to-hooks(
-    Nightscape::Hook[HODL] @ (Nightscape::Hook[HODL] $hook, *@tail),
+    Nightscape::Hook[HODL] $hook where .defined,
+    Nightscape::Hook[HODL] @hook,
     @arg (Hodl:D $, Entry:D $),
-    Bool:D :apply($)! where .so,
     *%opts (
+        Nightscape::Hook:U :applied(@a),
         Hodl:D :carry(@c)
     )
     --> Hodl:D
 )
 {
-    my Nightscape::Hook[HODL] @hook = |@tail;
     my Hodl:D $h = $hook.apply(|@arg, |%opts);
+    my Nightscape::Hook:U @applied = |@a, $hook.WHAT;
     my Hodl:D @carry = |@c, $h;
-    my Hodl:D $hodl = send-to-hooks(@hook, @arg, :apply, :@carry);
+    my Hodl:D $hodl = send-to-hooks(@hook, @arg, :@applied, :@carry);
 }
 
 multi sub send-to-hooks(
+    Nightscape::Hook[HODL] $,
     Nightscape::Hook[HODL] @,
     @ (Hodl:D $, Entry:D $),
-    Bool:D :apply($)! where .so,
     *% (
+        Nightscape::Hook:U :applied(@),
         Hodl:D :@carry! where .so
     )
     --> Hodl:D
@@ -283,31 +316,55 @@ multi sub send-to-hooks(
 # --- HOOK {{{
 
 multi sub send-to-hooks(
-    Nightscape::Hook[HOOK] @h,
-    @arg (Str:D $class-name, Str:D $routine-name, Capture:D $capture)
+    Nightscape::Hook[HOOK] @hook,
+    @arg (
+        Str:D $enter-leave,
+        Str:D $class-name,
+        Str:D $routine-name,
+        Capture:D $capture
+    ),
+    *%opts (
+        Nightscape::Hook:U :applied(@)
+    )
     --> Nil
 )
 {
-    my Nightscape::Hook[HOOK] @hook = @h.grep({ .is-match(|@arg) });
-    send-to-hooks(@hook, @arg, :apply);
+    my Nightscape::Hook[HOOK] $hook = @hook.first({ .is-match(|@arg, |%opts) });
+    send-to-hooks($hook, @hook, @arg, |%opts);
 }
 
 multi sub send-to-hooks(
-    Nightscape::Hook[HOOK] @ (Nightscape::Hook[HOOK] $hook, *@tail),
-    @arg (Str:D $, Str:D $, Capture:D $),
-    Bool:D :apply($)! where .so
+    Nightscape::Hook[HOOK] $hook where .defined,
+    Nightscape::Hook[HOOK] @hook,
+    @arg (
+        Str:D $,
+        Str:D $,
+        Str:D $,
+        Capture:D $
+    ),
+    *%opts (
+        Nightscape::Hook:U :applied(@a)
+    )
     --> Nil
 )
 {
-    my Nightscape::Hook[HOOK] @hook = |@tail;
-    $hook.apply(|@arg);
-    send-to-hooks(@hook, @arg, :apply);
+    $hook.apply(|@arg, |%opts);
+    my Nightscape::Hook:U @applied = |@a, $hook.WHAT;
+    send-to-hooks(@hook, @arg, :@applied);
 }
 
 multi sub send-to-hooks(
+    Nightscape::Hook[HOOK] $,
     Nightscape::Hook[HOOK] @,
-    @ (Str:D $, Str:D $, Capture:D $),
-    Bool:D :apply($)! where .so
+    @ (
+        Str:D $,
+        Str:D $,
+        Str:D $,
+        Capture:D $
+    ),
+    *%opts (
+        Nightscape::Hook:U :applied(@)
+    )
     --> Nil
 )
 {*}

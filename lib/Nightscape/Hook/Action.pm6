@@ -10,9 +10,9 @@ my role Introspection
         my Str:D $class-name = ::?CLASS.^name;
         my Str:D $routine-name = &?ROUTINE.name;
         my @arg = $class-name, $routine-name, c;
-        LEAVE { $*registry.send-to-hooks(HOOK, :leave, @arg); }
+        LEAVE { $*registry.send-to-hooks(HOOK, ['leave', |@arg]); }
         # ENTER: https://github.com/rakudo/rakudo/issues/1815
-        $*registry.send-to-hooks(HOOK, :enter, @arg);
+        $*registry.send-to-hooks(HOOK, ['enter', |@arg]);
         {*}
     }
 }
@@ -26,6 +26,7 @@ role Nightscape::Hook::Action[POSTING]
             Entry::Posting:D $posting,
             Entry::Header:D $header,
             *%opts (
+                Nightscape::Hook:U :@applied,
                 Entry::Postingʹ:D :@carry
             )
         )
@@ -44,6 +45,7 @@ role Nightscape::Hook::Action[ENTRY]
             Coa:D $coa,
             Hodl:D $hodl,
             *%opts (
+                Nightscape::Hook:U :@applied,
                 Entryʹ:D :@carry
             )
         )
@@ -62,6 +64,7 @@ role Nightscape::Hook::Action[LEDGER]
             Coa:D $coa,
             Hodl:D $hodl,
             *%opts (
+                Nightscape::Hook:U :@applied,
                 Ledgerʹ:D :@carry
             )
         )
@@ -80,6 +83,7 @@ role Nightscape::Hook::Action[COA]
             Entry:D $entry,
             Hodl:D $hodl,
             *%opts (
+                Nightscape::Hook:U :@applied,
                 Coa:D :@carry
             )
         )
@@ -97,6 +101,7 @@ role Nightscape::Hook::Action[HODL]
             Hodl:D $hodl,
             Entry:D $entry,
             *%opts (
+                Nightscape::Hook:U :@applied,
                 Hodl:D :@carry
             )
         )
@@ -110,9 +115,13 @@ role Nightscape::Hook::Action[HOOK]
     # omit C<also does Introspection> to avoid infinite loops
     method apply(
         | (
+            Str:D $enter-leave,
             Str:D $class-name,
             Str:D $routine-name,
-            Capture:D $capture
+            Capture:D $capture,
+            *%opts (
+                Nightscape::Hook:U :@applied
+            )
         )
         --> Nil
     )
