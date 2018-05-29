@@ -4,7 +4,7 @@ use TXN::Parser::Types;
 unit role Hodling::Basis[AssetCode:D $asset-code];
 
 has AssetCode:D $!asset-code = $asset-code;
-has Hodling::Basis::Lot[$asset-code] @.lot is required;
+has Hodling::Basis::Lot:D @.lot is required;
 
 method asset-code(::?CLASS:D: --> AssetCode:D)
 {
