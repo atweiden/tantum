@@ -129,7 +129,7 @@ multi sub send-to-hooks(
     @arg (Entry:D $, Coa:D $, Hodl:D $),
     *%opts (
         Hook:U :applied(@),
-        Entryʹ:D :carry(@c)
+        Entryʹ:D :carry(@)
     )
     --> Registry::Payload[ENTRY]
 )
