@@ -9,7 +9,7 @@ role Nightscape::Hook::Trigger[POSTING]
         Entry::Posting:D $posting,
         Entry::Header:D $header,
         *%opts (
-            Nightscape::Hook:U :@applied,
+            :@applied,
             Entry::Postingʹ:D :@carry
         )
         --> Bool:D
@@ -24,7 +24,7 @@ role Nightscape::Hook::Trigger[ENTRY]
         Coa:D $coa,
         Hodl:D $hodl,
         *%opts (
-            Nightscape::Hook:U :@applied,
+            :@applied,
             Entryʹ:D :@carry
         )
         --> Bool:D
@@ -39,7 +39,7 @@ role Nightscape::Hook::Trigger[LEDGER]
         Coa:D $coa,
         Hodl:D $hodl,
         *%opts (
-            Nightscape::Hook:U :@applied,
+            :@applied,
             Ledgerʹ:D :@carry
         )
         --> Bool:D
@@ -54,7 +54,7 @@ role Nightscape::Hook::Trigger[COA]
         Entry:D $entry,
         Hodl:D $hodl,
         *%opts (
-            Nightscape::Hook:U :@applied,
+            :@applied,
             Coa:D :@carry
         )
         --> Bool:D
@@ -68,7 +68,7 @@ role Nightscape::Hook::Trigger[HODL]
         Hodl:D $hodl,
         Entry:D $entry,
         *%opts (
-            Nightscape::Hook:U :@applied,
+            :@applied,
             Hodl:D :@carry
         )
         --> Bool:D
@@ -84,7 +84,7 @@ role Nightscape::Hook::Trigger[HOOK]
         Str:D $routine-name,
         Capture:D $capture,
         *%opts (
-            Nightscape::Hook:U :@applied
+            :@applied
         )
         --> Bool:D
     )
