@@ -68,7 +68,7 @@ method send-to-hooks(
     # sort C<Hook>s of this C<HookType> by priority descending
     my Hook[$type] @hook =
         self.query-hooks($type).sort({ $^b.priority > $^a.priority });
-    my Hook::Response[$type] $payload = send-to-hooks(@hook, @arg);
+    my Hook::Response[$type] $response = send-to-hooks(@hook, @arg);
 }
 
 # --- POSTING {{{
@@ -84,7 +84,7 @@ multi sub send-to-hooks(
 )
 {
     my Hook[POSTING] $hook = @hook.first({ .is-match(|@arg, |%opts) });
-    my Hook::Response[POSTING] $payload =
+    my Hook::Response[POSTING] $response =
         send-to-hooks($hook, @hook, @arg, |%opts);
 }
 
@@ -102,7 +102,7 @@ multi sub send-to-hooks(
     my Entry::Posting:D $postingʹ = $hook.apply(|@arg, |%opts);
     my Hook:U @applied = |@a, $hook.WHAT;
     my Entry::Postingʹ:D @carry = |@c, $postingʹ;
-    my Hook::Response[POSTING] $payload =
+    my Hook::Response[POSTING] $response =
         send-to-hooks(@hook, @arg, :@applied, :@carry);
 }
 
@@ -118,7 +118,7 @@ multi sub send-to-hooks(
 )
 {
     my Hash[Entry::Postingʹ:D,Hook:U] @made = @applied Z=> @carry;
-    my Hook::Response[POSTING] $payload .= new(:@made);
+    my Hook::Response[POSTING] $response .= new(:@made);
 }
 
 # --- end POSTING }}}
@@ -135,7 +135,7 @@ multi sub send-to-hooks(
 )
 {
     my Hook[ENTRY] $hook = @hook.first({ .is-match(|@arg, |%opts) });
-    my Hook::Response[ENTRY] $payload =
+    my Hook::Response[ENTRY] $response =
         send-to-hooks($hook, @hook, @arg, |%opts);
 }
 
@@ -153,7 +153,7 @@ multi sub send-to-hooks(
     my Entryʹ:D $entryʹ = $hook.apply(|@arg, |%opts);
     my Hook:U @applied = |@a, $hook.WHAT;
     my Entryʹ:D @carry = |@c, $entryʹ;
-    my Hook::Response[ENTRY] $payload =
+    my Hook::Response[ENTRY] $response =
         send-to-hooks(@hook, @arg, :@applied, :@carry);
 }
 
@@ -169,7 +169,7 @@ multi sub send-to-hooks(
 )
 {
     my Hash[Entryʹ:D,Hook:U] @made = @applied Z=> @carry;
-    my Hook::Response[ENTRY] $payload .= new(:@made);
+    my Hook::Response[ENTRY] $response .= new(:@made);
 }
 
 # --- end ENTRY }}}
@@ -186,7 +186,7 @@ multi sub send-to-hooks(
 )
 {
     my Hook[LEDGER] $hook = @hook.first({ .is-match(|@arg, |%opts) });
-    my Hook::Response[LEDGER] $payload =
+    my Hook::Response[LEDGER] $response =
         send-to-hooks($hook, @hook, @arg, |%opts);
 }
 
@@ -204,7 +204,7 @@ multi sub send-to-hooks(
     my Ledgerʹ:D $ledgerʹ = $hook.apply(|@arg, |%opts);
     my Hook:U @applied = |@a, $hook.WHAT;
     my Ledgerʹ:D @carry = |@c, $ledgerʹ;
-    my Hook::Response[LEDGER] $payload =
+    my Hook::Response[LEDGER] $response =
         send-to-hooks(@hook, @arg, :@applied, :@carry);
 }
 
@@ -220,7 +220,7 @@ multi sub send-to-hooks(
 )
 {
     my Hash[Ledgerʹ:D,Hook:U] @made = @applied Z=> @carry;
-    my Hook::Response[LEDGER] $payload .= new(:@made);
+    my Hook::Response[LEDGER] $response .= new(:@made);
 }
 
 # --- end LEDGER }}}
@@ -237,7 +237,7 @@ multi sub send-to-hooks(
 )
 {
     my Hook[COA] $hook = @hook.first({ .is-match(|@arg, |%opts) });
-    my Hook::Response[COA] $payload =
+    my Hook::Response[COA] $response =
         send-to-hooks($hook, @hook, @arg, |%opts);
 }
 
@@ -255,7 +255,7 @@ multi sub send-to-hooks(
     my Coa:D $coa = $hook.apply(|@arg, |%opts);
     my Hook:U @applied = |@a, $hook.WHAT;
     my Coa:D @carry = |@c, $coa;
-    my Hook::Response[COA] $payload =
+    my Hook::Response[COA] $response =
         send-to-hooks(@hook, @arg, :@applied, :@carry);
 }
 
@@ -271,7 +271,7 @@ multi sub send-to-hooks(
 )
 {
     my Hash[Coa:D,Hook:U] @made = @applied Z=> @carry;
-    my Hook::Response[COA] $payload .= new(:@made);
+    my Hook::Response[COA] $response .= new(:@made);
 }
 
 # --- end COA }}}
@@ -288,7 +288,7 @@ multi sub send-to-hooks(
 )
 {
     my Hook[HODL] $hook = @hook.first({ .is-match(|@arg, |%opts) });
-    my Hook::Response[HODL] $payload =
+    my Hook::Response[HODL] $response =
         send-to-hooks($hook, @hook, @arg, |%opts);
 }
 
@@ -306,7 +306,7 @@ multi sub send-to-hooks(
     my Hodl:D $hodl = $hook.apply(|@arg, |%opts);
     my Hook:U @applied = |@a, $hook.WHAT;
     my Hodl:D @carry = |@c, $hodl;
-    my Hook::Response[HODL] $payload =
+    my Hook::Response[HODL] $response =
         send-to-hooks(@hook, @arg, :@applied, :@carry);
 }
 
@@ -322,7 +322,7 @@ multi sub send-to-hooks(
 )
 {
     my Hash[Hodl:D,Hook:U] @made = @applied Z=> @carry;
-    my Hook::Response[HODL] $payload .= new(:@made);
+    my Hook::Response[HODL] $response .= new(:@made);
 }
 
 # --- end HODL }}}
@@ -343,7 +343,7 @@ multi sub send-to-hooks(
 )
 {
     my Hook[HOOK] $hook = @hook.first({ .is-match(|@arg, |%opts) });
-    my Hook::Response[HOOK] $payload =
+    my Hook::Response[HOOK] $response =
         send-to-hooks($hook, @hook, @arg, |%opts);
 }
 
@@ -364,7 +364,7 @@ multi sub send-to-hooks(
 {
     $hook.apply(|@arg, |%opts);
     my Hook:U @applied = |@a, $hook.WHAT;
-    my Hook::Response[HOOK] $payload =
+    my Hook::Response[HOOK] $response =
         send-to-hooks(@hook, @arg, :@applied);
 }
 
@@ -384,7 +384,7 @@ multi sub send-to-hooks(
 )
 {
     my Hook:U @made = @applied;
-    my Hook::Response[HOOK] $payload .= new(:@made);
+    my Hook::Response[HOOK] $response .= new(:@made);
 }
 
 # --- end HOOK }}}

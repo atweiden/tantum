@@ -53,7 +53,7 @@ arguments:
 
 and which returns:
 
-    Hook::Response[POSTING] $payload
+    Hook::Response[POSTING] $response
 =end item
 
 =begin item
@@ -73,7 +73,7 @@ I<Entry> hooks must provide a C<method apply> which accepts as arguments:
 
 and which returns:
 
-    Hook::Response[ENTRY] $payload
+    Hook::Response[ENTRY] $response
 =end item
 
 =begin item
@@ -93,7 +93,7 @@ I<Ledger> hooks must provide a C<method apply> which accepts as arguments:
 
 and which returns:
 
-    Hook::Response[LEDGER] $payload
+    Hook::Response[LEDGER] $response
 =end item
 
 =head3 Category: Derivative
@@ -120,7 +120,7 @@ I<Coa> hooks must provide a C<method apply> which accepts as arguments:
 
 and which returns:
 
-    Hook::Response[COA] $payload
+    Hook::Response[COA] $response
 =end item
 
 =begin item
@@ -139,7 +139,7 @@ I<Hodl> hooks must provide a C<method apply> which accepts as arguments:
 
 and which returns:
 
-    Hook::Response[HODL] $payload
+    Hook::Response[HODL] $response
 =end item
 
 =head2 Category: Meta
@@ -165,7 +165,7 @@ I<Hook> hooks must provide a C<method apply> which accepts as arguments:
 
 and which returns:
 
-    Hook::Response[HOOK] $payload
+    Hook::Response[HOOK] $response
 =end item
 =end pod
 
