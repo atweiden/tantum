@@ -1,10 +1,8 @@
 use v6;
-use Nightscape::Dx::Account;
 use Nightscape::Dx::Coa;
 use Nightscape::Dx::Entry;
 use Nightscape::Dx::Entry::Posting;
 use Nightscape::Dx::Hodl;
-use Nightscape::Dx::Hodling;
 use Nightscape::Dx::Ledger;
 use Nightscape::Hook;
 use Nightscape::Hook::Entry::Posting;
@@ -16,7 +14,7 @@ use Nightscape::Hook::Hook;
 use Nightscape::Registry::Payload;
 use Nightscape::Types;
 use TXN::Parser::ParseTree;
-unit class Nightscape::Registry;
+unit class Registry;
 
 has Hook:D @!hook =
     Hook::Entry::Posting.new,
@@ -64,14 +62,13 @@ method send-to-hooks(
     ::?CLASS:D:
     HookType $type,
     @arg
-    --> Nightscape::Registry::Payload[$type]
+    --> Registry::Payload[$type]
 )
 {
     # sort C<Hook>s of this C<HookType> by priority descending
     my Hook[$type] @hook =
         self.query-hooks($type).sort({ $^b.priority > $^a.priority });
-    my Nightscape::Registry::Payload[$type] $payload =
-        send-to-hooks(@hook, @arg);
+    my Registry::Payload[$type] $payload = send-to-hooks(@hook, @arg);
 }
 
 # --- POSTING {{{
@@ -83,11 +80,11 @@ multi sub send-to-hooks(
         Hook:U :applied(@),
         Entry::Postingʹ:D :carry(@)
     )
-    --> Nightscape::Registry::Payload[POSTING]
+    --> Registry::Payload[POSTING]
 )
 {
     my Hook[POSTING] $hook = @hook.first({ .is-match(|@arg, |%opts) });
-    my Nightscape::Registry::Payload[POSTING] $payload =
+    my Registry::Payload[POSTING] $payload =
         send-to-hooks($hook, @hook, @arg, |%opts);
 }
 
@@ -99,13 +96,13 @@ multi sub send-to-hooks(
         Hook:U :applied(@a),
         Entry::Postingʹ:D :carry(@c)
     )
-    --> Nightscape::Registry::Payload[POSTING]
+    --> Registry::Payload[POSTING]
 )
 {
     my Entry::Posting:D $pʹ = $hook.apply(|@arg, |%opts);
     my Hook:U @applied = |@a, $hook.WHAT;
     my Entry::Postingʹ:D @carry = |@c, $pʹ;
-    my Nightscape::Registry::Payload[POSTING] $payload =
+    my Registry::Payload[POSTING] $payload =
         send-to-hooks(@hook, @arg, :@applied, :@carry);
 }
 
@@ -117,11 +114,11 @@ multi sub send-to-hooks(
         Hook:U :@applied! where .so,
         Entry::Postingʹ:D :@carry! where .so
     )
-    --> Nightscape::Registry::Payload[POSTING]
+    --> Registry::Payload[POSTING]
 )
 {
     my Hash[Entry::Postingʹ:D,Hook:U] @made = @applied Z=> @carry;
-    my Nightscape::Registry::Payload[POSTING] $payload .= new(:@made);
+    my Registry::Payload[POSTING] $payload .= new(:@made);
 }
 
 # --- end POSTING }}}
@@ -134,11 +131,11 @@ multi sub send-to-hooks(
         Hook:U :applied(@),
         Entryʹ:D :carry(@c)
     )
-    --> Nightscape::Registry::Payload[ENTRY]
+    --> Registry::Payload[ENTRY]
 )
 {
     my Hook[ENTRY] $hook = @hook.first({ .is-match(|@arg, |%opts) });
-    my Nightscape::Registry::Payload[ENTRY] $payload =
+    my Registry::Payload[ENTRY] $payload =
         send-to-hooks($hook, @hook, @arg, |%opts);
 }
 
@@ -150,13 +147,13 @@ multi sub send-to-hooks(
         Hook:U :applied(@a),
         Entryʹ:D :carry(@c)
     )
-    --> Nightscape::Registry::Payload[ENTRY]
+    --> Registry::Payload[ENTRY]
 )
 {
     my Entryʹ:D $eʹ = $hook.apply(|@arg, |%opts);
     my Hook:U @applied = |@a, $hook.WHAT;
     my Entryʹ:D @carry = |@c, $eʹ;
-    my Nightscape::Registry::Payload[ENTRY] $payload =
+    my Registry::Payload[ENTRY] $payload =
         send-to-hooks(@hook, @arg, :@applied, :@carry);
 }
 
@@ -168,11 +165,11 @@ multi sub send-to-hooks(
         Hook:U :@applied! where .so,
         Entryʹ:D :@carry! where .so
     )
-    --> Nightscape::Registry::Payload[ENTRY]
+    --> Registry::Payload[ENTRY]
 )
 {
     my Hash[Entryʹ:D,Hook:U] @made = @applied Z=> @carry;
-    my Nightscape::Registry::Payload[ENTRY] $payload .= new(:@made);
+    my Registry::Payload[ENTRY] $payload .= new(:@made);
 }
 
 # --- end ENTRY }}}
@@ -185,11 +182,11 @@ multi sub send-to-hooks(
         Hook:U :applied(@),
         Ledgerʹ:D :carry(@)
     )
-    --> Nightscape::Registry::Payload[LEDGER]
+    --> Registry::Payload[LEDGER]
 )
 {
     my Hook[LEDGER] $hook = @hook.first({ .is-match(|@arg, |%opts) });
-    my Nightscape::Registry::Payload[LEDGER] $payload =
+    my Registry::Payload[LEDGER] $payload =
         send-to-hooks($hook, @hook, @arg, |%opts);
 }
 
@@ -201,13 +198,13 @@ multi sub send-to-hooks(
         Hook:U :applied(@a),
         Ledgerʹ:D :carry(@c)
     )
-    --> Nightscape::Registry::Payload[LEDGER]
+    --> Registry::Payload[LEDGER]
 )
 {
     my Ledgerʹ:D $lʹ = $hook.apply(|@arg, |%opts);
     my Hook:U @applied = |@a, $hook.WHAT;
     my Ledgerʹ:D @carry = |@c, $lʹ;
-    my Nightscape::Registry::Payload[LEDGER] $payload =
+    my Registry::Payload[LEDGER] $payload =
         send-to-hooks(@hook, @arg, :@applied, :@carry);
 }
 
@@ -219,11 +216,11 @@ multi sub send-to-hooks(
         Hook:U :@applied! where .so,
         Ledgerʹ:D :@carry! where .so
     )
-    --> Nightscape::Registry::Payload[LEDGER]
+    --> Registry::Payload[LEDGER]
 )
 {
     my Hash[Ledgerʹ:D,Hook:U] @made = @applied Z=> @carry;
-    my Nightscape::Registry::Payload[LEDGER] $payload .= new(:@made);
+    my Registry::Payload[LEDGER] $payload .= new(:@made);
 }
 
 # --- end LEDGER }}}
@@ -236,11 +233,11 @@ multi sub send-to-hooks(
         Hook:U :applied(@),
         Coa:D :carry(@)
     )
-    --> Nightscape::Registry::Payload[COA]
+    --> Registry::Payload[COA]
 )
 {
     my Hook[COA] $hook = @hook.first({ .is-match(|@arg, |%opts) });
-    my Nightscape::Registry::Payload[COA] $payload =
+    my Registry::Payload[COA] $payload =
         send-to-hooks($hook, @hook, @arg, |%opts);
 }
 
@@ -252,13 +249,13 @@ multi sub send-to-hooks(
         Hook:U :applied(@a),
         Coa:D :carry(@c)
     )
-    --> Nightscape::Registry::Payload[COA]
+    --> Registry::Payload[COA]
 )
 {
     my Coa:D $c = $hook.apply(|@arg, |%opts);
     my Hook:U @applied = |@a, $hook.WHAT;
     my Coa:D @carry = |@c, $c;
-    my Nightscape::Registry::Payload[COA] $payload =
+    my Registry::Payload[COA] $payload =
         send-to-hooks(@hook, @arg, :@applied, :@carry);
 }
 
@@ -270,11 +267,11 @@ multi sub send-to-hooks(
         Hook:U :@applied! where .so,
         Coa:D :@carry! where .so
     )
-    --> Nightscape::Registry::Payload[COA]
+    --> Registry::Payload[COA]
 )
 {
     my Hash[Coa:D,Hook:U] @made = @applied Z=> @carry;
-    my Nightscape::Registry::Payload[COA] $payload .= new(:@made);
+    my Registry::Payload[COA] $payload .= new(:@made);
 }
 
 # --- end COA }}}
@@ -287,11 +284,11 @@ multi sub send-to-hooks(
         Hook:U :applied(@),
         Hodl:D :carry(@)
     )
-    --> Nightscape::Registry::Payload[HODL]
+    --> Registry::Payload[HODL]
 )
 {
     my Hook[HODL] $hook = @hook.first({ .is-match(|@arg, |%opts) });
-    my Nightscape::Registry::Payload[HODL] $payload =
+    my Registry::Payload[HODL] $payload =
         send-to-hooks($hook, @hook, @arg, |%opts);
 }
 
@@ -303,13 +300,13 @@ multi sub send-to-hooks(
         Hook:U :applied(@a),
         Hodl:D :carry(@c)
     )
-    --> Nightscape::Registry::Payload[HODL]
+    --> Registry::Payload[HODL]
 )
 {
     my Hodl:D $h = $hook.apply(|@arg, |%opts);
     my Hook:U @applied = |@a, $hook.WHAT;
     my Hodl:D @carry = |@c, $h;
-    my Nightscape::Registry::Payload[HODL] $payload =
+    my Registry::Payload[HODL] $payload =
         send-to-hooks(@hook, @arg, :@applied, :@carry);
 }
 
@@ -321,11 +318,11 @@ multi sub send-to-hooks(
         Hook:U :@applied! where .so,
         Hodl:D :@carry! where .so
     )
-    --> Nightscape::Registry::Payload[HODL]
+    --> Registry::Payload[HODL]
 )
 {
     my Hash[Hodl:D,Hook:U] @made = @applied Z=> @carry;
-    my Nightscape::Registry::Payload[HODL] $payload .= new(:@made);
+    my Registry::Payload[HODL] $payload .= new(:@made);
 }
 
 # --- end HODL }}}
@@ -342,11 +339,11 @@ multi sub send-to-hooks(
     *%opts (
         Hook:U :applied(@)
     )
-    --> Nightscape::Registry::Payload[HOOK]
+    --> Registry::Payload[HOOK]
 )
 {
     my Hook[HOOK] $hook = @hook.first({ .is-match(|@arg, |%opts) });
-    my Nightscape::Registry::Payload[HOOK] $payload =
+    my Registry::Payload[HOOK] $payload =
         send-to-hooks($hook, @hook, @arg, |%opts);
 }
 
@@ -362,12 +359,12 @@ multi sub send-to-hooks(
     *%opts (
         Hook:U :applied(@a)
     )
-    --> Nightscape::Registry::Payload[HOOK]
+    --> Registry::Payload[HOOK]
 )
 {
     $hook.apply(|@arg, |%opts);
     my Hook:U @applied = |@a, $hook.WHAT;
-    my Nightscape::Registry::Payload[HOOK] $payload =
+    my Registry::Payload[HOOK] $payload =
         send-to-hooks(@hook, @arg, :@applied);
 }
 
@@ -383,11 +380,11 @@ multi sub send-to-hooks(
     *%opts (
         Hook:U :@applied! where .so
     )
-    --> Nightscape::Registry::Payload[HOOK]
+    --> Registry::Payload[HOOK]
 )
 {
     my Hook:U @made = @applied;
-    my Nightscape::Registry::Payload[HOOK] $payload .= new(:@made);
+    my Registry::Payload[HOOK] $payload .= new(:@made);
 }
 
 # --- end HOOK }}}
