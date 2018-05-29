@@ -53,7 +53,7 @@ arguments:
 
 and which returns:
 
-    Registry::Payload[POSTING] $payload
+    HookRes[POSTING] $payload
 =end item
 
 =begin item
@@ -73,7 +73,7 @@ I<Entry> hooks must provide a C<method apply> which accepts as arguments:
 
 and which returns:
 
-    Registry::Payload[ENTRY] $payload
+    HookRes[ENTRY] $payload
 =end item
 
 =begin item
@@ -93,7 +93,7 @@ I<Ledger> hooks must provide a C<method apply> which accepts as arguments:
 
 and which returns:
 
-    Registry::Payload[LEDGER] $payload
+    HookRes[LEDGER] $payload
 =end item
 
 =head3 Category: Derivative
@@ -120,7 +120,7 @@ I<Coa> hooks must provide a C<method apply> which accepts as arguments:
 
 and which returns:
 
-    Registry::Payload[COA] $payload
+    HookRes[COA] $payload
 =end item
 
 =begin item
@@ -139,7 +139,7 @@ I<Hodl> hooks must provide a C<method apply> which accepts as arguments:
 
 and which returns:
 
-    Registry::Payload[HODL] $payload
+    HookRes[HODL] $payload
 =end item
 
 =head2 Category: Meta
@@ -165,7 +165,7 @@ I<Hook> hooks must provide a C<method apply> which accepts as arguments:
 
 and which returns:
 
-    Registry::Payload[HOOK] $payload
+    HookRes[HOOK] $payload
 =end item
 =end pod
 

@@ -1,17 +1,17 @@
 use v6;
 use Nightscape::Dx::Coa;
-use Nightscape::Dx::Entry;
 use Nightscape::Dx::Entry::Posting;
+use Nightscape::Dx::Entry;
 use Nightscape::Dx::Hodl;
 use Nightscape::Dx::Ledger;
-use Nightscape::Hook;
+use Nightscape::Hook::Coa;
 use Nightscape::Hook::Entry::Posting;
 use Nightscape::Hook::Entry;
-use Nightscape::Hook::Ledger;
-use Nightscape::Hook::Coa;
 use Nightscape::Hook::Hodl;
 use Nightscape::Hook::Hook;
-use Nightscape::Registry::Payload;
+use Nightscape::Hook::Ledger;
+use Nightscape::Hook;
+use Nightscape::HookRes;
 use Nightscape::Types;
 use TXN::Parser::ParseTree;
 unit class Registry;
@@ -62,13 +62,13 @@ method send-to-hooks(
     ::?CLASS:D:
     HookType $type,
     @arg
-    --> Registry::Payload[$type]
+    --> HookRes[$type]
 )
 {
     # sort C<Hook>s of this C<HookType> by priority descending
     my Hook[$type] @hook =
         self.query-hooks($type).sort({ $^b.priority > $^a.priority });
-    my Registry::Payload[$type] $payload = send-to-hooks(@hook, @arg);
+    my HookRes[$type] $payload = send-to-hooks(@hook, @arg);
 }
 
 # --- POSTING {{{
@@ -80,12 +80,11 @@ multi sub send-to-hooks(
         Hook:U :applied(@),
         Entry::Postingʹ:D :carry(@)
     )
-    --> Registry::Payload[POSTING]
+    --> HookRes[POSTING]
 )
 {
     my Hook[POSTING] $hook = @hook.first({ .is-match(|@arg, |%opts) });
-    my Registry::Payload[POSTING] $payload =
-        send-to-hooks($hook, @hook, @arg, |%opts);
+    my HookRes[POSTING] $payload = send-to-hooks($hook, @hook, @arg, |%opts);
 }
 
 multi sub send-to-hooks(
@@ -96,13 +95,13 @@ multi sub send-to-hooks(
         Hook:U :applied(@a),
         Entry::Postingʹ:D :carry(@c)
     )
-    --> Registry::Payload[POSTING]
+    --> HookRes[POSTING]
 )
 {
     my Entry::Posting:D $postingʹ = $hook.apply(|@arg, |%opts);
     my Hook:U @applied = |@a, $hook.WHAT;
     my Entry::Postingʹ:D @carry = |@c, $postingʹ;
-    my Registry::Payload[POSTING] $payload =
+    my HookRes[POSTING] $payload =
         send-to-hooks(@hook, @arg, :@applied, :@carry);
 }
 
@@ -114,11 +113,11 @@ multi sub send-to-hooks(
         Hook:U :@applied! where .so,
         Entry::Postingʹ:D :@carry! where .so
     )
-    --> Registry::Payload[POSTING]
+    --> HookRes[POSTING]
 )
 {
     my Hash[Entry::Postingʹ:D,Hook:U] @made = @applied Z=> @carry;
-    my Registry::Payload[POSTING] $payload .= new(:@made);
+    my HookRes[POSTING] $payload .= new(:@made);
 }
 
 # --- end POSTING }}}
@@ -131,12 +130,11 @@ multi sub send-to-hooks(
         Hook:U :applied(@),
         Entryʹ:D :carry(@)
     )
-    --> Registry::Payload[ENTRY]
+    --> HookRes[ENTRY]
 )
 {
     my Hook[ENTRY] $hook = @hook.first({ .is-match(|@arg, |%opts) });
-    my Registry::Payload[ENTRY] $payload =
-        send-to-hooks($hook, @hook, @arg, |%opts);
+    my HookRes[ENTRY] $payload = send-to-hooks($hook, @hook, @arg, |%opts);
 }
 
 multi sub send-to-hooks(
@@ -147,14 +145,13 @@ multi sub send-to-hooks(
         Hook:U :applied(@a),
         Entryʹ:D :carry(@c)
     )
-    --> Registry::Payload[ENTRY]
+    --> HookRes[ENTRY]
 )
 {
     my Entryʹ:D $entryʹ = $hook.apply(|@arg, |%opts);
     my Hook:U @applied = |@a, $hook.WHAT;
     my Entryʹ:D @carry = |@c, $entryʹ;
-    my Registry::Payload[ENTRY] $payload =
-        send-to-hooks(@hook, @arg, :@applied, :@carry);
+    my HookRes[ENTRY] $payload = send-to-hooks(@hook, @arg, :@applied, :@carry);
 }
 
 multi sub send-to-hooks(
@@ -165,11 +162,11 @@ multi sub send-to-hooks(
         Hook:U :@applied! where .so,
         Entryʹ:D :@carry! where .so
     )
-    --> Registry::Payload[ENTRY]
+    --> HookRes[ENTRY]
 )
 {
     my Hash[Entryʹ:D,Hook:U] @made = @applied Z=> @carry;
-    my Registry::Payload[ENTRY] $payload .= new(:@made);
+    my HookRes[ENTRY] $payload .= new(:@made);
 }
 
 # --- end ENTRY }}}
@@ -182,12 +179,11 @@ multi sub send-to-hooks(
         Hook:U :applied(@),
         Ledgerʹ:D :carry(@)
     )
-    --> Registry::Payload[LEDGER]
+    --> HookRes[LEDGER]
 )
 {
     my Hook[LEDGER] $hook = @hook.first({ .is-match(|@arg, |%opts) });
-    my Registry::Payload[LEDGER] $payload =
-        send-to-hooks($hook, @hook, @arg, |%opts);
+    my HookRes[LEDGER] $payload = send-to-hooks($hook, @hook, @arg, |%opts);
 }
 
 multi sub send-to-hooks(
@@ -198,13 +194,13 @@ multi sub send-to-hooks(
         Hook:U :applied(@a),
         Ledgerʹ:D :carry(@c)
     )
-    --> Registry::Payload[LEDGER]
+    --> HookRes[LEDGER]
 )
 {
     my Ledgerʹ:D $ledgerʹ = $hook.apply(|@arg, |%opts);
     my Hook:U @applied = |@a, $hook.WHAT;
     my Ledgerʹ:D @carry = |@c, $ledgerʹ;
-    my Registry::Payload[LEDGER] $payload =
+    my HookRes[LEDGER] $payload =
         send-to-hooks(@hook, @arg, :@applied, :@carry);
 }
 
@@ -216,11 +212,11 @@ multi sub send-to-hooks(
         Hook:U :@applied! where .so,
         Ledgerʹ:D :@carry! where .so
     )
-    --> Registry::Payload[LEDGER]
+    --> HookRes[LEDGER]
 )
 {
     my Hash[Ledgerʹ:D,Hook:U] @made = @applied Z=> @carry;
-    my Registry::Payload[LEDGER] $payload .= new(:@made);
+    my HookRes[LEDGER] $payload .= new(:@made);
 }
 
 # --- end LEDGER }}}
@@ -233,12 +229,11 @@ multi sub send-to-hooks(
         Hook:U :applied(@),
         Coa:D :carry(@)
     )
-    --> Registry::Payload[COA]
+    --> HookRes[COA]
 )
 {
     my Hook[COA] $hook = @hook.first({ .is-match(|@arg, |%opts) });
-    my Registry::Payload[COA] $payload =
-        send-to-hooks($hook, @hook, @arg, |%opts);
+    my HookRes[COA] $payload = send-to-hooks($hook, @hook, @arg, |%opts);
 }
 
 multi sub send-to-hooks(
@@ -249,14 +244,13 @@ multi sub send-to-hooks(
         Hook:U :applied(@a),
         Coa:D :carry(@c)
     )
-    --> Registry::Payload[COA]
+    --> HookRes[COA]
 )
 {
     my Coa:D $coa = $hook.apply(|@arg, |%opts);
     my Hook:U @applied = |@a, $hook.WHAT;
     my Coa:D @carry = |@c, $coa;
-    my Registry::Payload[COA] $payload =
-        send-to-hooks(@hook, @arg, :@applied, :@carry);
+    my HookRes[COA] $payload = send-to-hooks(@hook, @arg, :@applied, :@carry);
 }
 
 multi sub send-to-hooks(
@@ -267,11 +261,11 @@ multi sub send-to-hooks(
         Hook:U :@applied! where .so,
         Coa:D :@carry! where .so
     )
-    --> Registry::Payload[COA]
+    --> HookRes[COA]
 )
 {
     my Hash[Coa:D,Hook:U] @made = @applied Z=> @carry;
-    my Registry::Payload[COA] $payload .= new(:@made);
+    my HookRes[COA] $payload .= new(:@made);
 }
 
 # --- end COA }}}
@@ -284,12 +278,11 @@ multi sub send-to-hooks(
         Hook:U :applied(@),
         Hodl:D :carry(@)
     )
-    --> Registry::Payload[HODL]
+    --> HookRes[HODL]
 )
 {
     my Hook[HODL] $hook = @hook.first({ .is-match(|@arg, |%opts) });
-    my Registry::Payload[HODL] $payload =
-        send-to-hooks($hook, @hook, @arg, |%opts);
+    my HookRes[HODL] $payload = send-to-hooks($hook, @hook, @arg, |%opts);
 }
 
 multi sub send-to-hooks(
@@ -300,14 +293,13 @@ multi sub send-to-hooks(
         Hook:U :applied(@a),
         Hodl:D :carry(@c)
     )
-    --> Registry::Payload[HODL]
+    --> HookRes[HODL]
 )
 {
     my Hodl:D $hodl = $hook.apply(|@arg, |%opts);
     my Hook:U @applied = |@a, $hook.WHAT;
     my Hodl:D @carry = |@c, $hodl;
-    my Registry::Payload[HODL] $payload =
-        send-to-hooks(@hook, @arg, :@applied, :@carry);
+    my HookRes[HODL] $payload = send-to-hooks(@hook, @arg, :@applied, :@carry);
 }
 
 multi sub send-to-hooks(
@@ -318,11 +310,11 @@ multi sub send-to-hooks(
         Hook:U :@applied! where .so,
         Hodl:D :@carry! where .so
     )
-    --> Registry::Payload[HODL]
+    --> HookRes[HODL]
 )
 {
     my Hash[Hodl:D,Hook:U] @made = @applied Z=> @carry;
-    my Registry::Payload[HODL] $payload .= new(:@made);
+    my HookRes[HODL] $payload .= new(:@made);
 }
 
 # --- end HODL }}}
@@ -339,12 +331,11 @@ multi sub send-to-hooks(
     *%opts (
         Hook:U :applied(@)
     )
-    --> Registry::Payload[HOOK]
+    --> HookRes[HOOK]
 )
 {
     my Hook[HOOK] $hook = @hook.first({ .is-match(|@arg, |%opts) });
-    my Registry::Payload[HOOK] $payload =
-        send-to-hooks($hook, @hook, @arg, |%opts);
+    my HookRes[HOOK] $payload = send-to-hooks($hook, @hook, @arg, |%opts);
 }
 
 multi sub send-to-hooks(
@@ -359,13 +350,12 @@ multi sub send-to-hooks(
     *%opts (
         Hook:U :applied(@a)
     )
-    --> Registry::Payload[HOOK]
+    --> HookRes[HOOK]
 )
 {
     $hook.apply(|@arg, |%opts);
     my Hook:U @applied = |@a, $hook.WHAT;
-    my Registry::Payload[HOOK] $payload =
-        send-to-hooks(@hook, @arg, :@applied);
+    my HookRes[HOOK] $payload = send-to-hooks(@hook, @arg, :@applied);
 }
 
 multi sub send-to-hooks(
@@ -380,11 +370,11 @@ multi sub send-to-hooks(
     *%opts (
         Hook:U :@applied! where .so
     )
-    --> Registry::Payload[HOOK]
+    --> HookRes[HOOK]
 )
 {
     my Hook:U @made = @applied;
-    my Registry::Payload[HOOK] $payload .= new(:@made);
+    my HookRes[HOOK] $payload .= new(:@made);
 }
 
 # --- end HOOK }}}
