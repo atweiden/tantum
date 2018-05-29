@@ -7,7 +7,7 @@ use Nightscape::Types;
 use TXN::Parser::Grammar;
 use TXN::Parser::Types;
 use X::Nightscape;
-unit class Nightscape::Config::Asset;
+unit class Config::Asset;
 
 # class attributes {{{
 
@@ -29,13 +29,10 @@ submethod BUILD(
     --> Nil
 )
 {
-    $!code = Nightscape::Config::Utils.gen-asset-code($code);
-    $!costing = Nightscape::Config::Utils.gen-costing($costing)
-        if $costing;
-    $!name = Nightscape::Config::Utils.gen-var-name($name)
-        if $name;
-    %!price = Nightscape::Config::Utils.gen-price-sheet(%price, $scene-file)
-        if %price;
+    $!code = Config::Utils.gen-asset-code($code);
+    $!costing = Config::Utils.gen-costing($costing) if $costing;
+    $!name = Config::Utils.gen-var-name($name) if $name;
+    %!price = Config::Utils.gen-price-sheet(%price, $scene-file) if %price;
 }
 
 # end submethod BUILD }}}
@@ -49,7 +46,7 @@ multi method new(
         Str :costing($),
         Str :name($)
     )
-    --> Nightscape::Config::Asset:D
+    --> Config::Asset:D
 )
 {
     self.bless(|%opts);

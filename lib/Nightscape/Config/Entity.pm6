@@ -5,13 +5,13 @@ use Nightscape::Config::Utils;
 use Nightscape::Types;
 use TXN::Parser::Types;
 use X::Nightscape;
-unit class Nightscape::Config::Entity;
+unit class Config::Entity;
 
 # class attributes {{{
 
 has VarNameBare:D $.code is required;
-has Nightscape::Config::Account @.account;
-has Nightscape::Config::Asset @.asset;
+has Config::Account @.account;
+has Config::Asset @.asset;
 has Costing $.base-costing;
 has AssetCode $.base-currency;
 has Date $.fiscal-year-end;
@@ -35,20 +35,20 @@ submethod BUILD(
     --> Nil
 )
 {
-    $!code = Nightscape::Config::Utils.gen-var-name-bare($code);
-    @!account = Nightscape::Config::Utils.gen-settings(:@account)
+    $!code = Config::Utils.gen-var-name-bare($code);
+    @!account = Config::Utils.gen-settings(:@account)
         if @account;
-    @!asset = Nightscape::Config::Utils.gen-settings(:@asset, :$scene-file)
+    @!asset = Config::Utils.gen-settings(:@asset, :$scene-file)
         if @asset;
-    $!base-costing = Nightscape::Config::Utils.gen-costing($base-costing)
+    $!base-costing = Config::Utils.gen-costing($base-costing)
         if $base-costing;
-    $!base-currency = Nightscape::Config::Utils.gen-asset-code($base-currency)
+    $!base-currency = Config::Utils.gen-asset-code($base-currency)
         if $base-currency;
     $!fiscal-year-end = $fiscal-year-end
         if $fiscal-year-end;
-    $!name = Nightscape::Config::Utils.gen-var-name($name)
+    $!name = Config::Utils.gen-var-name($name)
         if $name;
-    $!open = Nightscape::Config::Utils.gen-date-range($open)
+    $!open = Config::Utils.gen-date-range($open)
         if $open;
 }
 
@@ -67,7 +67,7 @@ multi method new(
         Str :name($),
         Str :open($)
     )
-    --> Nightscape::Config::Entity:D
+    --> Config::Entity:D
 )
 {
     self.bless(|%opts);
@@ -91,7 +91,7 @@ method hash(::?CLASS:D: --> Hash:D)
     %hash<base-currency> = $.base-currency if $.base-currency;
     %hash<fiscal-year-end> = $.fiscal-year-end if $.fiscal-year-end;
     %hash<name> = $.name if $.name;
-    %hash<open> = Nightscape::Config::Utils.to-string($.open) if $.open;
+    %hash<open> = Config::Utils.to-string($.open) if $.open;
     %hash;
 }
 
@@ -100,24 +100,24 @@ method hash(::?CLASS:D: --> Hash:D)
 
 multi sub gen-settings(
     :@account!
-    --> Array[Nightscape::Config::Account:D]
+    --> Array[Config::Account:D]
 )
 {
-    my Nightscape::Config::Account:D @a =
+    my Config::Account:D @a =
         @account.hyper.map(-> %toml {
-            Nightscape::Config::Account.new(|%toml)
+            Config::Account.new(|%toml)
         });
 }
 
 multi sub gen-settings(
     :@asset!,
     :$scene-file!
-    --> Array[Nightscape::Config::Asset:D]
+    --> Array[Config::Asset:D]
 )
 {
-    my Nightscape::Config::Asset:D @a =
+    my Config::Asset:D @a =
         @asset.hyper.map(-> %toml {
-            Nightscape::Config::Asset.new(|%toml, :$scene-file)
+            Config::Asset.new(|%toml, :$scene-file)
         });
 }
 

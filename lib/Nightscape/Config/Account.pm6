@@ -2,7 +2,7 @@ use v6;
 use Nightscape::Config::Utils;
 use TXN::Parser::Types;
 use X::Nightscape;
-unit class Nightscape::Config::Account;
+unit class Config::Account;
 
 # class attributes {{{
 
@@ -23,13 +23,13 @@ submethod BUILD(
     --> Nil
 )
 {
-    $!silo = Nightscape::Config::Utils.gen-silo($silo);
-    $!entity = Nightscape::Config::Utils.gen-var-name($entity);
+    $!silo = Config::Utils.gen-silo($silo);
+    $!entity = Config::Utils.gen-var-name($entity);
     @!path =
         @path.hyper.map(-> $path {
-            Nightscape::Config::Utils.gen-var-name($path)
+            Config::Utils.gen-var-name($path)
         });
-    $!open = Nightscape::Config::Utils.gen-date-range($open) if $open;
+    $!open = Config::Utils.gen-date-range($open) if $open;
 }
 
 # end submethod BUILD }}}
@@ -42,7 +42,7 @@ multi method new(
         :path(@)! where .so,
         Str :open($)
     )
-    --> Nightscape::Config::Account:D
+    --> Config::Account:D
 )
 {
     self.bless(|%opts);
@@ -62,7 +62,7 @@ method hash(::?CLASS:D: --> Hash:D)
     %hash<silo> = $.silo;
     %hash<entity> = $.entity;
     %hash<path> = @.path;
-    %hash<open> = Nightscape::Config::Utils.to-string($.open) if $.open;
+    %hash<open> = Config::Utils.to-string($.open) if $.open;
     %hash;
 }
 

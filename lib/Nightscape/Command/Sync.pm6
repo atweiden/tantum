@@ -41,7 +41,7 @@ method !sync(
 # sub sync {{{
 
 multi sub sync(
-    Nightscape::Config::Ledger:D @l,
+    Config::Ledger:D @l,
     *%opts (
         AbsolutePath:D :pkg-dir($)!,
         Int :date-local-offset($),
@@ -51,13 +51,12 @@ multi sub sync(
     --> List:D
 )
 {
-    my Nightscape::Config::Ledger:D @ledger =
-        grep-ledger-for-request(@l, @request);
+    my Config::Ledger:D @ledger = grep-ledger-for-request(@l, @request);
     my List:D $sync = sync(:@ledger, |%opts).List;
 }
 
 multi sub sync(
-    Nightscape::Config::Ledger:D @ledger,
+    Config::Ledger:D @ledger,
     *%opts (
         AbsolutePath:D :pkg-dir($)!,
         Int :date-local-offset($),
@@ -71,7 +70,7 @@ multi sub sync(
 }
 
 multi sub sync(
-    Nightscape::Config::Ledger:D :@ledger!,
+    Config::Ledger:D :@ledger!,
     *%opts (
         AbsolutePath:D :pkg-dir($)! where .so,
         Int :date-local-offset($),
@@ -81,13 +80,13 @@ multi sub sync(
 )
 {
     my List:D $sync =
-        @ledger.hyper.map(-> Nightscape::Config::Ledger:D $ledger {
+        @ledger.hyper.map(-> Config::Ledger:D $ledger {
             sync(:$ledger, |%opts)
         }).List;
 }
 
 multi sub sync(
-    Nightscape::Config::Ledger::FromFile:D :ledger($cfg-ledger)!,
+    Config::Ledger::FromFile:D :ledger($cfg-ledger)!,
     AbsolutePath:D :pkg-dir($)! where .so,
     *%opts (
         Int :date-local-offset($),
@@ -105,7 +104,7 @@ multi sub sync(
 }
 
 multi sub sync(
-    Nightscape::Config::Ledger::FromPkg:D :ledger($cfg-ledger)!,
+    Config::Ledger::FromPkg:D :ledger($cfg-ledger)!,
     AbsolutePath:D :$pkg-dir! where .so,
     *% (
         Int :date-local-offset($),
@@ -132,19 +131,19 @@ multi sub sync(
 # sub grep-ledger-for-request {{{
 
 sub grep-ledger-for-request(
-    Nightscape::Config::Ledger:D @ledger,
+    Config::Ledger:D @ledger,
     Str:D @request
-    --> Array[Nightscape::Config::Ledger:D]
+    --> Array[Config::Ledger:D]
 )
 {
-    my Nightscape::Config::Ledger:D @grep-ledger-for-request =
-        @ledger.hyper.grep(-> Nightscape::Config::Ledger:D $ledger {
+    my Config::Ledger:D @grep-ledger-for-request =
+        @ledger.hyper.grep(-> Config::Ledger:D $ledger {
             is-ledger-for-request($ledger, @request)
         });
 }
 
 multi sub is-ledger-for-request(
-    Nightscape::Config::Ledger::FromFile:D $ledger,
+    Config::Ledger::FromFile:D $ledger,
     Str:D @request
     --> Bool:D
 )
@@ -153,7 +152,7 @@ multi sub is-ledger-for-request(
 }
 
 multi sub is-ledger-for-request(
-    Nightscape::Config::Ledger::FromPkg:D $ledger,
+    Config::Ledger::FromPkg:D $ledger,
     Str:D @request
     --> Bool:D
 )

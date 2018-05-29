@@ -19,7 +19,7 @@ multi sub setup(--> Hash:D)
     my AbsolutePath:D $app-file = sprintf(Q{%s/nightscape.toml}, $app-dir);
     my AbsolutePath:D $scene-dir = sprintf(Q{%s/.nightscape}, $root);
     my AbsolutePath:D $scene-file = sprintf(Q{%s/scene.toml}, $scene-dir);
-    my Nightscape::Config::Ledger:D @ledger = setup('ledger', $scene-file);
+    my Config::Ledger:D @ledger = setup('ledger', $scene-file);
     my %setup =
         :$app-dir,
         :$log-dir,
@@ -34,13 +34,13 @@ multi sub setup(--> Hash:D)
 multi sub setup(
     'ledger',
     AbsolutePath:D $scene-file
-    --> Array[Nightscape::Config::Ledger:D]
+    --> Array[Config::Ledger:D]
 )
 {
     my VarNameBare:D $code = 'sample';
     my AbsolutePath:D $file = sprintf(Q{%s/t/data/sample/sample.txn}, $*CWD);
-    my Nightscape::Config::Ledger:D @ledger =
-        Nightscape::Config::Ledger.new(:$code, :$file, :$scene-file);
+    my Config::Ledger:D @ledger =
+        Config::Ledger.new(:$code, :$file, :$scene-file);
 }
 
 # vim: set filetype=perl6 foldmethod=marker foldlevel=0:

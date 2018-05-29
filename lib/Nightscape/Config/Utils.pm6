@@ -3,7 +3,7 @@ use Nightscape::Types;
 use TXN::Parser::Actions;
 use TXN::Parser::Grammar;
 use TXN::Parser::Types;
-unit class Nightscape::Config::Utils;
+unit class Config::Utils;
 
 # method gen-asset-code {{{
 
@@ -50,7 +50,7 @@ multi sub gen-date-range(
     --> Range:D
 )
 {
-    my Date:D $b = Nightscape::Config::Utils.gen-date($d2);
+    my Date:D $b = Config::Utils.gen-date($d2);
     my Range:D $date-range = * .. $b;
 }
 
@@ -60,7 +60,7 @@ multi sub gen-date-range(
     --> Range:D
 )
 {
-    my Date:D $a = Nightscape::Config::Utils.gen-date($d1);
+    my Date:D $a = Config::Utils.gen-date($d1);
     my Range:D $date-range = $a .. *;
 }
 
@@ -70,8 +70,8 @@ multi sub gen-date-range(
     --> Range:D
 )
 {
-    my Date:D $a = Nightscape::Config::Utils.gen-date($d1);
-    my Date:D $b = Nightscape::Config::Utils.gen-date($d2);
+    my Date:D $a = Config::Utils.gen-date($d1);
+    my Date:D $b = Config::Utils.gen-date($d2);
     my Range:D $date-range = $a .. $b;
 }
 

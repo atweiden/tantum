@@ -14,33 +14,32 @@ use X::Nightscape;
 =begin pod
 =head NAME
 
-C<Nightscape::Config::Ledger>
+C<Config::Ledger>
 
 =head DESCRIPTION
 
-C<Nightscape::Config::Ledger> handles C<[[ledger]]> arraytables declared
-in TOML config.
+C<Config::Ledger> handles C<[[ledger]]> arraytables declared in TOML
+config.
 
 We ascertain the type of ledger declared in each TOML config arraytable
 based on the keys provided in the arraytable. These keys are dispatched
-against C<multi method new> of class C<Nightscape::Config::Ledger>.
+against C<multi method new> of class C<Config::Ledger>.
 
-One set of keys will instantiate a
-C<Nightscape::Config::Ledger::FromFile>, reflecting the user's desire
-to parse TXN from file.
+One set of keys will instantiate a C<Config::Ledger::FromFile>, reflecting
+the user's desire to parse TXN from file.
 
-Another set of keys will instantiate a
-C<Nightscape::Config::Ledger::FromPkg>, reflecting the user's desire to
-use the contents of an existing TXN package.
+Another set of keys will instantiate a C<Config::Ledger::FromPkg>,
+reflecting the user's desire to use the contents of an existing TXN
+package.
 
-While it might seem cleaner to use parameterized roles to accomplish
-this, taking the object variant approach allows us to C<.map>
-against every discovered TOML C<[[ledger]]> arraytable, running
-C<Nightscape::Config::Ledger.new> for each one.
+While it might seem cleaner to use parameterized roles to accomplish this,
+taking the object variant approach allows us to C<.map> against every
+discovered TOML C<[[ledger]]> arraytable, running C<Config::Ledger.new>
+for each one.
 
-If any C<[[ledger]]> arraytable section contains keys which fail to adhere
-to the proper format of either C<Nightscape::Config::Ledger::FromFile>
-or C<Nightscape::Config::Ledger::FromPkg>, we raise the exception
+If any C<[[ledger]]> arraytable section contains keys which fail to
+adhere to the proper format of either C<Config::Ledger::FromFile>
+or C<Config::Ledger::FromPkg>, we raise the exception
 C<X::Nightscape::Config::Ledger::Malformed>.
 
 Credit: L<https://gist.github.com/zoffixznet/c5d602ee46651613dec964737a0774fa>
@@ -48,13 +47,13 @@ Credit: L<https://gist.github.com/zoffixznet/c5d602ee46651613dec964737a0774fa>
 
 # end p6doc }}}
 
-class Nightscape::Config::Ledger::FromFile {...}
-class Nightscape::Config::Ledger::FromPkg {...}
+class Config::Ledger::FromFile {...}
+class Config::Ledger::FromPkg {...}
 my role ToHash { method hash() {...} }
 
-# Nightscape::Config::Ledger {{{
+# Config::Ledger {{{
 
-class Nightscape::Config::Ledger
+class Config::Ledger
 {
     multi method new(
         *%opts (
@@ -64,10 +63,10 @@ class Nightscape::Config::Ledger
             Int :date-local-offset($),
             Str :include-lib($)
         )
-        --> Nightscape::Config::Ledger::FromFile:D
+        --> Config::Ledger::FromFile:D
     )
     {
-        Nightscape::Config::Ledger::FromFile.bless(|%opts);
+        Config::Ledger::FromFile.bless(|%opts);
     }
 
     multi method new(
@@ -77,10 +76,10 @@ class Nightscape::Config::Ledger
             Int :pkgrel($),
             *%
         )
-        --> Nightscape::Config::Ledger::FromPkg:D
+        --> Config::Ledger::FromPkg:D
     )
     {
-        Nightscape::Config::Ledger::FromPkg.bless(|%opts);
+        Config::Ledger::FromPkg.bless(|%opts);
     }
 
     multi method new(*% --> Nil)
@@ -89,15 +88,15 @@ class Nightscape::Config::Ledger
     }
 }
 
-# end Nightscape::Config::Ledger }}}
-# Nightscape::Config::Ledger::FromFile {{{
+# end Config::Ledger }}}
+# Config::Ledger::FromFile {{{
 
 # --- p6doc {{{
 
 =begin pod
 =head NAME
 
-C<Nightscape::Config::Ledger::FromFile>
+C<Config::Ledger::FromFile>
 
 =head DESCRIPTION
 
@@ -109,8 +108,8 @@ Class attributes store values from parsed TOML config.
 
 Takes optional C<Int :$date-local-offset, Str :$include-lib>, which are
 passed as args from Nightscape cmdline. Any args passed from Nightscape
-cmdline which conflict with C<Nightscape::Config::Ledger::FromFile>
-class attributes override the class attributes.
+cmdline which conflict with C<Config::Ledger::FromFile> class attributes
+override the class attributes.
 
 For example, C<$date-local-offset> if passed, overrides
 C<$.date-local-offset>. Similarly, C<$include-lib> if passed, overrides
@@ -119,9 +118,9 @@ C<$.include-lib>.
 
 # --- end p6doc }}}
 
-class Nightscape::Config::Ledger::FromFile
+class Config::Ledger::FromFile
 {
-    also is Nightscape::Config::Ledger;
+    also is Config::Ledger;
     also does ToHash;
 
     has VarNameBare:D $.code is required;
@@ -138,7 +137,7 @@ class Nightscape::Config::Ledger::FromFile
         --> Nil
     )
     {
-        $!code = Nightscape::Config::Utils.gen-var-name-bare($code);
+        $!code = Config::Utils.gen-var-name-bare($code);
         $!file = File::Path::Resolve.relative($file, $scene-file);
         $!date-local-offset = $date-local-offset
             if $date-local-offset.defined;
@@ -200,12 +199,12 @@ class Nightscape::Config::Ledger::FromFile
     }
 }
 
-# end Nightscape::Config::Ledger::FromFile }}}
-# Nightscape::Config::Ledger::FromPkg {{{
+# end Config::Ledger::FromFile }}}
+# Config::Ledger::FromPkg {{{
 
-class Nightscape::Config::Ledger::FromPkg
+class Config::Ledger::FromPkg
 {
-    also is Nightscape::Config::Ledger;
+    also is Config::Ledger;
     also does ToHash;
 
     has VarNameBare:D $.pkgname is required;
@@ -219,7 +218,7 @@ class Nightscape::Config::Ledger::FromPkg
         --> Nil
     )
     {
-        $!pkgname = Nightscape::Config::Utils.gen-var-name($pkgname);
+        $!pkgname = Config::Utils.gen-var-name($pkgname);
         $!pkgver = Version.new($pkgver);
         $!pkgrel = $pkgrel if $pkgrel;
     }
@@ -313,6 +312,6 @@ class Nightscape::Config::Ledger::FromPkg
     }
 }
 
-# end Nightscape::Config::Ledger::FromPkg }}}
+# end Config::Ledger::FromPkg }}}
 
 # vim: set filetype=perl6 foldmethod=marker foldlevel=0:

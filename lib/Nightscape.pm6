@@ -7,7 +7,7 @@ unit class Nightscape;
 constant $PROGRAM = 'Nightscape';
 constant $VERSION = v0.1.0;
 
-has Nightscape::Config:D $.config is required;
+has Config:D $.config is required;
 has Nightscape::Registry:D $!registry = Nightscape::Registry.new;
 
 # submethod BUILD {{{
@@ -32,7 +32,7 @@ submethod BUILD(
     --> Nil
 )
 {
-    $!config = Nightscape::Config.new(|%setup-opts);
+    $!config = Config.new(|%setup-opts);
 }
 
 # end submethod BUILD }}}
@@ -72,7 +72,7 @@ method new(
 
 method clean(::?CLASS:D: *@ledger --> Nil)
 {
-    my Nightscape::Config:D $*config = $.config;
+    my Config:D $*config = $.config;
     Nightscape::Command::Clean.clean(|@ledger);
 }
 
@@ -90,7 +90,7 @@ method reup(
     --> Nil
 )
 {
-    my Nightscape::Config:D $*config = $.config;
+    my Config:D $*config = $.config;
     my Nightscape::Registry:D $*registry = $!registry;
     Nightscape::Command::Reup.reup(|%opts, |@ledger);
 }
@@ -100,7 +100,7 @@ method reup(
 
 method serve(::?CLASS:D: *@ledger --> Nil)
 {
-    my Nightscape::Config:D $*config = $.config;
+    my Config:D $*config = $.config;
     Nightscape::Command::Serve.serve(|@ledger);
 }
 
@@ -109,7 +109,7 @@ method serve(::?CLASS:D: *@ledger --> Nil)
 
 method show(::?CLASS:D: *@ledger --> Nil)
 {
-    my Nightscape::Config:D $*config = $.config;
+    my Config:D $*config = $.config;
     Nightscape::Command::Show.show(|@ledger);
 }
 
@@ -126,7 +126,7 @@ method sync(
     --> List:D
 )
 {
-    my Nightscape::Config:D $*config = $.config;
+    my Config:D $*config = $.config;
     my Nightscape::Registry:D $*registry = $!registry;
     my List:D $sync = Nightscape::Command::Sync.sync(|%opts, |@ledger);
 }

@@ -10,13 +10,13 @@ use Nightscape::Config::Utils;
 use Nightscape::Types;
 use TXN::Parser::Types;
 use X::Nightscape;
-unit class Nightscape::Config;
+unit class Config;
 
 # class attributes {{{
 
 # --- scene {{{
 
-has Nightscape::Config::Ledger:D @.ledger is required;
+has Config::Ledger:D @.ledger is required;
 
 my Costing:D $default-base-costing = FIFO;
 has Costing:D $.base-costing = $default-base-costing;
@@ -28,9 +28,9 @@ my Str:D $now-year-end = sprintf(Q{%s-12-31}, now.Date.year);
 my Date:D $default-fiscal-year-end = Date.new($now-year-end);
 has Date:D $.fiscal-year-end = $default-fiscal-year-end;
 
-has Nightscape::Config::Account:D @.account;
-has Nightscape::Config::Asset:D @.asset;
-has Nightscape::Config::Entity:D @.entity;
+has Config::Account:D @.account;
+has Config::Asset:D @.asset;
+has Config::Entity:D @.entity;
 
 # --- end scene }}}
 # --- setup {{{
@@ -139,8 +139,8 @@ multi submethod BUILD(
     --> Nil
 )
 {
-    # if option C<app-file> is passed to instantiate
-    # C<Nightscape::Config>, use that, otherwise use default
+    # if option C<app-file> is passed to instantiate C<Config>, use that,
+    # otherwise use default
     $!app-file = resolve-path(|@app-file);
     # write TOML to C<$!app-file> if C<$!app-file> DNE
     my %app-file-content =
@@ -165,8 +165,8 @@ multi submethod BUILD(
 )
 {
     # options C<app-dir>, C<log-dir>, C<pkg-dir>, C<price-dir>,
-    # C<scene-dir>, passed to instantiate C<Nightscape::Config> override
-    # settings of the same name contained in C<$!app-file>
+    # C<scene-dir>, passed to instantiate C<Config> override settings
+    # of the same name contained in C<$!app-file>
     #
     # if no setting is provided, use defaults
     $!app-dir = resolve-path(|@app-dir);
@@ -196,9 +196,8 @@ multi submethod BUILD(
     --> Nil
 )
 {
-    # if option C<scene-file> is passed to instantiate
-    # C<Nightscape::Config> override settings of the same name contained
-    # in C<$!app-file>
+    # if option C<scene-file> is passed to instantiate C<Config> override
+    # settings of the same name contained in C<$!app-file>
     #
     # if no setting is provided, use default
     $!scene-file = resolve-path(|@scene-file);
@@ -245,10 +244,10 @@ multi submethod BUILD(
         // (gen-settings(:entity(@scene-file-entity), :$!scene-file)
                 if @scene-file-entity);
     $!base-costing = $base-costing
-        // (Nightscape::Config::Utils.gen-costing($scene-file-base-costing)
+        // (Config::Utils.gen-costing($scene-file-base-costing)
                 if $scene-file-base-costing);
     $!base-currency = $base-currency
-        // (Nightscape::Config::Utils.gen-asset-code($scene-file-base-currency)
+        // (Config::Utils.gen-asset-code($scene-file-base-currency)
                 if $scene-file-base-currency);
     $!fiscal-year-end = $fiscal-year-end
         // ($scene-file-fiscal-year-end
@@ -275,7 +274,7 @@ method new(
         :entity(@),
         :ledger(@)
     )
-    --> Nightscape::Config:D
+    --> Config:D
 )
 {
     self.bless(|%opts);
@@ -297,14 +296,11 @@ method resolve-entity-base-currency(
 multi sub resolve-entity-base-currency(
     AssetCode:D $config-base-currency,
     VarName:D $entity-name,
-    Nightscape::Config::Entity:D @entity where {
-        .first({ .code eq $entity-name }).so
-    }
+    Config::Entity:D @entity where { .first({ .code eq $entity-name }).so }
     --> AssetCode:D
 )
 {
-    my Nightscape::Config::Entity:D $entity =
-        @entity.first({ .code eq $entity-name });
+    my Config::Entity:D $entity = @entity.first({ .code eq $entity-name });
     my AssetCode:D $resolve-entity-base-currency =
         resolve-entity-base-currency(
             $config-base-currency,
@@ -316,7 +312,7 @@ multi sub resolve-entity-base-currency(
 multi sub resolve-entity-base-currency(
     AssetCode:D $config-base-currency,
     VarName:D $entity-name,
-    Nightscape::Config::Entity:D @entity
+    Config::Entity:D @entity
     --> AssetCode:D
 )
 {
@@ -347,36 +343,36 @@ multi sub resolve-entity-base-currency(
 
 multi sub gen-settings(
     :@account!
-    --> Array[Nightscape::Config::Account:D]
+    --> Array[Config::Account:D]
 )
 {
-    my Nightscape::Config::Account:D @a =
+    my Config::Account:D @a =
         @account.hyper.map(-> %toml {
-            Nightscape::Config::Account.new(|%toml)
+            Config::Account.new(|%toml)
         });
 }
 
 multi sub gen-settings(
     :@asset!,
     :$scene-file!
-    --> Array[Nightscape::Config::Asset:D]
+    --> Array[Config::Asset:D]
 )
 {
-    my Nightscape::Config::Asset:D @a =
+    my Config::Asset:D @a =
         @asset.hyper.map(-> %toml {
-            Nightscape::Config::Asset.new(|%toml, :$scene-file)
+            Config::Asset.new(|%toml, :$scene-file)
         });
 }
 
 multi sub gen-settings(
     :@entity!,
     :$scene-file!
-    --> Array[Nightscape::Config::Entity:D]
+    --> Array[Config::Entity:D]
 )
 {
-    my Nightscape::Config::Entity:D @a =
+    my Config::Entity:D @a =
         @entity.hyper.map(-> %toml {
-            Nightscape::Config::Entity.new(|%toml, :$scene-file)
+            Config::Entity.new(|%toml, :$scene-file)
         });
 }
 
@@ -384,12 +380,12 @@ multi sub gen-settings(
 multi sub gen-settings(
     :@ledger!,
     :$scene-file!
-    --> Array[Nightscape::Config::Ledger:D]
+    --> Array[Config::Ledger:D]
 )
 {
-    my Nightscape::Config::Ledger:D @a =
+    my Config::Ledger:D @a =
         @ledger.hyper.map(-> %toml {
-            Nightscape::Config::Ledger.new(|%toml, :$scene-file)
+            Config::Ledger.new(|%toml, :$scene-file)
         });
 }
 
