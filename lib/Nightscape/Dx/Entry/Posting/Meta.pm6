@@ -14,9 +14,21 @@ role Entry::Postingʹ::Meta[ASSETS]
     has AssetType:D $.type is required;
 }
 
-role Entry::Postingʹ::Meta[EXPENSES]    {*}
-role Entry::Postingʹ::Meta[INCOME]      {*}
-role Entry::Postingʹ::Meta[LIABILITIES] {*}
-role Entry::Postingʹ::Meta[EQUITY]      {*}
+role Entry::Postingʹ::Meta[EXPENSES]
+{
+    # non-deductible expense?
+    has Bool:D $.is-non-deductible is required;
+}
+
+role Entry::Postingʹ::Meta[INCOME]
+{
+    has IncomeType:D $.type is required;
+}
+
+role Entry::Postingʹ::Meta[LIABILITIES]
+{*}
+
+role Entry::Postingʹ::Meta[EQUITY]
+{*}
 
 # vim: set filetype=perl6 foldmethod=marker foldlevel=0:

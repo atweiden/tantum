@@ -294,5 +294,18 @@ enum HookType is export <
 >;
 
 # end HookType }}}
+# IncomeType {{{
+
+enum IncomeType is export <
+    SALARY-AND-WAGES
+    SELF-EMPLOYMENT
+    INTEREST
+    DIVIDEND
+    PASSIVE
+    CAPITAL-GAINS
+    MISCELLANEOUS
+>;
+
+# end IncomeType }}}
 
 # vim: set filetype=perl6 foldmethod=marker foldlevel=0 nowrap:
