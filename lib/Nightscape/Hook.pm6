@@ -2,16 +2,16 @@ use v6;
 use Nightscape::Hook::Action;
 use Nightscape::Hook::Trigger;
 use Nightscape::Types;
-unit role Nightscape::Hook[HookType ::T];
-also does Nightscape::Hook::Action[T];
-also does Nightscape::Hook::Trigger[T];
+unit role Hook[HookType ::T];
+also does Hook::Action[T];
+also does Hook::Trigger[T];
 
 # p6doc {{{
 
 =begin pod
 =head NAME
 
-Nightscape::Hook
+Hook
 
 =head DESCRIPTION
 
@@ -46,13 +46,14 @@ executed.
 I<Posting> hooks must provide a C<method apply> which accepts as
 arguments:
 
-    Entry::Posting:D $p,
+    Entry::Posting:D $posting,
     Entry::Header:D $header,
+    Hook:U :@applied,
     Entry::Postingʹ:D :@carry
 
 and which returns:
 
-    Entry::Postingʹ:D $postingʹ
+    Nightscape::Registry::Payload[POSTING] $payload
 =end item
 
 =begin item
@@ -67,11 +68,12 @@ I<Entry> hooks must provide a C<method apply> which accepts as arguments:
     Entry:D $entry,
     Coa:D $coa,
     Hodl:D $hodl,
+    Hook:U :@applied,
     Entryʹ:D :@carry
 
 and which returns:
 
-    Entryʹ:D $entryʹ
+    Nightscape::Registry::Payload[ENTRY] $payload
 =end item
 
 =begin item
@@ -86,11 +88,12 @@ I<Ledger> hooks must provide a C<method apply> which accepts as arguments:
     Ledger:D $ledger,
     Coa:D $coa,
     Hodl:D $hodl,
+    Hook:U :@applied,
     Ledgerʹ:D :@carry
 
 and which returns:
 
-    Ledgerʹ:D $ledgerʹ
+    Nightscape::Registry::Payload[LEDGER] $payload
 =end item
 
 =head3 Category: Derivative
@@ -109,14 +112,15 @@ and the actions inscribed in matching hooks executed.
 
 I<Coa> hooks must provide a C<method apply> which accepts as arguments:
 
-    Coa:D $c,
+    Coa:D $coa,
     Entry:D $entry,
     Hodl:D $hodl,
+    Hook:U :@applied,
     Coa:D :@carry
 
 and which returns:
 
-    Coa:D $coa
+    Nightscape::Registry::Payload[COA] $payload
 =end item
 
 =begin item
@@ -128,13 +132,14 @@ inscribed in matching hooks executed.
 
 I<Hodl> hooks must provide a C<method apply> which accepts as arguments:
 
-    Hodl:D $h,
+    Hodl:D $hodl,
     Entry:D $entry,
+    Hook:U :@applied,
     Hodl:D :@carry
 
 and which returns:
 
-    Hodl:D $hodl
+    Nightscape::Registry::Payload[HODL] $payload
 =end item
 
 =head2 Category: Meta
@@ -152,20 +157,22 @@ and when. I<Hook> hooks might also be used to chain hooks together.
 
 I<Hook> hooks must provide a C<method apply> which accepts as arguments:
 
+    Str:D $enter-leave,
     Str:D $class-name,
     Str:D $routine-name,
-    Capture:D $capture
+    Capture:D $capture,
+    Hook:U :@applied
 
 and which returns:
 
-    Nil
+    Nightscape::Registry::Payload[HOOK] $payload
 =end item
 =end pod
 
 # end p6doc }}}
 
-# for declaring C<Nightscape::Hook> types needed in registry
-method dependency(--> Array[Nightscape::Hook:U])
+# for declaring C<Hook> types needed in registry
+method dependency(--> Array[Hook:U])
 {...}
 
 # description of hook
@@ -198,7 +205,7 @@ multi sub perl(
     --> Str:D
 )
 {
-    my Str:D $perl = sprintf(Q{Nightscape::Hook[%s]}, $type);
+    my Str:D $perl = sprintf(Q{Hook[%s]}, $type);
 }
 
 multi sub perl(
@@ -206,7 +213,7 @@ multi sub perl(
     Str:D $name,
     Str:D $description,
     Int:D $priority,
-    Nightscape::Hook:U @dependency
+    Hook:U @dependency
     --> Str:D
 )
 {
@@ -221,19 +228,19 @@ multi sub perl(
 }
 
 multi sub perl(
-    Nightscape::Hook:U @ (Nightscape::Hook:U $dependency, *@tail),
+    Hook:U @ (Hook:U $dependency, *@tail),
     Str:D :carry(@c)
     --> Str:D
 )
 {
-    my Nightscape::Hook:U @dependency = |@tail;
+    my Hook:U @dependency = |@tail;
     my Str:D $s = perl($dependency);
     my Str:D @carry = |@c, $s;
     my Str:D $perl = perl(@dependency, :@carry);
 }
 
 multi sub perl(
-    Nightscape::Hook:U @,
+    Hook:U @,
     Str:D :@carry
     --> Array[Str:D]
 )
@@ -242,7 +249,7 @@ multi sub perl(
 }
 
 multi sub perl(
-    Nightscape::Hook:U $dependency
+    Hook:U $dependency
     --> Str:D
 )
 {

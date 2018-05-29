@@ -3,7 +3,7 @@ use Nightscape::Dx;
 use Nightscape::Types;
 use TXN::Parser::ParseTree;
 
-role Nightscape::Hook::Trigger[POSTING]
+role Hook::Trigger[POSTING]
 {
     multi method is-match(
         Entry::Posting:D $posting,
@@ -17,7 +17,7 @@ role Nightscape::Hook::Trigger[POSTING]
     {...}
 }
 
-role Nightscape::Hook::Trigger[ENTRY]
+role Hook::Trigger[ENTRY]
 {
     multi method is-match(
         Entry:D $entry,
@@ -32,7 +32,7 @@ role Nightscape::Hook::Trigger[ENTRY]
     {...}
 }
 
-role Nightscape::Hook::Trigger[LEDGER]
+role Hook::Trigger[LEDGER]
 {
     multi method is-match(
         Ledger:D $ledger,
@@ -47,7 +47,7 @@ role Nightscape::Hook::Trigger[LEDGER]
     {...}
 }
 
-role Nightscape::Hook::Trigger[COA]
+role Hook::Trigger[COA]
 {
     multi method is-match(
         Coa:D $coa,
@@ -62,7 +62,7 @@ role Nightscape::Hook::Trigger[COA]
     {...}
 }
 
-role Nightscape::Hook::Trigger[HODL]
+role Hook::Trigger[HODL]
 {
     multi method is-match(
         Hodl:D $hodl,
@@ -76,7 +76,7 @@ role Nightscape::Hook::Trigger[HODL]
     {...}
 }
 
-role Nightscape::Hook::Trigger[HOOK]
+role Hook::Trigger[HOOK]
 {
     multi method is-match(
         Str:D $enter-leave,

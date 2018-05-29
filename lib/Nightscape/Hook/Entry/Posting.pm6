@@ -2,17 +2,17 @@ use v6;
 use Nightscape::Hook;
 use Nightscape::Types;
 use TXN::Parser::ParseTree;
-unit class Nightscape::Hook::Entry::Posting;
-also does Nightscape::Hook[POSTING];
+unit class Hook::Entry::Posting;
+also does Hook[POSTING];
 
 has Str:D $!name = 'Entry::Posting';
 has Str:D $!description = 'catch-all hook for POSTING';
 has Int:D $!priority = 0;
-has Nightscape::Hook:U @!dependency;
+has Hook:U @!dependency;
 
-method dependency(::?CLASS:D: --> Array[Nightscape::Hook:U])
+method dependency(::?CLASS:D: --> Array[Hook:U])
 {
-    my Nightscape::Hook:U @dependency = @!dependency;
+    my Hook:U @dependency = @!dependency;
 }
 
 method description(::?CLASS:D: --> Str:D)

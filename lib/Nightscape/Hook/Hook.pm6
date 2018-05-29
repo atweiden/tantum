@@ -1,17 +1,17 @@
 use v6;
 use Nightscape::Hook;
 use Nightscape::Types;
-unit class Nightscape::Hook::Hook;
-also does Nightscape::Hook[HOOK];
+unit class Hook::Hook;
+also does Hook[HOOK];
 
 has Str:D $!name = 'Hook';
 has Str:D $!description = 'catch-all hook for HOOK';
 has Int:D $!priority = 0;
-has Nightscape::Hook:U @!dependency;
+has Hook:U @!dependency;
 
-method dependency(::?CLASS:D: --> Array[Nightscape::Hook:U])
+method dependency(::?CLASS:D: --> Array[Hook:U])
 {
-    my Nightscape::Hook:U @dependency = @!dependency;
+    my Hook:U @dependency = @!dependency;
 }
 
 method description(::?CLASS:D: --> Str:D)

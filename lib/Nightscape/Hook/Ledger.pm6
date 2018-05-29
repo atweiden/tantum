@@ -4,17 +4,17 @@ use Nightscape::Hook;
 use Nightscape::Types;
 use Nightscape::Utils;
 use TXN::Parser::ParseTree;
-unit class Nightscape::Hook::Ledger;
-also does Nightscape::Hook[LEDGER];
+unit class Hook::Ledger;
+also does Hook[LEDGER];
 
 has Str:D $!name = 'Ledger';
 has Str:D $!description = 'catch-all hook for LEDGER';
 has Int:D $!priority = 0;
-has Nightscape::Hook:U @!dependency;
+has Hook:U @!dependency;
 
-method dependency(::?CLASS:D: --> Array[Nightscape::Hook:U])
+method dependency(::?CLASS:D: --> Array[Hook:U])
 {
-    my Nightscape::Hook:U @dependency = @!dependency;
+    my Hook:U @dependency = @!dependency;
 }
 
 method description(::?CLASS:D: --> Str:D)

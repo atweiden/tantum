@@ -17,7 +17,7 @@ my role Introspection
     }
 }
 
-role Nightscape::Hook::Action[POSTING]
+role Hook::Action[POSTING]
 {
     also does Introspection;
 
@@ -35,7 +35,7 @@ role Nightscape::Hook::Action[POSTING]
     {...}
 }
 
-role Nightscape::Hook::Action[ENTRY]
+role Hook::Action[ENTRY]
 {
     also does Introspection;
 
@@ -54,7 +54,7 @@ role Nightscape::Hook::Action[ENTRY]
     {...}
 }
 
-role Nightscape::Hook::Action[LEDGER]
+role Hook::Action[LEDGER]
 {
     also does Introspection;
 
@@ -73,7 +73,7 @@ role Nightscape::Hook::Action[LEDGER]
     {...}
 }
 
-role Nightscape::Hook::Action[COA]
+role Hook::Action[COA]
 {
     also does Introspection;
 
@@ -92,7 +92,7 @@ role Nightscape::Hook::Action[COA]
     {...}
 }
 
-role Nightscape::Hook::Action[HODL]
+role Hook::Action[HODL]
 {
     also does Introspection;
 
@@ -110,7 +110,7 @@ role Nightscape::Hook::Action[HODL]
     {...}
 }
 
-role Nightscape::Hook::Action[HOOK]
+role Hook::Action[HOOK]
 {
     # omit C<also does Introspection> to avoid infinite loops
     method apply(

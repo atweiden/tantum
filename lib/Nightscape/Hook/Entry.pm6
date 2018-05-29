@@ -3,17 +3,17 @@ use Nightscape::Dx;
 use Nightscape::Hook;
 use Nightscape::Types;
 use TXN::Parser::ParseTree;
-unit class Nightscape::Hook::Entry;
-also does Nightscape::Hook[ENTRY];
+unit class Hook::Entry;
+also does Hook[ENTRY];
 
 has Str:D $!name = 'Entry';
 has Str:D $!description = 'catch-all hook for ENTRY';
 has Int:D $!priority = 0;
-has Nightscape::Hook:U @!dependency;
+has Hook:U @!dependency;
 
-method dependency(::?CLASS:D: --> Array[Nightscape::Hook:U])
+method dependency(::?CLASS:D: --> Array[Hook:U])
 {
-    my Nightscape::Hook:U @dependency = @!dependency;
+    my Hook:U @dependency = @!dependency;
 }
 
 method description(::?CLASS:D: --> Str:D)
