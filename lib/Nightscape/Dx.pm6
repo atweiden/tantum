@@ -17,8 +17,8 @@ sub EXPORT(--> Map:D)
     my %EXPORT = Map.new(
         'Account'               => Account,
         'Coa'                   => Coa,
-        'Entry::Postingʹ::Meta' => Entry::Postingʹ::Meta,
         'Entry::Postingʹ'       => Entry::Postingʹ,
+        'Entry::Postingʹ::Meta' => Entry::Postingʹ::Meta,
         'Entryʹ'                => Entryʹ,
         'Hodl'                  => Hodl,
         'Hodling'               => Hodling,
