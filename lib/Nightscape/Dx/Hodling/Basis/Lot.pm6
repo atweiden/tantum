@@ -42,6 +42,7 @@ C<Hodling::Basis::Lot>
 
 =head DESCRIPTION
 
+=begin description
 C<Hodling::Basis::Lot> contains parameterized roles in
 object variant style, so as to differentiate between
 I<named> (C<Hodling::Basis::Lot::Named>) and I<unnamed>
@@ -50,6 +51,7 @@ I<named> (C<Hodling::Basis::Lot::Named>) and I<unnamed>
 When Nightscape credits the Assets silo, I<named> lots are B<not>
 intermixed with I<unnamed> lots. I<Named> lots can only be debited and
 credited by specifying the proper lot name using the TXN named lot syntax.
+=end description
 
 Example TXN postings with a named lot of C<mtl-summer>:
 
