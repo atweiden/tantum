@@ -99,9 +99,9 @@ multi sub send-to-hooks(
     --> Registry::Payload[POSTING]
 )
 {
-    my Entry::Posting:D $pʹ = $hook.apply(|@arg, |%opts);
+    my Entry::Posting:D $postingʹ = $hook.apply(|@arg, |%opts);
     my Hook:U @applied = |@a, $hook.WHAT;
-    my Entry::Postingʹ:D @carry = |@c, $pʹ;
+    my Entry::Postingʹ:D @carry = |@c, $postingʹ;
     my Registry::Payload[POSTING] $payload =
         send-to-hooks(@hook, @arg, :@applied, :@carry);
 }
@@ -150,9 +150,9 @@ multi sub send-to-hooks(
     --> Registry::Payload[ENTRY]
 )
 {
-    my Entryʹ:D $eʹ = $hook.apply(|@arg, |%opts);
+    my Entryʹ:D $entryʹ = $hook.apply(|@arg, |%opts);
     my Hook:U @applied = |@a, $hook.WHAT;
-    my Entryʹ:D @carry = |@c, $eʹ;
+    my Entryʹ:D @carry = |@c, $entryʹ;
     my Registry::Payload[ENTRY] $payload =
         send-to-hooks(@hook, @arg, :@applied, :@carry);
 }
@@ -201,9 +201,9 @@ multi sub send-to-hooks(
     --> Registry::Payload[LEDGER]
 )
 {
-    my Ledgerʹ:D $lʹ = $hook.apply(|@arg, |%opts);
+    my Ledgerʹ:D $ledgerʹ = $hook.apply(|@arg, |%opts);
     my Hook:U @applied = |@a, $hook.WHAT;
-    my Ledgerʹ:D @carry = |@c, $lʹ;
+    my Ledgerʹ:D @carry = |@c, $ledgerʹ;
     my Registry::Payload[LEDGER] $payload =
         send-to-hooks(@hook, @arg, :@applied, :@carry);
 }
@@ -252,9 +252,9 @@ multi sub send-to-hooks(
     --> Registry::Payload[COA]
 )
 {
-    my Coa:D $c = $hook.apply(|@arg, |%opts);
+    my Coa:D $coa = $hook.apply(|@arg, |%opts);
     my Hook:U @applied = |@a, $hook.WHAT;
-    my Coa:D @carry = |@c, $c;
+    my Coa:D @carry = |@c, $coa;
     my Registry::Payload[COA] $payload =
         send-to-hooks(@hook, @arg, :@applied, :@carry);
 }
@@ -303,9 +303,9 @@ multi sub send-to-hooks(
     --> Registry::Payload[HODL]
 )
 {
-    my Hodl:D $h = $hook.apply(|@arg, |%opts);
+    my Hodl:D $hodl = $hook.apply(|@arg, |%opts);
     my Hook:U @applied = |@a, $hook.WHAT;
-    my Hodl:D @carry = |@c, $h;
+    my Hodl:D @carry = |@c, $hodl;
     my Registry::Payload[HODL] $payload =
         send-to-hooks(@hook, @arg, :@applied, :@carry);
 }
