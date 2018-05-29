@@ -73,7 +73,7 @@ method new(
 method clean(::?CLASS:D: *@ledger --> Nil)
 {
     my Config:D $*config = $.config;
-    Nightscape::Command::Clean.clean(|@ledger);
+    Command::Clean.clean(|@ledger);
 }
 
 # end method clean }}}
@@ -92,7 +92,7 @@ method reup(
 {
     my Config:D $*config = $.config;
     my Nightscape::Registry:D $*registry = $!registry;
-    Nightscape::Command::Reup.reup(|%opts, |@ledger);
+    Command::Reup.reup(|%opts, |@ledger);
 }
 
 # end method reup }}}
@@ -101,7 +101,7 @@ method reup(
 method serve(::?CLASS:D: *@ledger --> Nil)
 {
     my Config:D $*config = $.config;
-    Nightscape::Command::Serve.serve(|@ledger);
+    Command::Serve.serve(|@ledger);
 }
 
 # end method serve }}}
@@ -110,7 +110,7 @@ method serve(::?CLASS:D: *@ledger --> Nil)
 method show(::?CLASS:D: *@ledger --> Nil)
 {
     my Config:D $*config = $.config;
-    Nightscape::Command::Show.show(|@ledger);
+    Command::Show.show(|@ledger);
 }
 
 # end method show }}}
@@ -128,7 +128,7 @@ method sync(
 {
     my Config:D $*config = $.config;
     my Nightscape::Registry:D $*registry = $!registry;
-    my List:D $sync = Nightscape::Command::Sync.sync(|%opts, |@ledger);
+    my List:D $sync = Command::Sync.sync(|%opts, |@ledger);
 }
 
 # end method sync }}}

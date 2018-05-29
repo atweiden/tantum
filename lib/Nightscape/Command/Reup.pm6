@@ -2,7 +2,7 @@ use v6;
 use Nightscape::Command::Sync;
 use Nightscape::Config;
 use Nightscape::Types;
-unit class Nightscape::Command::Reup;
+unit class Command::Reup;
 
 # method reup {{{
 
@@ -61,7 +61,7 @@ multi sub reup(
     --> Nil
 )
 {
-    Nightscape::Command::Sync.sync(|%opts, |@ledger);
+    Command::Sync.sync(|%opts, |@ledger);
 }
 
 # end sub reup }}}

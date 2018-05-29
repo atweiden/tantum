@@ -1,7 +1,7 @@
 use v6;
 use Nightscape::Config;
 use Nightscape::Types;
-unit class Nightscape::Command::Clean;
+unit class Command::Clean;
 
 # method clean {{{
 

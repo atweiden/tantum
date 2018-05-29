@@ -8,26 +8,26 @@ use Nightscape::Command::Sync;
 sub EXPORT(--> Map:D)
 {
     my %EXPORT = Map.new(
-        'Nightscape::Command::Clean' => Nightscape::Command::Clean,
-        'Nightscape::Command::Reup'  => Nightscape::Command::Reup,
-        'Nightscape::Command::Serve' => Nightscape::Command::Serve,
-        'Nightscape::Command::Show'  => Nightscape::Command::Show,
-        'Nightscape::Command::Sync'  => Nightscape::Command::Sync
+        'Command::Clean' => Command::Clean,
+        'Command::Reup'  => Command::Reup,
+        'Command::Serve' => Command::Serve,
+        'Command::Show'  => Command::Show,
+        'Command::Sync'  => Command::Sync
     );
 }
 
-unit module Nightscape::Command;
+unit module Command;
 
 # p6doc {{{
 
 =begin pod
 =head NAME
 
-Nightscape::Command
+Command
 
 =head DESCRIPTION
 
-C<Nightscape::Command> exports C<Command>s.
+C<Command> exports C<Command>s.
 =end pod
 
 # end p6doc }}}

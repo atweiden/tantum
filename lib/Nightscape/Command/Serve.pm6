@@ -1,7 +1,7 @@
 use v6;
 use Nightscape::Config;
 use Nightscape::Types;
-unit class Nightscape::Command::Serve;
+unit class Command::Serve;
 
 # method serve {{{
 

@@ -5,7 +5,7 @@ use Nightscape::Dx::Hodl;
 use Nightscape::Dx::Ledger;
 use Nightscape::Types;
 use TXN::Parser::ParseTree;
-unit class Nightscape::Command::Sync;
+unit class Command::Sync;
 
 # method sync {{{
 
