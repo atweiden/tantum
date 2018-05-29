@@ -49,7 +49,7 @@ multi method apply(
 )
 {
     my Entry:D @e = $ledger.entry;
-    my Entry:D @entry = Nightscape::Utils.ls-entries(@e, :sort);
+    my Entry:D @entry = Utils.ls-entries(@e, :sort);
     my Entryʹ:D @entryʹ = apply(@entry, $c, $h);
     # last C<Entryʹ> seen has most up-to-date C<Coa> and C<Hodl>
     my Entryʹ:D $entryʹ = @entryʹ.tail;
