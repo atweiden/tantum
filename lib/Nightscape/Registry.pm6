@@ -58,7 +58,7 @@ method send-to-hooks(
     ::?CLASS:D:
     HookType $type,
     @arg
-    --> Nightscape::Registry::Payload:D
+    --> Nightscape::Registry::Payload[$type]
 )
 {
     # sort C<Hook>s of this C<HookType> by priority descending
