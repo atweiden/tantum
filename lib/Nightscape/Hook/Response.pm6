@@ -9,32 +9,32 @@ use Nightscape::Dx::Ledger;
 use Nightscape::Hook;
 use Nightscape::Types;
 
-role HookRes[POSTING]
+role Hook::Response[POSTING]
 {
     has Hash[Entry::Postingʹ:D,Hook:U] @.made is required;
 }
 
-role HookRes[ENTRY]
+role Hook::Response[ENTRY]
 {
     has Hash[Entryʹ:D,Hook:U] @.made is required;
 }
 
-role HookRes[LEDGER]
+role Hook::Response[LEDGER]
 {
     has Hash[Ledgerʹ:D,Hook:U] @.made is required;
 }
 
-role HookRes[COA]
+role Hook::Response[COA]
 {
     has Hash[Coa:D,Hook:U] @.made is required;
 }
 
-role HookRes[HODL]
+role Hook::Response[HODL]
 {
     has Hash[Hodl:D,Hook:U] @.made is required;
 }
 
-role HookRes[HOOK]
+role Hook::Response[HOOK]
 {
     has Hook:U @.made is required;
 }
