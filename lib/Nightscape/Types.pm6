@@ -295,4 +295,4 @@ enum HookType is export <
 
 # end HookType }}}
 
-# vim: set filetype=perl6 foldmethod=marker foldlevel=0:
+# vim: set filetype=perl6 foldmethod=marker foldlevel=0 nowrap:
