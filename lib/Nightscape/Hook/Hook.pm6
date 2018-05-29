@@ -31,8 +31,8 @@ method priority(::?CLASS:D: --> Int:D)
 
 multi method apply(
     | (
-        @arg (Str:D $, Str:D $, Capture:D $),
-        Bool:D :enter($)! where .so
+        @arg ('enter', Str:D $, Str:D $, Capture:D $),
+        *% (Hook:U :@applied)
     )
     --> Nil
 )
@@ -43,8 +43,8 @@ multi method apply(
 
 multi method apply(
     | (
-        @arg (Str:D $, Str:D $, Capture:D $),
-        Bool:D :leave($)! where .so
+        @arg ('leave', Str:D $, Str:D $, Capture:D $),
+        *% (Hook:U :@applied)
     )
     --> Nil
 )
@@ -54,7 +54,12 @@ multi method apply(
 }
 
 sub apply(
-    @ (Str:D $class-name, Str:D $routine-name, Capture:D $capture)
+    @ (
+        Str:D $enter-leave,
+        Str:D $class-name,
+        Str:D $routine-name,
+        Capture:D $capture
+    )
     --> Str:D
 )
 {
@@ -62,7 +67,10 @@ sub apply(
         sprintf(Q{%s.%s: %s}, $class-name, $routine-name, $capture.perl);
 }
 
-method is-match(| --> Bool:D)
+method is-match(
+    *% (Hook:U :@applied)
+    --> Bool:D
+)
 {
     my Bool:D $is-match = True;
 }

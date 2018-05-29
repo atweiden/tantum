@@ -33,7 +33,11 @@ method priority(::?CLASS:D: --> Int:D)
 multi method apply(
     | (
         Entry::Posting:D $p,
-        Entry::Header:D $header
+        Entry::Header:D $header,
+        *% (
+            Hook:U :@applied,
+            Entry::Postingʹ:D :@carry
+        )
     )
     --> Entry::Posting:D
 )
@@ -76,7 +80,12 @@ multi sub apply(
 }
 
 method is-match(
-    Entry::Posting:D $posting
+    Entry::Posting:D $posting,
+    Entry::Header:D $header,
+    *% (
+        Hook:U :@applied,
+        Entry::Postingʹ:D :@carry
+    )
     --> Bool:D
 )
 {

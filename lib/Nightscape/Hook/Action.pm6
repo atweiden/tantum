@@ -1,5 +1,9 @@
 use v6;
-use Nightscape::Dx;
+use Nightscape::Dx::Coa;
+use Nightscape::Dx::Entry::Posting;
+use Nightscape::Dx::Entry;
+use Nightscape::Dx::Hodl;
+use Nightscape::Dx::Ledger;
 use Nightscape::Types;
 use TXN::Parser::ParseTree;
 

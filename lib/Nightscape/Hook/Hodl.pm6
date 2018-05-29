@@ -1,5 +1,5 @@
 use v6;
-use Nightscape::Dx;
+use Nightscape::Dx::Hodl;
 use Nightscape::Hook;
 use Nightscape::Types;
 use TXN::Parser::ParseTree;
@@ -34,7 +34,11 @@ method priority(::?CLASS:D: --> Int:D)
 multi method apply(
     | (
         Hodl:D $h,
-        Entry:D $entry
+        Entry:D $entry,
+        *% (
+            Hook:U :@applied,
+            Hodl:D :@carry
+        )
     )
     --> Hodl:D
 )
@@ -54,7 +58,11 @@ sub has-aux-asset(Entry:D $entry --> Bool:D)
 
 method is-match(
     Hodl:D $hodl,
-    Entry:D $entry
+    Entry:D $entry,
+    *% (
+        Hook:U :@applied,
+        Hodl:D :@carry
+    )
     --> Bool:D
 )
 {

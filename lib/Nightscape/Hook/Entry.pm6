@@ -1,5 +1,8 @@
 use v6;
-use Nightscape::Dx;
+use Nightscape::Dx::Coa;
+use Nightscape::Dx::Entry::Posting;
+use Nightscape::Dx::Entry;
+use Nightscape::Dx::Hodl;
 use Nightscape::Hook;
 use Nightscape::Types;
 use TXN::Parser::ParseTree;
@@ -35,7 +38,11 @@ multi method apply(
     | (
         Entry:D $e,
         Coa:D $c,
-        Hodl:D $h
+        Hodl:D $h,
+        *% (
+            Hook:U :@applied,
+            Entryʹ:D :@carry
+        )
     )
     --> Entryʹ:D
 )
@@ -48,16 +55,6 @@ multi method apply(
     my Hodl:D $hodl = $*registry.send-to-hooks(HODL, [$h, $entry]);
     my Coa:D $coa = $*registry.send-to-hooks(COA, [$c, $entry, $hodl]);
     my Entryʹ $entryʹ .= new(:$entry, :$coa, :$hodl);
-}
-
-multi method apply(
-    | (
-        Entryʹ:D $fʹ
-    )
-    --> Entryʹ:D
-)
-{
-    my Entryʹ:D $entryʹ = $fʹ;
 }
 
 multi sub apply(
@@ -87,7 +84,11 @@ multi sub apply(
 method is-match(
     Entry:D $entry,
     Coa:D $coa,
-    Hodl:D $hodl
+    Hodl:D $hodl,
+    *% (
+        Hook:U :@applied,
+        Entryʹ:D :@carry
+    )
     --> Bool:D
 )
 {

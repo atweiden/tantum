@@ -1,5 +1,11 @@
 use v6;
-use Nightscape::Dx;
+use Nightscape::Dx::Account;
+use Nightscape::Dx::Coa;
+use Nightscape::Dx::Entry;
+use Nightscape::Dx::Entry::Posting;
+use Nightscape::Dx::Hodl;
+use Nightscape::Dx::Hodling;
+use Nightscape::Dx::Ledger;
 use Nightscape::Hook;
 use Nightscape::Hook::Entry::Posting;
 use Nightscape::Hook::Entry;
@@ -225,7 +231,7 @@ multi sub send-to-hooks(
 
 multi sub send-to-hooks(
     Hook[COA] @hook,
-    @arg (Coa:D $, Entry:D $, Hodl:D $)
+    @arg (Coa:D $, Entry:D $, Hodl:D $),
     *%opts (
         Hook:U :applied(@),
         Coa:D :carry(@)
@@ -261,7 +267,7 @@ multi sub send-to-hooks(
     Hook[COA] @,
     @ (Coa:D $, Entry:D $, Hodl:D $),
     *% (
-        Hook:U :applied(@),
+        Hook:U :@applied! where .so,
         Coa:D :@carry! where .so
     )
     --> Nightscape::Registry::Payload[COA]
@@ -276,7 +282,7 @@ multi sub send-to-hooks(
 
 multi sub send-to-hooks(
     Hook[HODL] @hook,
-    @arg (Hodl:D $, Entry:D $)
+    @arg (Hodl:D $, Entry:D $),
     *%opts (
         Hook:U :applied(@),
         Hodl:D :carry(@)

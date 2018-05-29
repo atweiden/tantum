@@ -1,5 +1,6 @@
 use v6;
-use Nightscape::Dx;
+use Nightscape::Dx::Coa;
+use Nightscape::Dx::Hodl;
 use Nightscape::Hook;
 use Nightscape::Types;
 use TXN::Parser::ParseTree;
@@ -35,7 +36,11 @@ multi method apply(
     | (
         Coa:D $c,
         Entry:D $entry,
-        Hodl:D $hodl
+        Hodl:D $hodl,
+        *% (
+            Hook:U :@applied,
+            Coa:D :@carry
+        )
     )
     --> Coa:D
 )
@@ -47,7 +52,11 @@ multi method apply(
 method is-match(
     Coa:D $coa,
     Entry:D $entry,
-    Hodl:D $hodl
+    Hodl:D $hodl,
+    *% (
+        Hook:U :@applied,
+        Coa:D :@carry
+    )
     --> Bool:D
 )
 {

@@ -1,11 +1,15 @@
 use v6;
-use Nightscape::Dx;
+use Nightscape::Dx::Coa;
+use Nightscape::Dx::Entry::Posting;
+use Nightscape::Dx::Entry;
+use Nightscape::Dx::Hodl;
+use Nightscape::Dx::Ledger;
 use Nightscape::Types;
 use TXN::Parser::ParseTree;
 
 role Hook::Trigger[POSTING]
 {
-    multi method is-match(
+    method is-match(
         Entry::Posting:D $posting,
         Entry::Header:D $header,
         *%opts (
@@ -19,7 +23,7 @@ role Hook::Trigger[POSTING]
 
 role Hook::Trigger[ENTRY]
 {
-    multi method is-match(
+    method is-match(
         Entry:D $entry,
         Coa:D $coa,
         Hodl:D $hodl,
@@ -34,7 +38,7 @@ role Hook::Trigger[ENTRY]
 
 role Hook::Trigger[LEDGER]
 {
-    multi method is-match(
+    method is-match(
         Ledger:D $ledger,
         Coa:D $coa,
         Hodl:D $hodl,
@@ -49,7 +53,7 @@ role Hook::Trigger[LEDGER]
 
 role Hook::Trigger[COA]
 {
-    multi method is-match(
+    method is-match(
         Coa:D $coa,
         Entry:D $entry,
         Hodl:D $hodl,
@@ -64,7 +68,7 @@ role Hook::Trigger[COA]
 
 role Hook::Trigger[HODL]
 {
-    multi method is-match(
+    method is-match(
         Hodl:D $hodl,
         Entry:D $entry,
         *%opts (
@@ -78,7 +82,7 @@ role Hook::Trigger[HODL]
 
 role Hook::Trigger[HOOK]
 {
-    multi method is-match(
+    method is-match(
         Str:D $enter-leave,
         Str:D $class-name,
         Str:D $routine-name,

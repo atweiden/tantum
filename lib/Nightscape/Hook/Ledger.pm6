@@ -1,5 +1,8 @@
 use v6;
-use Nightscape::Dx;
+use Nightscape::Dx::Coa;
+use Nightscape::Dx::Entry;
+use Nightscape::Dx::Hodl;
+use Nightscape::Dx::Ledger;
 use Nightscape::Hook;
 use Nightscape::Types;
 use Nightscape::Utils;
@@ -36,7 +39,11 @@ multi method apply(
     | (
         Ledger:D $ledger,
         Coa:D $c,
-        Hodl:D $h
+        Hodl:D $h,
+        *% (
+            Hook:U :@applied,
+            Ledgerʹ:D :@carry
+        )
     )
     --> Ledgerʹ:D
 )
@@ -51,24 +58,12 @@ multi method apply(
     my Ledgerʹ $ledgerʹ .= new(:$ledger, :@entryʹ, :$coa, :$hodl);
 }
 
-# do nothing if passed a C<Ledgerʹ>
-multi method apply(
-    | (
-        Ledgerʹ:D $mʹ
-    )
-    --> Ledgerʹ:D
-)
-{
-    my Ledgerʹ:D $ledgerʹ = $mʹ;
-}
-
 multi sub apply(
     Entry:D @ (Entry:D $entry, *@tail),
     Coa:D $c,
     Hodl:D $h,
     Entryʹ:D :carry(@c)
-    # XXX type too complex to form :D constraint
-    --> Array[Entryʹ]
+    --> Array[Entryʹ:D]
 )
 {
     my Entry:D @entry = |@tail;
@@ -84,8 +79,7 @@ multi sub apply(
     Coa:D $,
     Hodl:D $,
     Entryʹ:D :@carry
-    # XXX type too complex to form :D constraint
-    --> Array[Entryʹ]
+    --> Array[Entryʹ:D]
 )
 {
     my Entryʹ:D @entryʹ = @carry;
@@ -94,7 +88,11 @@ multi sub apply(
 method is-match(
     Ledger:D $ledger,
     Coa:D $coa,
-    Hodl:D $hodl
+    Hodl:D $hodl,
+    *% (
+        Hook:U :@applied,
+        Ledgerʹ:D :@carry
+    )
     --> Bool:D
 )
 {
