@@ -5,7 +5,8 @@ unit class Coa;
 
 # defaults to one account per C<Silo>
 has Account:D %.account{Silo:D} =
-    Silo::.keys.hyper.map({ ::($_) }) Z=> Account.new xx Silo::.keys.elems;
+    Silo::.keys.hyper.map(-> Str:D $key { ::($key) }) Z=>
+        Account.new xx Silo::.keys.elems;
 
 method clone(::?CLASS:D: --> Coa:D)
 {

@@ -48,7 +48,7 @@ multi method apply(
 
 multi sub apply(
     Hodl:D $h,
-    Entry:D $entry where { has-aux-asset($_) }
+    Entry:D $entry where { .&has-aux-asset }
     --> Hodl:D
 )
 {*}
