@@ -1,7 +1,7 @@
 use v6;
 use Nightscape::Config::Utils;
 use TXN::Parser::Types;
-use X::Nightscape;
+use X::Nightscape::Config;
 unit class Config::Account;
 
 # class attributes {{{

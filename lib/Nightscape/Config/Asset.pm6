@@ -6,7 +6,7 @@ use Nightscape::Config::Utils;
 use Nightscape::Types;
 use TXN::Parser::Grammar;
 use TXN::Parser::Types;
-use X::Nightscape;
+use X::Nightscape::Config;
 unit class Config::Asset;
 
 # class attributes {{{

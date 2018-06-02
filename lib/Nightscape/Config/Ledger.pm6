@@ -7,7 +7,7 @@ use TXN::Parser::ParseTree;
 use TXN::Parser::Types;
 use TXN::Remarshal;
 use TXN;
-use X::Nightscape;
+use X::Nightscape::Config;
 
 # p6doc {{{
 
