@@ -14,6 +14,7 @@ use Nightscape::Hook::Response;
 use Nightscape::Hook;
 use Nightscape::Types;
 use TXN::Parser::ParseTree;
+use X::Nightscape::Registry;
 unit class Registry;
 
 has Hook:D @!hook =
@@ -99,7 +100,7 @@ multi sub send-to-hooks(
     --> Hook::Response[POSTING]
 )
 {
-    my Entry::Posting:D $postingʹ = $hook.apply(|@arg, |%opts);
+    my Entry::Postingʹ:D $postingʹ = $hook.apply(|@arg, |%opts);
     my Hook:U @applied = |@a, $hook.WHAT;
     my Entry::Postingʹ:D @carry = |@c, $postingʹ;
     my Hook::Response[POSTING] $response =
@@ -119,6 +120,20 @@ multi sub send-to-hooks(
 {
     my Hash[Entry::Postingʹ:D,Hook:U] @made = @applied Z=> @carry;
     my Hook::Response[POSTING] $response .= new(:@made);
+}
+
+multi sub send-to-hooks(
+    Hook[POSTING] $,
+    Hook[POSTING] @,
+    @ (Entry::Posting:D $, Entry::Header:D $),
+    *% (
+        Hook:U :applied(@),
+        Entry::Postingʹ:D :carry(@)
+    )
+    --> Nil
+)
+{
+    die(X::Nightscape::Registry::NoHookApplied.new(POSTING));
 }
 
 # --- end POSTING }}}
@@ -172,6 +187,20 @@ multi sub send-to-hooks(
     my Hook::Response[ENTRY] $response .= new(:@made);
 }
 
+multi sub send-to-hooks(
+    Hook[ENTRY] $,
+    Hook[ENTRY] @,
+    @ (Entry:D $, Coa:D $, Hodl:D $),
+    *% (
+        Hook:U :applied(@),
+        Entryʹ:D :carry(@)
+    )
+    --> Nil
+)
+{
+    die(X::Nightscape::Registry::NoHookApplied.new(ENTRY));
+}
+
 # --- end ENTRY }}}
 # --- LEDGER {{{
 
@@ -221,6 +250,20 @@ multi sub send-to-hooks(
 {
     my Hash[Ledgerʹ:D,Hook:U] @made = @applied Z=> @carry;
     my Hook::Response[LEDGER] $response .= new(:@made);
+}
+
+multi sub send-to-hooks(
+    Hook[LEDGER] $,
+    Hook[LEDGER] @,
+    @ (Ledger:D $, Coa:D $, Hodl:D $),
+    *% (
+        Hook:U :applied(@),
+        Ledgerʹ:D :carry(@)
+    )
+    --> Nil
+)
+{
+    die(X::Nightscape::Registry::NoHookApplied.new(LEDGER));
 }
 
 # --- end LEDGER }}}
@@ -274,6 +317,20 @@ multi sub send-to-hooks(
     my Hook::Response[COA] $response .= new(:@made);
 }
 
+multi sub send-to-hooks(
+    Hook[COA] $,
+    Hook[COA] @,
+    @ (Coa:D $, Entry:D $, Hodl:D $),
+    *% (
+        Hook:U :applied(@),
+        Coa:D :carry(@)
+    )
+    --> Nil
+)
+{
+    die(X::Nightscape::Registry::NoHookApplied.new(COA));
+}
+
 # --- end COA }}}
 # --- HODL {{{
 
@@ -323,6 +380,20 @@ multi sub send-to-hooks(
 {
     my Hash[Hodl:D,Hook:U] @made = @applied Z=> @carry;
     my Hook::Response[HODL] $response .= new(:@made);
+}
+
+multi sub send-to-hooks(
+    Hook[HODL] $,
+    Hook[HODL] @,
+    @ (Hodl:D $, Entry:D $),
+    *% (
+        Hook:U :applied(@),
+        Hodl:D :carry(@)
+    )
+    --> Nil
+)
+{
+    die(X::Nightscape::Registry::NoHookApplied.new(HODL));
 }
 
 # --- end HODL }}}
@@ -377,7 +448,7 @@ multi sub send-to-hooks(
         Str:D $,
         Capture:D $
     ),
-    *%opts (
+    *% (
         Hook:U :@applied! where .so
     )
     --> Hook::Response[HOOK]
@@ -385,6 +456,24 @@ multi sub send-to-hooks(
 {
     my Hook:U @made = @applied;
     my Hook::Response[HOOK] $response .= new(:@made);
+}
+
+multi sub send-to-hooks(
+    Hook[HOOK] $,
+    Hook[HOOK] @,
+    @ (
+        Str:D $,
+        Str:D $,
+        Str:D $,
+        Capture:D $
+    ),
+    *% (
+        Hook:U :applied(@)
+    )
+    --> Nil
+)
+{
+    die(X::Nightscape::Registry::NoHookApplied.new(HOOK));
 }
 
 # --- end HOOK }}}
