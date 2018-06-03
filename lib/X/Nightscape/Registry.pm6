@@ -7,10 +7,15 @@ class X::Nightscape::Registry::NoHookApplied is Exception
 {
     has HookType:D $.type is required;
 
+    method new(HookType:D $type --> X::Nightscape::Registry::NoHookApplied:D)
+    {
+        self.bless(:$type);
+    }
+
     method message(::?CLASS:D: --> Str:D)
     {
         my Str:D $message =
-            sprintf(Q{Sorry, no %s hook applied/carried.}, $.type);
+            sprintf(Q{Sorry, no %s hook applied/carried}, $.type);
     }
 }
 
