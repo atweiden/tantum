@@ -19,7 +19,7 @@ Double-entry accounting system
 To run the tests:
 
 ```
-$ git clone https://github.com/atweiden/txn-parser && cd txn-parser
+$ git clone https://github.com/atweiden/tantum && cd tantum
 $ peru --file=.peru.yml --sync-dir="$PWD" sync
 $ PERL6LIB=lib prove -r -e perl6
 ```
