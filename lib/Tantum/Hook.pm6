@@ -189,7 +189,7 @@ method priority(--> Int:D)
 
 # method perl {{{
 
-method perl(--> Str:D)
+multi method perl(::?CLASS:D: --> Str:D)
 {
     my Str:D $perl =
         sprintf(
@@ -197,6 +197,11 @@ method perl(--> Str:D)
             perl('type', T),
             perl('attr', $.name, $.description, $.priority, @.dependency)
         );
+}
+
+multi method perl(::?CLASS:U: --> Str:D)
+{
+    my Str:D $perl = sprintf(Q{%s}, perl('type', T));
 }
 
 multi sub perl(
