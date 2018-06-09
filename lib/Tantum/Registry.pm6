@@ -61,7 +61,7 @@ method query-hooks(::?CLASS:D: HookType $type --> Array[Hook[$type]])
 
 method send-to-hooks(
     ::?CLASS:D:
-    HookType $type,
+    HookType:D $type,
     @arg
     --> Hook::Response[$type]
 )
