@@ -8,7 +8,7 @@ constant $PROGRAM = 'Tantum';
 constant $VERSION = v0.1.0;
 
 has Config:D $.config is required;
-has Registry:D $.registry = Registry.new;
+has Registry:D $.registry is required;
 
 # submethod BUILD {{{
 
@@ -33,6 +33,7 @@ submethod BUILD(
 )
 {
     $!config = Config.new(|%setup-opts);
+    $!registry = Registry.new;
 }
 
 # end submethod BUILD }}}
