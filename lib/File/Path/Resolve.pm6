@@ -25,7 +25,7 @@ Rakudo considers paths starting with a C<~> to be relative paths:
 
 This method expands the leading C<~> to C<$*HOME>. For now, this is only
 done here in cases where the leading C<~> is followed by a C</> for C<~/>.
-This is done out of convenience for Nightscape, but a more sophisticated
+This is done out of convenience for Tantum, but a more sophisticated
 multi dispatch could be used to widen the applicability of this method.
 
 =head2 C<relative($file, $file-base)>

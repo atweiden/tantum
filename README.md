@@ -1,4 +1,4 @@
-# Nightscape
+# Tantum
 
 Double-entry accounting system
 

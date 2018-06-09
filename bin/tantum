@@ -1,0 +1,260 @@
+#!/usr/bin/env perl6
+
+
+
+
+use v6;
+use Tantum;
+
+
+
+
+# -----------------------------------------------------------------------------
+# help
+# -----------------------------------------------------------------------------
+
+multi sub MAIN('help', Str $command? --> Nil)
+{
+    USAGE($command);
+}
+
+
+
+
+# -----------------------------------------------------------------------------
+# main
+# -----------------------------------------------------------------------------
+
+multi sub MAIN(
+    'clean',
+    *%setup-opts (
+        Str :app-dir($),
+        Str :app-file($),
+        Str :log-dir($),
+        Str :pkg-dir($),
+        Str :price-dir($),
+        Str :scene-dir($),
+        Str :scene-file($)
+    ),
+    *@ledger
+    --> Nil
+)
+{
+    Tantum.new(|%setup-opts).clean(|@ledger);
+}
+
+multi sub MAIN(
+    'reup',
+    Bool :$no-sync,
+    Int :L(:$date-local-offset),
+    Str :I(:$include-lib),
+    *%setup-opts (
+        Str :app-dir($),
+        Str :app-file($),
+        Str :log-dir($),
+        Str :pkg-dir($),
+        Str :price-dir($),
+        Str :scene-dir($),
+        Str :scene-file($)
+    ),
+    *@ledger
+    --> Nil
+)
+{
+    my %opts;
+    %opts<date-local-offset> = $date-local-offset if $date-local-offset.defined;
+    %opts<include-lib> = $include-lib if $include-lib;
+    %opts<no-sync> = $no-sync if $no-sync;
+    Tantum.new(|%setup-opts).reup(|%opts, |@ledger);
+}
+
+multi sub MAIN(
+    'serve',
+    *%setup-opts (
+        Str :app-dir($),
+        Str :app-file($),
+        Str :log-dir($),
+        Str :pkg-dir($),
+        Str :price-dir($),
+        Str :scene-dir($),
+        Str :scene-file($)
+    ),
+    *@ledger
+    --> Nil
+)
+{
+    Tantum.new(|%setup-opts).serve(|@ledger);
+}
+
+multi sub MAIN(
+    'show',
+    *%setup-opts (
+        Str :app-dir($),
+        Str :app-file($),
+        Str :log-dir($),
+        Str :pkg-dir($),
+        Str :price-dir($),
+        Str :scene-dir($),
+        Str :scene-file($)
+    ),
+    *@ledger
+    --> Nil
+)
+{
+    Tantum.new(|%setup-opts).show(|@ledger);
+}
+
+multi sub MAIN(
+    'sync',
+    Int :L(:$date-local-offset),
+    Str :I(:$include-lib),
+    *%setup-opts (
+        Str :app-dir($),
+        Str :app-file($),
+        Str :log-dir($),
+        Str :pkg-dir($),
+        Str :price-dir($),
+        Str :scene-dir($),
+        Str :scene-file($)
+    ),
+    *@ledger
+    --> Nil
+)
+{
+    my %opts;
+    %opts<date-local-offset> = $date-local-offset if $date-local-offset.defined;
+    %opts<include-lib> = $include-lib if $include-lib;
+    Tantum.new(|%setup-opts).sync(|%opts, |@ledger);
+}
+
+multi sub MAIN($?, *% --> Nil)
+{
+    USAGE();
+}
+
+
+
+
+# -----------------------------------------------------------------------------
+# usage
+# -----------------------------------------------------------------------------
+
+multi sub USAGE('clean' --> Nil)
+{
+    constant $HELP = q:to/EOF/.trim;
+    Usage:
+      tantum clean [<ledger> <ledger>...]
+
+    Removes scene. To remove specific ledgers instead of everything,
+    pass their names as positional arguments.
+    EOF
+    say($HELP);
+}
+
+multi sub USAGE('reup' --> Nil)
+{
+    constant $HELP = q:to/EOF/.trim;
+    Usage:
+      tantum [--no-sync]
+             [--date-local-offset=<offset>]
+             [--include-lib=<dir>]
+             reup [<ledger> <ledger>...]
+
+    Updates each accounting ledger in your scene config file with the
+    latest revision information from its source. For git and hg ledgers,
+    this is the `rev` field, and for a curl ledger it's the `sha256`
+    field. Tantum will either add the field for you, or update it if it's
+    already there. To update specific ledgers instead of everything,
+    pass their names as positional arguments. Tantum does a sync after
+    the reup is done, though you can prevent that with --no-sync.
+
+    Options:
+      --no-sync
+        skip the sync at the end
+      -L, --date-local-offset=<offset>
+        the local offset for dates without one
+      -I, --include-lib=<dir>
+        the include directory
+    EOF
+    say($HELP);
+}
+
+multi sub USAGE('serve' --> Nil)
+{
+    constant $HELP = q:to/EOF/.trim;
+    Usage:
+      tantum serve [<ledger> <ledger>...]
+
+    Serves scene. To serve specific ledgers instead of everything,
+    pass their names as positional arguments.
+    EOF
+    say($HELP);
+}
+
+multi sub USAGE('show' --> Nil)
+{
+    constant $HELP = q:to/EOF/.trim;
+    Usage:
+      tantum show [<ledger> <ledger>...]
+
+    Shows scene. To show specific ledgers instead of everything, pass
+    their names as positional arguments.
+    EOF
+    say($HELP);
+}
+
+multi sub USAGE('sync' --> Nil)
+{
+    constant $HELP = q:to/EOF/.trim;
+    Usage:
+      tantum [--date-local-offset=<offset>]
+             [--include-lib=<dir>]
+             sync [<ledger> <ledger>...]
+
+    Fetches accounting ledger sources and builds scene from imported
+    entries. To sync specific ledgers instead of everything, pass their
+    names as positional arguments.
+
+    Options:
+      -L, --date-local-offset=<offset>
+        the local offset for dates without one
+      -I, --include-lib=<dir>
+        the include directory
+    EOF
+    say($HELP);
+}
+
+multi sub USAGE($? --> Nil)
+{
+    constant $HELP = q:to/EOF/.trim;
+    Usage:
+      tantum [-h] [--app-file=<file>] [--scene-file=<file>] <command>
+
+    Commands:
+      sync         fetch accounting ledger sources and build scene
+      reup         update revision info for your accounting ledger sources
+      clean        delete scene
+      show         show scene
+      serve        serve scene
+      help         show help for subcommands
+
+    Options:
+      --app-dir=<dir>
+        the application data directory
+      --app-file=<dir>
+        the application configuration file
+      --log-dir=<dir>
+        the log directory
+      --pkg-dir=<dir>
+        the TXN pkg lookup directory
+      --price-dir=<dir>
+        the asset price directory
+      --scene-dir=<dir>
+        the scene directory
+      --scene-file=<file>
+        the scene configuration file
+    EOF
+    say($HELP);
+}
+
+# vim: set filetype=perl6 foldmethod=marker foldlevel=0:
