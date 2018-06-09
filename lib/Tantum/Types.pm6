@@ -31,7 +31,7 @@ Classifying assets based on their physical existence.
 =begin item
 B<Usage>
 
-Classifying assets based on their business operation usage.
+Classifying assets based on their operational usage.
 =end item
 =end paragraph
 
@@ -56,7 +56,7 @@ are classified as either current assets (C<CURRENT>) or fixed assets
 =begin paragraph
 Current assets are assets that can be easily converted into cash and
 cash equivalents (typically within a year). Current assets are also
-termed liquid assets and examples of such are:
+termed I<liquid assets> and examples of such are:
 
 =item Cash
 =item Cash equivalents
@@ -70,9 +70,9 @@ termed liquid assets and examples of such are:
 
 =begin paragraph
 Non-current assets are assets that cannot be easily and readily converted
-into cash and cash equivalents. Non-current assets are also termed fixed
-assets, long-term assets, or hard assets. Examples of non-current or
-fixed assets include:
+into cash and cash equivalents. Non-current assets are also termed
+I<fixed assets>, I<long-term assets>, or I<hard assets>. Examples of
+non-current or fixed assets include:
 
 =item Land
 =item Building
@@ -104,8 +104,8 @@ classified as either tangible assets (C<TANGIBLE>) or intangible assets
 =head3 C<TANGIBLE>
 
 =begin paragraph
-Tangible assets are assets that have a physical existence (we can touch,
-feel, and see). Examples of tangible assets include:
+Tangible assets are assets that have a physical existence we can touch,
+feel, and see. Examples of tangible assets include:
 
 =item Land
 =item Building
@@ -173,7 +173,7 @@ Examples of operating assets include:
 
 =begin paragraph
 Non-operating assets are assets that are not required for daily business
-operations but can still generate revenue. Examples of non-operating
+operations. They can still generate revenue. Examples of non-operating
 assets include:
 
 =item Short-term investments
@@ -210,9 +210,9 @@ in the footnotes to the balance sheet.
 
 =begin paragraph
 This account includes the balance of all sales revenue still on credit,
-net of any allowances for doubtful accounts (which generates a bad
-debt expense). As companies recover accounts receivables, this account
-decreases and cash increases by the same amount.
+net of any allowances for doubtful accounts (which generates a bad debt
+expense). As companies recover receivables, Accounts Receivable decreases
+and cash increases by the same amount.
 =end paragraph
 
 =head3 Inventory (C<INVENTORY>)
@@ -225,20 +225,20 @@ of goods, generally under cost of goods sold in the income statement.
 
 =head2 Non-Current Assets
 
-=head3 Plant, Property and Equipment (C<PLANT-PROPERTY-EQUIPMENT>)
+=head3 Property, Plant and Equipment (C<PROPERTY-PLANT-EQUIPMENT>)
 
 =begin paragraph
 Property, Plant and Equipment (also known as PP&E) captures the
-company’s tangible fixed assets. This line item is noted net
+company's tangible fixed assets. This line item is noted net
 of depreciation. Some companies will class out their PP&E by the
-different types of assets, such as Land, Building, and various types of
-Equipment. All PP&E is depreciable except for Land.
+different types of assets, such as Land, Buildings, and various types
+of Equipment. All PP&E is depreciable except for Land.
 =end paragraph
 
 =head3 Intangible Assets (C<INTANGIBLE>)
 
 =begin paragraph
-This line item will include all of the companies intangible fixed assets,
+This line item will include all of the company's intangible fixed assets,
 which may or may not be identifiable. Identifiable intangible assets
 include patents, licenses, and secret formulas. Unidentifiable intangible
 assets include brand and goodwill.
@@ -268,7 +268,7 @@ enum AssetType is export <
     INVENTORY
     INVESTMENT
     OTHER
-    PLANT-PROPERTY-EQUIPMENT
+    PROPERTY-PLANT-EQUIPMENT
     RECEIVABLE
 >;
 
