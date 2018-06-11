@@ -55,6 +55,9 @@ my role ToHash { method hash() {...} }
 
 class Config::Ledger
 {
+    proto method new(|)
+    {*}
+
     multi method new(
         *%opts (
             Str:D :code($)! where .so,

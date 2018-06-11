@@ -35,6 +35,9 @@ submethod BUILD(
 # end submethod BUILD }}}
 # method new {{{
 
+proto method new(|)
+{*}
+
 multi method new(
     *%opts (
         Str:D :silo($)! where .so,

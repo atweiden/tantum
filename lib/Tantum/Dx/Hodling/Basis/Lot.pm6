@@ -82,6 +82,9 @@ class Hodling::Basis::Lot
     has Price:D $.price is required;
     has Quantity:D $.quantity is required;
 
+    proto method new(|)
+    {*}
+
     multi method new(
         AssetCode:D :$asset-code!,
         *%opts (
