@@ -2,9 +2,6 @@ use v6;
 use Tantum::Hook::Action;
 use Tantum::Hook::Trigger;
 use Tantum::Types;
-unit role Hook[HookType ::T];
-also does Hook::Action[T];
-also does Hook::Trigger[T];
 
 # p6doc {{{
 
@@ -171,96 +168,155 @@ and which returns:
 
 # end p6doc }}}
 
-# for declaring C<Hook> types needed in registry
-method dependency(--> Array[Hook:U])
-{...}
+my role Common[HookType:D $type] {...}
 
-# description of hook
-method description(--> Str:D)
-{...}
-
-# name of hook
-method name(--> Str:D)
-{...}
-
-# for ordering multiple matching hooks
-method priority(--> Int:D)
-{...}
-
-# method perl {{{
-
-multi method perl(::?CLASS:D: --> Str:D)
+role Hook[POSTING]
 {
-    my Str:D $perl =
-        sprintf(
-            Q{%s.new(%s)},
-            perl('type', T),
-            perl('attr', $.name, $.description, $.priority, @.dependency)
-        );
+    also does Hook::Action[POSTING];
+    also does Hook::Trigger[POSTING];
+    also does Common[POSTING];
+    has HookType:D $!type = POSTING;
+    method type(::?CLASS:D: --> HookType:D) { my HookType:D $type = $!type }
 }
 
-multi method perl(::?CLASS:U: --> Str:D)
+role Hook[ENTRY]
 {
-    my Str:D $perl = sprintf(Q{%s}, perl('type', T));
+    also does Hook::Action[ENTRY];
+    also does Hook::Trigger[ENTRY];
+    also does Common[ENTRY];
+    has HookType:D $!type = ENTRY;
+    method type(::?CLASS:D: --> HookType:D) { my HookType:D $type = $!type }
 }
 
-multi sub perl(
-    'type',
-    HookType $type
-    --> Str:D
-)
+role Hook[LEDGER]
 {
-    my Str:D $perl = sprintf(Q{Hook[%s]}, $type);
+    also does Hook::Action[LEDGER];
+    also does Hook::Trigger[LEDGER];
+    also does Common[LEDGER];
+    has HookType:D $!type = LEDGER;
+    method type(::?CLASS:D: --> HookType:D) { my HookType:D $type = $!type }
 }
 
-multi sub perl(
-    'attr',
-    Str:D $name,
-    Str:D $description,
-    Int:D $priority,
-    Hook:U @dependency
-    --> Str:D
-)
+role Hook[COA]
 {
-    my Str:D $perl =
-        sprintf(
-            Q{:name(%s), :description(%s), :priority(%s), :dependency(%s)},
-            $name.perl,
-            $description.perl,
-            $priority.perl,
-            perl(@dependency)
-        );
+    also does Hook::Action[COA];
+    also does Hook::Trigger[COA];
+    also does Common[COA];
+    has HookType:D $!type = COA;
+    method type(::?CLASS:D: --> HookType:D) { my HookType:D $type = $!type }
 }
 
-multi sub perl(
-    Hook:U @ (Hook:U $dependency, *@tail),
-    Str:D :carry(@c)
-    --> Str:D
-)
+role Hook[HODL]
 {
-    my Hook:U @dependency = |@tail;
-    my Str:D $s = perl($dependency);
-    my Str:D @carry = |@c, $s;
-    my Str:D $perl = perl(@dependency, :@carry);
+    also does Hook::Action[HODL];
+    also does Hook::Trigger[HODL];
+    also does Common[HODL];
+    has HookType:D $!type = HODL;
+    method type(::?CLASS:D: --> HookType:D) { my HookType:D $type = $!type }
 }
 
-multi sub perl(
-    Hook:U @,
-    Str:D :@carry
-    --> Array[Str:D]
-)
+role Hook[HOOK]
 {
-    my Str:D $perl = @carry.join(', ');
+    also does Hook::Action[HOOK];
+    also does Hook::Trigger[HOOK];
+    also does Common[HOOK];
+    has HookType:D $!type = HOOK;
+    method type(::?CLASS:D: --> HookType:D) { my HookType:D $type = $!type }
 }
 
-multi sub perl(
-    Hook:U $dependency
-    --> Str:D
-)
+my role Common[HookType:D $type]
 {
-    my Str:D $perl = $dependency.perl.subst(/':U'$/, '');
-}
+    # for declaring C<Hook> types needed in registry
+    method dependency(--> Array[Hook])
+    {...}
 
-# end method perl }}}
+    # description of hook
+    method description(--> Str:D)
+    {...}
+
+    # name of hook
+    method name(--> Str:D)
+    {...}
+
+    # for ordering multiple matching hooks
+    method priority(--> Int:D)
+    {...}
+
+    # method perl {{{
+
+    multi method perl(::?CLASS:D: --> Str:D)
+    {
+        my Str:D $perl =
+            sprintf(
+                Q{%s.new(%s)},
+                perl('type', $type),
+                perl('attr', $.name, $.description, $.priority, @.dependency)
+            );
+    }
+
+    multi method perl(::?CLASS:U: --> Str:D)
+    {
+        my Str:D $perl = sprintf(Q{%s}, perl('type', $type));
+    }
+
+    multi sub perl(
+        'type',
+        HookType:D $t
+        --> Str:D
+    )
+    {
+        my Str:D $perl = sprintf(Q{Hook[%s]}, $t);
+    }
+
+    multi sub perl(
+        'attr',
+        Str:D $name,
+        Str:D $description,
+        Int:D $priority,
+        Hook:U @dependency
+        --> Str:D
+    )
+    {
+        my Str:D $perl =
+            sprintf(
+                Q{:name(%s), :description(%s), :priority(%s), :dependency(%s)},
+                $name.perl,
+                $description.perl,
+                $priority.perl,
+                perl(@dependency)
+            );
+    }
+
+    multi sub perl(
+        Hook:U @ (Hook:U $dependency, *@tail),
+        Str:D :carry(@c)
+        --> Str:D
+    )
+    {
+        my Hook:U @dependency = |@tail;
+        my Str:D $s = perl($dependency);
+        my Str:D @carry = |@c, $s;
+        my Str:D $perl = perl(@dependency, :@carry);
+    }
+
+    multi sub perl(
+        Hook:U @,
+        Str:D :@carry
+        --> Array[Str:D]
+    )
+    {
+        my Str:D $perl = @carry.join(', ');
+    }
+
+    multi sub perl(
+        Hook:U $dependency
+        --> Str:D
+    )
+    {
+        my Str:D $perl = $dependency.perl.subst(/':U'$/, '');
+    }
+
+    # end method perl }}}
+}
 
 # vim: set filetype=perl6 foldmethod=marker foldlevel=0:

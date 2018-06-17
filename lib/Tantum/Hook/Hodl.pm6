@@ -56,7 +56,21 @@ multi sub apply(
 sub has-aux-asset(Entry:D $entry --> Bool:D)
 {*}
 
-method is-match(
+multi method is-match(
+    Hodl:D $hodl,
+    Entry:D $entry,
+    *% (
+        Hook:U :@applied! where .so,
+        Hodl:D :@carry
+    )
+    --> Bool:D
+)
+{
+    # don't match if hook has matched/applied previously
+    my Bool:D $is-match = False;
+}
+
+multi method is-match(
     Hodl:D $hodl,
     Entry:D $entry,
     *% (

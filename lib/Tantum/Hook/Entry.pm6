@@ -81,7 +81,22 @@ multi sub apply(
     my Entry::Posting:D @posting = @carry;
 }
 
-method is-match(
+multi method is-match(
+    Entry:D $entry,
+    Coa:D $coa,
+    Hodl:D $hodl,
+    *% (
+        Hook:U :@applied! where .so,
+        Entryʹ:D :@carry
+    )
+    --> Bool:D
+)
+{
+    # don't match if hook has matched/applied previously
+    my Bool:D $is-match = False;
+}
+
+multi method is-match(
     Entry:D $entry,
     Coa:D $coa,
     Hodl:D $hodl,

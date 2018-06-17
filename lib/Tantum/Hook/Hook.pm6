@@ -67,7 +67,24 @@ sub apply(
         sprintf(Q{%s.%s: %s}, $class-name, $routine-name, $capture.perl);
 }
 
-method is-match(
+multi method is-match(
+    Str:D $enter-leave,
+    Str:D $class-name,
+    Str:D $routine-name,
+    Capture:D $capture,
+    *% (Hook:U :@applied! where .so)
+    --> Bool:D
+)
+{
+    # don't match if hook has matched/applied previously
+    my Bool:D $is-match = False;
+}
+
+multi method is-match(
+    Str:D $enter-leave,
+    Str:D $class-name,
+    Str:D $routine-name,
+    Capture:D $capture,
     *% (Hook:U :@applied)
     --> Bool:D
 )

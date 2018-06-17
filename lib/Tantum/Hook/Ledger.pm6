@@ -85,7 +85,22 @@ multi sub apply(
     my Entryʹ:D @entryʹ = @carry;
 }
 
-method is-match(
+multi method is-match(
+    Ledger:D $ledger,
+    Coa:D $coa,
+    Hodl:D $hodl,
+    *% (
+        Hook:U :@applied! where .so,
+        Ledgerʹ:D :@carry
+    )
+    --> Bool:D
+)
+{
+    # don't match if hook has matched/applied previously
+    my Bool:D $is-match = False;
+}
+
+multi method is-match(
     Ledger:D $ledger,
     Coa:D $coa,
     Hodl:D $hodl,

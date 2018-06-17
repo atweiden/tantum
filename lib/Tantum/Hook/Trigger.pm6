@@ -9,7 +9,7 @@ use TXN::Parser::ParseTree;
 
 role Hook::Trigger[POSTING]
 {
-    method is-match(
+    multi method is-match(
         Entry::Posting:D $posting,
         Entry::Header:D $header,
         *%opts (
@@ -23,7 +23,7 @@ role Hook::Trigger[POSTING]
 
 role Hook::Trigger[ENTRY]
 {
-    method is-match(
+    multi method is-match(
         Entry:D $entry,
         Coa:D $coa,
         Hodl:D $hodl,
@@ -38,7 +38,7 @@ role Hook::Trigger[ENTRY]
 
 role Hook::Trigger[LEDGER]
 {
-    method is-match(
+    multi method is-match(
         Ledger:D $ledger,
         Coa:D $coa,
         Hodl:D $hodl,
@@ -53,7 +53,7 @@ role Hook::Trigger[LEDGER]
 
 role Hook::Trigger[COA]
 {
-    method is-match(
+    multi method is-match(
         Coa:D $coa,
         Entry:D $entry,
         Hodl:D $hodl,
@@ -68,7 +68,7 @@ role Hook::Trigger[COA]
 
 role Hook::Trigger[HODL]
 {
-    method is-match(
+    multi method is-match(
         Hodl:D $hodl,
         Entry:D $entry,
         *%opts (
@@ -82,7 +82,7 @@ role Hook::Trigger[HODL]
 
 role Hook::Trigger[HOOK]
 {
-    method is-match(
+    multi method is-match(
         Str:D $enter-leave,
         Str:D $class-name,
         Str:D $routine-name,

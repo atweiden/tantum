@@ -79,7 +79,21 @@ multi sub apply(
     $posting;
 }
 
-method is-match(
+multi method is-match(
+    Entry::Posting:D $posting,
+    Entry::Header:D $header,
+    *% (
+        Hook:U :@applied! where .so,
+        Entry::Postingʹ:D :@carry
+    )
+    --> Bool:D
+)
+{
+    # don't match if hook has matched/applied previously
+    my Bool:D $is-match = False;
+}
+
+multi method is-match(
     Entry::Posting:D $posting,
     Entry::Header:D $header,
     *% (

@@ -49,7 +49,22 @@ multi method apply(
     my Coa:D $coa = $c.clone;
 }
 
-method is-match(
+multi method is-match(
+    Coa:D $coa,
+    Entry:D $entry,
+    Hodl:D $hodl,
+    *% (
+        Hook:U :@applied! where .so,
+        Coa:D :@carry
+    )
+    --> Bool:D
+)
+{
+    # don't match if hook has matched/applied previously
+    my Bool:D $is-match = False;
+}
+
+multi method is-match(
     Coa:D $coa,
     Entry:D $entry,
     Hodl:D $hodl,

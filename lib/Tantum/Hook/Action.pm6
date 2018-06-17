@@ -117,7 +117,7 @@ role Hook::Action[HODL]
 role Hook::Action[HOOK]
 {
     # omit C<also does Introspection> to avoid infinite loops
-    method apply(
+    multi method apply(
         | (
             Str:D $enter-leave,
             Str:D $class-name,
