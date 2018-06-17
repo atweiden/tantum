@@ -227,7 +227,7 @@ role Hook[HOOK]
 my role Common[HookType:D $type]
 {
     # for declaring C<Hook> types needed in registry
-    method dependency(--> Array[Hook])
+    method dependency(--> Array[Hook:U])
     {...}
 
     # description of hook
