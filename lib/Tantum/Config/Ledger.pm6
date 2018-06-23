@@ -181,7 +181,7 @@ class Config::Ledger::FromFile
         --> Hash:D
     )
     {
-        exists-readable-file($.file)
+        File::Presence.exists-readable-file($.file)
             or die(X::Tantum::Config::Ledger::FromFile::DNERF.new);
         my VarNameBare:D $pkgname = $.code;
         my Version $pkgver .= new('0.0.1');
@@ -262,7 +262,7 @@ class Config::Ledger::FromPkg
         my Str:D $txn-pkg-file =
             TXN.gen-txn-pkg-file($pkgname, $pkgver, $pkgrel);
         my AbsolutePath:D $tarball = sprintf(Q{%s/%s}, $pkg-dir, $txn-pkg-file);
-        exists-readable-file($tarball)
+        File::Presence.exists-readable-file($tarball)
             or die(X::Tantum::Config::Ledger::FromPkg::DNERF.new);
         mkdir($build-root) or do {
             my Str:D $text =
@@ -283,7 +283,7 @@ class Config::Ledger::FromPkg
     {
         # ensure txn.json exists in ledger pkg tarball then slurp
         my AbsolutePath:D $txn-json-path = sprintf(Q{%s/txn.json}, $build-root);
-        exists-readable-file($txn-json-path)
+        File::Presence.exists-readable-file($txn-json-path)
             or die(X::Tantum::Config::Ledger::FromPkg::TXNJSON::DNERF.new);
         my Str:D $txn-json = slurp($txn-json-path);
     }
@@ -298,7 +298,7 @@ class Config::Ledger::FromPkg
         # ensure .TXNINFO exists in ledger pkg tarball then slurp
         my AbsolutePath:D $txn-info-json-path =
             sprintf(Q{%s/.TXNINFO}, $build-root);
-        exists-readable-file($txn-info-json-path)
+        File::Presence.exists-readable-file($txn-info-json-path)
             or die(X::Tantum::Config::Ledger::FromPkg::TXNINFO::DNERF.new);
         my Str:D $txn-info-json = slurp($txn-info-json-path);
     }
