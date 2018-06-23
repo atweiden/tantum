@@ -4,7 +4,12 @@
     "version"     : "0.1.0",
     "author"      : "atweiden",
     "description" : "Double-entry accounting system",
-    "depends"     : ["Config::TOML", "File::Presence", "TXN"],
+    "depends"     : [
+        "Config::TOML",
+        "File::Path::Resolve",
+        "File::Presence",
+        "TXN"
+    ],
     "license"     : "Unlicense",
     "source-type" : "git",
     "source-url"  : "git://github.com/atweiden/tantum.git",
@@ -13,7 +18,6 @@
         "source"     : "https://github.com/atweiden/tantum"
     },
     "provides" : {
-        "File::Path::Resolve"    : "lib/File/Path/Resolve.pm6",
         "Tantum"                 : "lib/Tantum.pm6",
         "Tantum::Command::Clean" : "lib/Tantum/Command/Clean.pm6",
         "Tantum::Command::Reup"  : "lib/Tantum/Command/Reup.pm6",

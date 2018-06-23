@@ -9,6 +9,7 @@ Double-entry accounting system
 
 - Rakudo Perl6
 - [Config::TOML](https://github.com/atweiden/config-toml)
+- [File::Path::Resolve](https://github.com/atweiden/file-path-resolve)
 - [File::Presence](https://github.com/atweiden/file-presence)
 - [mktxn](https://github.com/atweiden/mktxn)
 
