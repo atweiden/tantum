@@ -40,17 +40,7 @@ C<Entry::Posting> is queued for handling, I<Posting> hooks will be
 filtered for relevancy and the actions inscribed in matching hooks
 executed.
 
-I<Posting> hooks must provide a C<method apply> which accepts as
-arguments:
-
-    Entry::Posting:D $posting,
-    Entry::Header:D $header,
-    Hook:U :@applied,
-    Entry::Postingʹ:D :@carry
-
-and which returns:
-
-    Hook::Response[POSTING] $response
+I<Posting> hooks must provide a C<method apply> and a C<method is-match>.
 =end item
 
 =begin item
@@ -60,17 +50,7 @@ I<Entry> hooks are scoped to C<Entry>s. Each time a new C<Entry> is
 queued for handling, I<Entry> hooks will be filtered for relevancy and
 the actions inscribed in matching hooks executed.
 
-I<Entry> hooks must provide a C<method apply> which accepts as arguments:
-
-    Entry:D $entry,
-    Coa:D $coa,
-    Hodl:D $hodl,
-    Hook:U :@applied,
-    Entryʹ:D :@carry
-
-and which returns:
-
-    Hook::Response[ENTRY] $response
+I<Entry> hooks must provide a C<method apply> and a C<method is-match>.
 =end item
 
 =begin item
@@ -80,17 +60,7 @@ I<Ledger> hooks are scoped to C<Ledger>s. Each time a new C<Ledger>
 is queued for handling, I<Ledger> hooks will be filtered for relevancy
 and the actions inscribed in matching hooks executed.
 
-I<Ledger> hooks must provide a C<method apply> which accepts as arguments:
-
-    Ledger:D $ledger,
-    Coa:D $coa,
-    Hodl:D $hodl,
-    Hook:U :@applied,
-    Ledgerʹ:D :@carry
-
-and which returns:
-
-    Hook::Response[LEDGER] $response
+I<Ledger> hooks must provide a C<method apply> and a C<method is-match>.
 =end item
 
 =head3 Category: Derivative
@@ -107,17 +77,7 @@ I<Coa> hooks are scoped to C<Coa>s, aka I<Chart of Accounts>. Each time a
 C<Coa> is queued for handling, I<Coa> hooks will be filtered for relevancy
 and the actions inscribed in matching hooks executed.
 
-I<Coa> hooks must provide a C<method apply> which accepts as arguments:
-
-    Coa:D $coa,
-    Entry:D $entry,
-    Hodl:D $hodl,
-    Hook:U :@applied,
-    Coa:D :@carry
-
-and which returns:
-
-    Hook::Response[COA] $response
+I<Coa> hooks must provide a C<method apply> and a C<method is-match>.
 =end item
 
 =begin item
@@ -127,16 +87,7 @@ I<Hodl> hooks are scoped to C<Hodl>s. Each time a C<Hodl> is queued for
 handling, I<Hodl> hooks will be filtered for relevancy and the actions
 inscribed in matching hooks executed.
 
-I<Hodl> hooks must provide a C<method apply> which accepts as arguments:
-
-    Hodl:D $hodl,
-    Entry:D $entry,
-    Hook:U :@applied,
-    Hodl:D :@carry
-
-and which returns:
-
-    Hook::Response[HODL] $response
+I<Hodl> hooks must provide a C<method apply> and a C<method is-match>.
 =end item
 
 =head2 Category: Meta
@@ -152,17 +103,7 @@ hooks executed.
 The primary impetus behind I<Hook> hooks is to log which hooks are firing
 and when. I<Hook> hooks might also be used to chain hooks together.
 
-I<Hook> hooks must provide a C<method apply> which accepts as arguments:
-
-    Str:D $enter-leave,
-    Str:D $class-name,
-    Str:D $routine-name,
-    Capture:D $capture,
-    Hook:U :@applied
-
-and which returns:
-
-    Hook::Response[HOOK] $response
+I<Hook> hooks must provide a C<method apply> and a C<method is-match>.
 =end item
 =end pod
 
