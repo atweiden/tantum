@@ -1,6 +1,5 @@
 use v6;
 use Tantum::Types;
-use TXN::Parser::ParseTree;
 
 role Hook::Trigger[POSTING]
 {
