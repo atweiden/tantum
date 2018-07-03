@@ -6,11 +6,11 @@ use Tantum::Dx::Hodl;
 use Tantum::Hook;
 use Tantum::Types;
 use TXN::Parser::ParseTree;
-unit class Hook::Entry;
+unit class Hook::Core::Entry;
 also does Hook[ENTRY];
 
 has Str:D $!name = 'Entry';
-has Str:D $!description = 'catch-all hook for ENTRY';
+has Str:D $!description = 'core hook for ENTRY';
 has Int:D $!priority = 0;
 has Hook:U @!dependency;
 

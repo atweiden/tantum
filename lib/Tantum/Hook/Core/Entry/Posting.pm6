@@ -2,11 +2,11 @@ use v6;
 use Tantum::Hook;
 use Tantum::Types;
 use TXN::Parser::ParseTree;
-unit class Hook::Entry::Posting;
+unit class Hook::Core::Entry::Posting;
 also does Hook[POSTING];
 
 has Str:D $!name = 'Entry::Posting';
-has Str:D $!description = 'catch-all hook for POSTING';
+has Str:D $!description = 'core hook for POSTING';
 has Int:D $!priority = 0;
 has Hook:U @!dependency;
 

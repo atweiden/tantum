@@ -1,11 +1,11 @@
 use v6;
 use Tantum::Hook;
 use Tantum::Types;
-unit class Hook::Hook;
+unit class Hook::Core::Hook;
 also does Hook[HOOK];
 
 has Str:D $!name = 'Hook';
-has Str:D $!description = 'catch-all hook for HOOK';
+has Str:D $!description = 'core hook for HOOK';
 has Int:D $!priority = 0;
 has Hook:U @!dependency;
 

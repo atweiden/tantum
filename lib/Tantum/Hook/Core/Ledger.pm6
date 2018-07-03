@@ -7,11 +7,11 @@ use Tantum::Hook;
 use Tantum::Types;
 use Tantum::Utils;
 use TXN::Parser::ParseTree;
-unit class Hook::Ledger;
+unit class Hook::Core::Ledger;
 also does Hook[LEDGER];
 
 has Str:D $!name = 'Ledger';
-has Str:D $!description = 'catch-all hook for LEDGER';
+has Str:D $!description = 'core hook for LEDGER';
 has Int:D $!priority = 0;
 has Hook:U @!dependency;
 

@@ -168,7 +168,8 @@ and which returns:
 
 # end p6doc }}}
 
-my role Common[HookType:D $type] {...}
+my role Common[HookType:D $type]
+{...}
 
 role Hook[POSTING]
 {

@@ -1,14 +1,13 @@
 use v6;
-use Tantum::Dx::Coa;
 use Tantum::Dx::Hodl;
 use Tantum::Hook;
 use Tantum::Types;
 use TXN::Parser::ParseTree;
-unit class Hook::Coa;
-also does Hook[COA];
+unit class Hook::Core::Hodl;
+also does Hook[HODL];
 
-has Str:D $!name = 'Coa';
-has Str:D $!description = 'catch-all hook for COA';
+has Str:D $!name = 'Hodl';
+has Str:D $!description = 'core hook for HODL';
 has Int:D $!priority = 0;
 has Hook:U @!dependency;
 
@@ -34,28 +33,35 @@ method priority(::?CLASS:D: --> Int:D)
 
 multi method apply(
     | (
-        Coa:D $c,
+        Hodl:D $h,
         Entry:D $entry,
-        Hodl:D $hodl,
         *% (
             Hook:U :@applied,
-            Coa:D :@carry
+            Hodl:D :@carry
         )
     )
-    --> Coa:D
+    --> Hodl:D
 )
 {
-    # clone new C<Coa> from old
-    my Coa:D $coa = $c.clone;
+    my Hodl:D $hodl = apply($h, $entry);
 }
 
+multi sub apply(
+    Hodl:D $h,
+    Entry:D $entry where { .&has-aux-asset }
+    --> Hodl:D
+)
+{*}
+
+sub has-aux-asset(Entry:D $entry --> Bool:D)
+{*}
+
 multi method is-match(
-    Coa:D $coa,
-    Entry:D $entry,
     Hodl:D $hodl,
+    Entry:D $entry,
     *% (
         Hook:U :@applied! where .so,
-        Coa:D :@carry
+        Hodl:D :@carry
     )
     --> Bool:D
 )
@@ -65,12 +71,11 @@ multi method is-match(
 }
 
 multi method is-match(
-    Coa:D $coa,
-    Entry:D $entry,
     Hodl:D $hodl,
+    Entry:D $entry,
     *% (
         Hook:U :@applied,
-        Coa:D :@carry
+        Hodl:D :@carry
     )
     --> Bool:D
 )

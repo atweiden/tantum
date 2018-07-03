@@ -4,12 +4,12 @@ use Tantum::Dx::Entry::Posting;
 use Tantum::Dx::Entry;
 use Tantum::Dx::Hodl;
 use Tantum::Dx::Ledger;
-use Tantum::Hook::Coa;
-use Tantum::Hook::Entry::Posting;
-use Tantum::Hook::Entry;
-use Tantum::Hook::Hodl;
-use Tantum::Hook::Hook;
-use Tantum::Hook::Ledger;
+use Tantum::Hook::Core::Coa;
+use Tantum::Hook::Core::Entry::Posting;
+use Tantum::Hook::Core::Entry;
+use Tantum::Hook::Core::Hodl;
+use Tantum::Hook::Core::Hook;
+use Tantum::Hook::Core::Ledger;
 use Tantum::Hook::Response;
 use Tantum::Hook;
 use Tantum::Types;
@@ -17,12 +17,12 @@ use TXN::Parser::ParseTree;
 unit class Registry;
 
 has Hook:D @!hook =
-    Hook::Entry::Posting.new,
-    Hook::Entry.new,
-    Hook::Ledger.new,
-    Hook::Coa.new,
-    Hook::Hodl.new,
-    Hook::Hook.new;
+    Hook::Core::Entry::Posting.new,
+    Hook::Core::Entry.new,
+    Hook::Core::Ledger.new,
+    Hook::Core::Coa.new,
+    Hook::Core::Hodl.new,
+    Hook::Core::Hook.new;
 
 # method hook {{{
 
