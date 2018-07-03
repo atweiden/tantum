@@ -68,11 +68,13 @@ sub apply(
 }
 
 multi method is-match(
-    Str:D $enter-leave,
-    Str:D $class-name,
-    Str:D $routine-name,
-    Capture:D $capture,
-    *% (Hook:U :@applied! where .so)
+    | (
+        Str:D $enter-leave,
+        Str:D $class-name,
+        Str:D $routine-name,
+        Capture:D $capture,
+        *% (Hook:U :@applied! where .so)
+    )
     --> Bool:D
 )
 {
@@ -81,11 +83,13 @@ multi method is-match(
 }
 
 multi method is-match(
-    Str:D $enter-leave,
-    Str:D $class-name,
-    Str:D $routine-name,
-    Capture:D $capture,
-    *% (Hook:U :@applied)
+    | (
+        Str:D $enter-leave,
+        Str:D $class-name,
+        Str:D $routine-name,
+        Capture:D $capture,
+        *% (Hook:U :@applied)
+    )
     --> Bool:D
 )
 {

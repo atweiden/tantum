@@ -86,12 +86,14 @@ multi sub apply(
 }
 
 multi method is-match(
-    Ledger:D $ledger,
-    Coa:D $coa,
-    Hodl:D $hodl,
-    *% (
-        Hook:U :@applied! where .so,
-        Ledgerʹ:D :@carry
+    | (
+        Ledger:D $ledger,
+        Coa:D $coa,
+        Hodl:D $hodl,
+        *% (
+            Hook:U :@applied! where .so,
+            Ledgerʹ:D :@carry
+        )
     )
     --> Bool:D
 )
@@ -101,12 +103,14 @@ multi method is-match(
 }
 
 multi method is-match(
-    Ledger:D $ledger,
-    Coa:D $coa,
-    Hodl:D $hodl,
-    *% (
-        Hook:U :@applied,
-        Ledgerʹ:D :@carry
+    | (
+        Ledger:D $ledger,
+        Coa:D $coa,
+        Hodl:D $hodl,
+        *% (
+            Hook:U :@applied,
+            Ledgerʹ:D :@carry
+        )
     )
     --> Bool:D
 )

@@ -57,11 +57,13 @@ sub has-aux-asset(Entry:D $entry --> Bool:D)
 {*}
 
 multi method is-match(
-    Hodl:D $hodl,
-    Entry:D $entry,
-    *% (
-        Hook:U :@applied! where .so,
-        Hodl:D :@carry
+    | (
+        Hodl:D $hodl,
+        Entry:D $entry,
+        *% (
+            Hook:U :@applied! where .so,
+            Hodl:D :@carry
+        )
     )
     --> Bool:D
 )
@@ -71,11 +73,13 @@ multi method is-match(
 }
 
 multi method is-match(
-    Hodl:D $hodl,
-    Entry:D $entry,
-    *% (
-        Hook:U :@applied,
-        Hodl:D :@carry
+    | (
+        Hodl:D $hodl,
+        Entry:D $entry,
+        *% (
+            Hook:U :@applied,
+            Hodl:D :@carry
+        )
     )
     --> Bool:D
 )

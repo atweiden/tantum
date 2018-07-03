@@ -80,11 +80,13 @@ multi sub apply(
 }
 
 multi method is-match(
-    Entry::Posting:D $posting,
-    Entry::Header:D $header,
-    *% (
-        Hook:U :@applied! where .so,
-        Entry::Postingʹ:D :@carry
+    | (
+        Entry::Posting:D $posting,
+        Entry::Header:D $header,
+        *% (
+            Hook:U :@applied! where .so,
+            Entry::Postingʹ:D :@carry
+        )
     )
     --> Bool:D
 )
@@ -94,11 +96,13 @@ multi method is-match(
 }
 
 multi method is-match(
-    Entry::Posting:D $posting,
-    Entry::Header:D $header,
-    *% (
-        Hook:U :@applied,
-        Entry::Postingʹ:D :@carry
+    | (
+        Entry::Posting:D $posting,
+        Entry::Header:D $header,
+        *% (
+            Hook:U :@applied,
+            Entry::Postingʹ:D :@carry
+        )
     )
     --> Bool:D
 )

@@ -24,111 +24,42 @@ my role Introspection
 role Hook::Action[POSTING]
 {
     also does Introspection;
-
-    multi method apply(
-        | (
-            Entry::Posting:D $posting,
-            Entry::Header:D $header,
-            *%opts (
-                :@applied,
-                Entry::Postingʹ:D :@carry
-            )
-        )
-        --> Entry::Postingʹ:D
-    )
+    multi method apply(|)
     {...}
 }
 
 role Hook::Action[ENTRY]
 {
     also does Introspection;
-
-    multi method apply(
-        | (
-            Entry:D $entry,
-            Coa:D $coa,
-            Hodl:D $hodl,
-            *%opts (
-                :@applied,
-                Entryʹ:D :@carry
-            )
-        )
-        --> Entryʹ:D
-    )
+    multi method apply(|)
     {...}
 }
 
 role Hook::Action[LEDGER]
 {
     also does Introspection;
-
-    multi method apply(
-        | (
-            Ledger:D $ledger,
-            Coa:D $coa,
-            Hodl:D $hodl,
-            *%opts (
-                :@applied,
-                Ledgerʹ:D :@carry
-            )
-        )
-        --> Ledgerʹ:D
-    )
+    multi method apply(|)
     {...}
 }
 
 role Hook::Action[COA]
 {
     also does Introspection;
-
-    multi method apply(
-        | (
-            Coa:D $coa,
-            Entry:D $entry,
-            Hodl:D $hodl,
-            *%opts (
-                :@applied,
-                Coa:D :@carry
-            )
-        )
-        --> Coa:D
-    )
+    multi method apply(|)
     {...}
 }
 
 role Hook::Action[HODL]
 {
     also does Introspection;
-
-    multi method apply(
-        | (
-            Hodl:D $hodl,
-            Entry:D $entry,
-            *%opts (
-                :@applied,
-                Hodl:D :@carry
-            )
-        )
-        --> Hodl:D
-    )
+    multi method apply(|)
     {...}
 }
 
 role Hook::Action[HOOK]
 {
     # omit C<also does Introspection> to avoid infinite loops
-    multi method apply(
-        | (
-            Str:D $enter-leave,
-            Str:D $class-name,
-            Str:D $routine-name,
-            Capture:D $capture,
-            *%opts (
-                :@applied
-            )
-        )
-        --> Nil
-    )
+    multi method apply(|)
     {...}
 }
 

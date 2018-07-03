@@ -82,12 +82,14 @@ multi sub apply(
 }
 
 multi method is-match(
-    Entry:D $entry,
-    Coa:D $coa,
-    Hodl:D $hodl,
-    *% (
-        Hook:U :@applied! where .so,
-        Entryʹ:D :@carry
+    | (
+        Entry:D $entry,
+        Coa:D $coa,
+        Hodl:D $hodl,
+        *% (
+            Hook:U :@applied! where .so,
+            Entryʹ:D :@carry
+        )
     )
     --> Bool:D
 )
@@ -97,12 +99,14 @@ multi method is-match(
 }
 
 multi method is-match(
-    Entry:D $entry,
-    Coa:D $coa,
-    Hodl:D $hodl,
-    *% (
-        Hook:U :@applied,
-        Entryʹ:D :@carry
+    | (
+        Entry:D $entry,
+        Coa:D $coa,
+        Hodl:D $hodl,
+        *% (
+            Hook:U :@applied,
+            Entryʹ:D :@carry
+        )
     )
     --> Bool:D
 )
