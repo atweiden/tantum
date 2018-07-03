@@ -14,7 +14,6 @@ use Tantum::Hook::Response;
 use Tantum::Hook;
 use Tantum::Types;
 use TXN::Parser::ParseTree;
-use X::Tantum::Registry;
 unit class Registry;
 
 has Hook:D @!hook =
