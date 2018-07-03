@@ -21,6 +21,8 @@ of Accounts>.
 Hooks allow for closely examining and logging each and every step a TXN
 document goes through along the way to an essential report, leading to
 increased auditability.
+
+All hooks must provide a C<method apply> and a C<method is-match>.
 =end paragraph
 
 =head2 Hooks By Category
@@ -39,8 +41,6 @@ I<Posting> hooks are scoped to C<Entry::Posting>s. Each time a new
 C<Entry::Posting> is queued for handling, I<Posting> hooks will be
 filtered for relevancy and the actions inscribed in matching hooks
 executed.
-
-I<Posting> hooks must provide a C<method apply> and a C<method is-match>.
 =end item
 
 =begin item
@@ -49,8 +49,6 @@ B<Entry>
 I<Entry> hooks are scoped to C<Entry>s. Each time a new C<Entry> is
 queued for handling, I<Entry> hooks will be filtered for relevancy and
 the actions inscribed in matching hooks executed.
-
-I<Entry> hooks must provide a C<method apply> and a C<method is-match>.
 =end item
 
 =begin item
@@ -59,8 +57,6 @@ B<Ledger>
 I<Ledger> hooks are scoped to C<Ledger>s. Each time a new C<Ledger>
 is queued for handling, I<Ledger> hooks will be filtered for relevancy
 and the actions inscribed in matching hooks executed.
-
-I<Ledger> hooks must provide a C<method apply> and a C<method is-match>.
 =end item
 
 =head3 Category: Derivative
@@ -76,8 +72,6 @@ B<Coa>
 I<Coa> hooks are scoped to C<Coa>s, aka I<Chart of Accounts>. Each time a
 C<Coa> is queued for handling, I<Coa> hooks will be filtered for relevancy
 and the actions inscribed in matching hooks executed.
-
-I<Coa> hooks must provide a C<method apply> and a C<method is-match>.
 =end item
 
 =begin item
@@ -86,8 +80,6 @@ B<Hodl>
 I<Hodl> hooks are scoped to C<Hodl>s. Each time a C<Hodl> is queued for
 handling, I<Hodl> hooks will be filtered for relevancy and the actions
 inscribed in matching hooks executed.
-
-I<Hodl> hooks must provide a C<method apply> and a C<method is-match>.
 =end item
 
 =head2 Category: Meta
@@ -102,8 +94,6 @@ hooks executed.
 
 The primary impetus behind I<Hook> hooks is to log which hooks are firing
 and when. I<Hook> hooks might also be used to chain hooks together.
-
-I<Hook> hooks must provide a C<method apply> and a C<method is-match>.
 =end item
 =end pod
 
