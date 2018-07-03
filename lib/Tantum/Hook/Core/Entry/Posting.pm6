@@ -1,4 +1,5 @@
 use v6;
+use Tantum::Dx::Entry::Posting;
 use Tantum::Hook;
 use Tantum::Types;
 use TXN::Parser::ParseTree;
