@@ -1,9 +1,4 @@
 use v6;
-use Tantum::Dx::Coa;
-use Tantum::Dx::Entry::Posting;
-use Tantum::Dx::Entry;
-use Tantum::Dx::Hodl;
-use Tantum::Dx::Ledger;
 use Tantum::Types;
 use TXN::Parser::ParseTree;
 
