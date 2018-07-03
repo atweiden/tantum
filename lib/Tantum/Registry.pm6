@@ -62,78 +62,47 @@ method query-hooks(::?CLASS:D: HookType $type --> Array[Hook[$type]])
 method send-to-hooks(
     ::?CLASS:D:
     HookType:D $type,
-    @arg
+    |c
     --> Hook::Response[$type]
 )
 {
     # sort C<Hook>s of this C<HookType> by priority descending
     my Hook[$type] @hook =
         self.query-hooks($type).sort({ $^b.priority > $^a.priority });
-    my Hook::Response[$type] $response = send-to-hooks(@hook, @arg);
+    my Hook::Response[$type] $response = send-to-hooks(@hook, |c);
 }
 
 # --- POSTING {{{
 
 multi sub send-to-hooks(
     Hook[POSTING] @hook,
-    @arg (Entry::Posting:D $, Entry::Header:D $),
-    *%opts (
-        Hook:U :applied(@),
-        Entry::Postingʹ:D :carry(@)
-    )
+    |c
     --> Hook::Response[POSTING]
 )
 {
-    my Hook[POSTING] $hook = @hook.first({ .is-match(|@arg, |%opts) });
-    my Hook::Response[POSTING] $response =
-        send-to-hooks($hook, @hook, @arg, |%opts);
+    my Hook[POSTING] $hook = @hook.first({ .is-match(|c) });
+    my Hook::Response[POSTING] $response = send-to-hooks($hook, @hook, |c);
 }
 
 multi sub send-to-hooks(
     Hook[POSTING] $hook where .defined,
     Hook[POSTING] @hook,
-    @arg (Entry::Posting:D $, Entry::Header:D $),
-    *%opts (
-        Hook:U :applied(@a),
-        Entry::Postingʹ:D :carry(@c)
-    )
+    |c
     --> Hook::Response[POSTING]
 )
 {
-    my Entry::Postingʹ:D $postingʹ = $hook.apply(|@arg, |%opts);
-    my Hook:U @applied = |@a, $hook.WHAT;
-    my Entry::Postingʹ:D @carry = |@c, $postingʹ;
-    my Hook::Response[POSTING] $response =
-        send-to-hooks(@hook, @arg, :@applied, :@carry);
+    my \applied = $hook.apply(|c);
+    my Hook::Response[POSTING] $response = send-to-hooks(@hook, applied);
 }
 
 multi sub send-to-hooks(
     Hook[POSTING] $,
     Hook[POSTING] @,
-    @ (Entry::Posting:D $, Entry::Header:D $),
-    *% (
-        Hook:U :@applied! where .so,
-        Entry::Postingʹ:D :@carry! where .so
-    )
+    |c
     --> Hook::Response[POSTING]
 )
 {
-    my Hash[Entry::Postingʹ:D,Hook:U] @made = @applied Z=> @carry;
-    my Hook::Response[POSTING] $response .= new(:@made);
-}
-
-multi sub send-to-hooks(
-    Hook[POSTING] $,
-    Hook[POSTING] @,
-    @ (Entry::Posting:D $, Entry::Header:D $),
-    *% (
-        Hook:U :applied(@),
-        Entry::Postingʹ:D :carry(@)
-    )
-    --> Nil
-)
-{
-    die(X::Tantum::Registry::NoHookApplied.new(POSTING));
+    my Hook::Response[POSTING] $response .= new(|c);
 }
 
 # --- end POSTING }}}
@@ -141,64 +110,33 @@ multi sub send-to-hooks(
 
 multi sub send-to-hooks(
     Hook[ENTRY] @hook,
-    @arg (Entry:D $, Coa:D $, Hodl:D $),
-    *%opts (
-        Hook:U :applied(@),
-        Entryʹ:D :carry(@)
-    )
+    |c
     --> Hook::Response[ENTRY]
 )
 {
-    my Hook[ENTRY] $hook = @hook.first({ .is-match(|@arg, |%opts) });
-    my Hook::Response[ENTRY] $response =
-        send-to-hooks($hook, @hook, @arg, |%opts);
+    my Hook[ENTRY] $hook = @hook.first({ .is-match(|c) });
+    my Hook::Response[ENTRY] $response = send-to-hooks($hook, @hook, |c);
 }
 
 multi sub send-to-hooks(
     Hook[ENTRY] $hook where .defined,
     Hook[ENTRY] @hook,
-    @arg (Entry:D $, Coa:D $, Hodl:D $),
-    *%opts (
-        Hook:U :applied(@a),
-        Entryʹ:D :carry(@c)
-    )
+    |c
     --> Hook::Response[ENTRY]
 )
 {
-    my Entryʹ:D $entryʹ = $hook.apply(|@arg, |%opts);
-    my Hook:U @applied = |@a, $hook.WHAT;
-    my Entryʹ:D @carry = |@c, $entryʹ;
-    my Hook::Response[ENTRY] $response =
-        send-to-hooks(@hook, @arg, :@applied, :@carry);
+    my \applied = $hook.apply(|c);
+    my Hook::Response[ENTRY] $response = send-to-hooks(@hook, applied);
 }
 
 multi sub send-to-hooks(
     Hook[ENTRY] $,
     Hook[ENTRY] @,
-    @ (Entry:D $, Coa:D $, Hodl:D $),
-    *% (
-        Hook:U :@applied! where .so,
-        Entryʹ:D :@carry! where .so
-    )
+    |c
     --> Hook::Response[ENTRY]
 )
 {
-    my Hash[Entryʹ:D,Hook:U] @made = @applied Z=> @carry;
-    my Hook::Response[ENTRY] $response .= new(:@made);
-}
-
-multi sub send-to-hooks(
-    Hook[ENTRY] $,
-    Hook[ENTRY] @,
-    @ (Entry:D $, Coa:D $, Hodl:D $),
-    *% (
-        Hook:U :applied(@),
-        Entryʹ:D :carry(@)
-    )
-    --> Nil
-)
-{
-    die(X::Tantum::Registry::NoHookApplied.new(ENTRY));
+    my Hook::Response[ENTRY] $response .= new(|c);
 }
 
 # --- end ENTRY }}}
@@ -206,64 +144,33 @@ multi sub send-to-hooks(
 
 multi sub send-to-hooks(
     Hook[LEDGER] @hook,
-    @arg (Ledger:D $, Coa:D $, Hodl:D $),
-    *%opts (
-        Hook:U :applied(@),
-        Ledgerʹ:D :carry(@)
-    )
+    |c
     --> Hook::Response[LEDGER]
 )
 {
-    my Hook[LEDGER] $hook = @hook.first({ .is-match(|@arg, |%opts) });
-    my Hook::Response[LEDGER] $response =
-        send-to-hooks($hook, @hook, @arg, |%opts);
+    my Hook[LEDGER] $hook = @hook.first({ .is-match(|c) });
+    my Hook::Response[LEDGER] $response = send-to-hooks($hook, @hook, |c);
 }
 
 multi sub send-to-hooks(
     Hook[LEDGER] $hook where .defined,
     Hook[LEDGER] @hook,
-    @arg (Ledger:D $, Coa:D $, Hodl:D $),
-    *%opts (
-        Hook:U :applied(@a),
-        Ledgerʹ:D :carry(@c)
-    )
+    |c
     --> Hook::Response[LEDGER]
 )
 {
-    my Ledgerʹ:D $ledgerʹ = $hook.apply(|@arg, |%opts);
-    my Hook:U @applied = |@a, $hook.WHAT;
-    my Ledgerʹ:D @carry = |@c, $ledgerʹ;
-    my Hook::Response[LEDGER] $response =
-        send-to-hooks(@hook, @arg, :@applied, :@carry);
+    my \applied = $hook.apply(|c);
+    my Hook::Response[LEDGER] $response = send-to-hooks(@hook, applied);
 }
 
 multi sub send-to-hooks(
     Hook[LEDGER] $,
     Hook[LEDGER] @,
-    @ (Ledger:D $, Coa:D $, Hodl:D $),
-    *% (
-        Hook:U :@applied! where .so,
-        Ledgerʹ:D :@carry! where .so
-    )
+    |c
     --> Hook::Response[LEDGER]
 )
 {
-    my Hash[Ledgerʹ:D,Hook:U] @made = @applied Z=> @carry;
-    my Hook::Response[LEDGER] $response .= new(:@made);
-}
-
-multi sub send-to-hooks(
-    Hook[LEDGER] $,
-    Hook[LEDGER] @,
-    @ (Ledger:D $, Coa:D $, Hodl:D $),
-    *% (
-        Hook:U :applied(@),
-        Ledgerʹ:D :carry(@)
-    )
-    --> Nil
-)
-{
-    die(X::Tantum::Registry::NoHookApplied.new(LEDGER));
+    my Hook::Response[LEDGER] $response .= new(|c);
 }
 
 # --- end LEDGER }}}
@@ -271,64 +178,33 @@ multi sub send-to-hooks(
 
 multi sub send-to-hooks(
     Hook[COA] @hook,
-    @arg (Coa:D $, Entry:D $, Hodl:D $),
-    *%opts (
-        Hook:U :applied(@),
-        Coa:D :carry(@)
-    )
+    |c
     --> Hook::Response[COA]
 )
 {
-    my Hook[COA] $hook = @hook.first({ .is-match(|@arg, |%opts) });
-    my Hook::Response[COA] $response =
-        send-to-hooks($hook, @hook, @arg, |%opts);
+    my Hook[COA] $hook = @hook.first({ .is-match(|c) });
+    my Hook::Response[COA] $response = send-to-hooks($hook, @hook, |c);
 }
 
 multi sub send-to-hooks(
     Hook[COA] $hook where .defined,
     Hook[COA] @hook,
-    @arg (Coa:D $, Entry:D $, Hodl:D $),
-    *%opts (
-        Hook:U :applied(@a),
-        Coa:D :carry(@c)
-    )
+    |c
     --> Hook::Response[COA]
 )
 {
-    my Coa:D $coa = $hook.apply(|@arg, |%opts);
-    my Hook:U @applied = |@a, $hook.WHAT;
-    my Coa:D @carry = |@c, $coa;
-    my Hook::Response[COA] $response =
-        send-to-hooks(@hook, @arg, :@applied, :@carry);
+    my \applied = $hook.apply(|%opts, |c);
+    my Hook::Response[COA] $response = send-to-hooks(@hook, applied);
 }
 
 multi sub send-to-hooks(
     Hook[COA] $,
     Hook[COA] @,
-    @ (Coa:D $, Entry:D $, Hodl:D $),
-    *% (
-        Hook:U :@applied! where .so,
-        Coa:D :@carry! where .so
-    )
+    |c
     --> Hook::Response[COA]
 )
 {
-    my Hash[Coa:D,Hook:U] @made = @applied Z=> @carry;
-    my Hook::Response[COA] $response .= new(:@made);
-}
-
-multi sub send-to-hooks(
-    Hook[COA] $,
-    Hook[COA] @,
-    @ (Coa:D $, Entry:D $, Hodl:D $),
-    *% (
-        Hook:U :applied(@),
-        Coa:D :carry(@)
-    )
-    --> Nil
-)
-{
-    die(X::Tantum::Registry::NoHookApplied.new(COA));
+    my Hook::Response[COA] $response .= new(|c);
 }
 
 # --- end COA }}}
@@ -336,64 +212,33 @@ multi sub send-to-hooks(
 
 multi sub send-to-hooks(
     Hook[HODL] @hook,
-    @arg (Hodl:D $, Entry:D $),
-    *%opts (
-        Hook:U :applied(@),
-        Hodl:D :carry(@)
-    )
+    |c
     --> Hook::Response[HODL]
 )
 {
-    my Hook[HODL] $hook = @hook.first({ .is-match(|@arg, |%opts) });
-    my Hook::Response[HODL] $response =
-        send-to-hooks($hook, @hook, @arg, |%opts);
+    my Hook[HODL] $hook = @hook.first({ .is-match(|c) });
+    my Hook::Response[HODL] $response = send-to-hooks($hook, @hook, |c);
 }
 
 multi sub send-to-hooks(
     Hook[HODL] $hook where .defined,
     Hook[HODL] @hook,
-    @arg (Hodl:D $, Entry:D $),
-    *%opts (
-        Hook:U :applied(@a),
-        Hodl:D :carry(@c)
-    )
+    |c
     --> Hook::Response[HODL]
 )
 {
-    my Hodl:D $hodl = $hook.apply(|@arg, |%opts);
-    my Hook:U @applied = |@a, $hook.WHAT;
-    my Hodl:D @carry = |@c, $hodl;
-    my Hook::Response[HODL] $response =
-        send-to-hooks(@hook, @arg, :@applied, :@carry);
+    my \applied = $hook.apply(|%opts, |c);
+    my Hook::Response[HODL] $response = send-to-hooks(@hook, applied);
 }
 
 multi sub send-to-hooks(
     Hook[HODL] $,
     Hook[HODL] @,
-    @ (Hodl:D $, Entry:D $),
-    *% (
-        Hook:U :@applied! where .so,
-        Hodl:D :@carry! where .so
-    )
+    |c
     --> Hook::Response[HODL]
 )
 {
-    my Hash[Hodl:D,Hook:U] @made = @applied Z=> @carry;
-    my Hook::Response[HODL] $response .= new(:@made);
-}
-
-multi sub send-to-hooks(
-    Hook[HODL] $,
-    Hook[HODL] @,
-    @ (Hodl:D $, Entry:D $),
-    *% (
-        Hook:U :applied(@),
-        Hodl:D :carry(@)
-    )
-    --> Nil
-)
-{
-    die(X::Tantum::Registry::NoHookApplied.new(HODL));
+    my Hook::Response[HODL] $response .= new(|c);
 }
 
 # --- end HODL }}}
@@ -401,79 +246,33 @@ multi sub send-to-hooks(
 
 multi sub send-to-hooks(
     Hook[HOOK] @hook,
-    @arg (
-        Str:D $enter-leave,
-        Str:D $class-name,
-        Str:D $routine-name,
-        Capture:D $capture
-    ),
-    *%opts (
-        Hook:U :applied(@)
-    )
+    |c
     --> Hook::Response[HOOK]
 )
 {
-    my Hook[HOOK] $hook = @hook.first({ .is-match(|@arg, |%opts) });
-    my Hook::Response[HOOK] $response =
-        send-to-hooks($hook, @hook, @arg, |%opts);
+    my Hook[HOOK] $hook = @hook.first({ .is-match(|c) });
+    my Hook::Response[HOOK] $response = send-to-hooks($hook, @hook, |c);
 }
 
 multi sub send-to-hooks(
     Hook[HOOK] $hook where .defined,
     Hook[HOOK] @hook,
-    @arg (
-        Str:D $,
-        Str:D $,
-        Str:D $,
-        Capture:D $
-    ),
-    *%opts (
-        Hook:U :applied(@a)
-    )
+    |c
     --> Hook::Response[HOOK]
 )
 {
-    $hook.apply(|@arg, |%opts);
-    my Hook:U @applied = |@a, $hook.WHAT;
-    my Hook::Response[HOOK] $response =
-        send-to-hooks(@hook, @arg, :@applied);
+    my \applied = $hook.apply(|c);
+    my Hook::Response[HOOK] $response = send-to-hooks(@hook, applied);
 }
 
 multi sub send-to-hooks(
     Hook[HOOK] $,
     Hook[HOOK] @,
-    @ (
-        Str:D $,
-        Str:D $,
-        Str:D $,
-        Capture:D $
-    ),
-    *% (
-        Hook:U :@applied! where .so
-    )
+    |c
     --> Hook::Response[HOOK]
 )
 {
-    my Hook:U @made = @applied;
-    my Hook::Response[HOOK] $response .= new(:@made);
-}
-
-multi sub send-to-hooks(
-    Hook[HOOK] $,
-    Hook[HOOK] @,
-    @ (
-        Str:D $,
-        Str:D $,
-        Str:D $,
-        Capture:D $
-    ),
-    *% (
-        Hook:U :applied(@)
-    )
-    --> Nil
-)
-{
-    die(X::Tantum::Registry::NoHookApplied.new(HOOK));
+    my Hook::Response[HOOK] $response .= new(|c);
 }
 
 # --- end HOOK }}}
