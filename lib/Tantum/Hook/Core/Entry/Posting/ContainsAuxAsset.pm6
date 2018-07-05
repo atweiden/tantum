@@ -41,20 +41,16 @@ multi method apply(
 }
 
 multi sub apply(
-    | (
-        Entry::Posting:D $posting where { $*config.contains-aux-asset($_).so },
-        |
-    )
+    Entry::Posting:D $posting where { $*config.contains-aux-asset($_).so },
+    |
 )
 {
     my Bool:D $contains-aux-asset = True;
 }
 
 multi sub apply(
-    | (
-        Entry::Posting:D $posting,
-        |
-    )
+    Entry::Posting:D $posting,
+    |
 )
 {
     my Bool:D $contains-aux-asset = False;

@@ -43,20 +43,16 @@ multi method apply(
 }
 
 multi sub apply(
-    | (
-        Entry::Posting:D $posting where { $*config.is-xe-present($_).so },
-        |
-    )
+    Entry::Posting:D $posting where { $*config.is-xe-present($_).so },
+    |
 )
 {
     my Bool:D $is-xe-present = True;
 }
 
 multi sub apply(
-    | (
-        Entry::Posting:D $posting,
-        |
-    )
+    Entry::Posting:D $posting,
+    |
 )
 {
     die(X::Tantum::Hook::Core::Entry::Posting::XEMissing.new(:$posting));

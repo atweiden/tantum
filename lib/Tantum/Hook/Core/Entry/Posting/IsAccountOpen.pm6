@@ -42,20 +42,16 @@ multi method apply(
 }
 
 multi sub apply(
-    | (
-        Entry::Posting:D $posting where { $*config.is-account-open($_).so },
-        |
-    )
+    Entry::Posting:D $posting where { $*config.is-account-open($_).so },
+    |
 )
 {
     my Bool:D $is-account-open = True;
 }
 
 multi sub apply(
-    | (
-        Entry::Posting:D $posting,
-        |
-    )
+    Entry::Posting:D $posting,
+    |
 )
 {
     die(X::Tantum::Hook::Core::Entry::Posting::AccountClosed.new(:$posting));
