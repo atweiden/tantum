@@ -111,7 +111,9 @@ multi sub apply(
     --> Entry::Postingʹ:D
 )
 {
-    my Bool:D $is-non-deductible = $*config.gen-expense-deductibility($posting);
+    my ExpenseDeductibility:D $expense-deductibility =
+        $*config.gen-expense-deductibility($posting);
+    my Bool:D $is-non-deductible = $expense-deductibility == NON-DEDUCTIBLE;
     my Entry::Postingʹ[EXPENSES] $postingʹ .=
         new(:$posting, :$is-non-deductible);
 }
