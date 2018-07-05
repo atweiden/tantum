@@ -1,37 +1,40 @@
 use v6;
 use Tantum::Types;
 
+my role Common
+{...}
+
 role Hook::Trigger[POSTING]
 {
-    multi method is-match(| --> Bool:D)
-    {...}
+    also does Common;
 }
 
 role Hook::Trigger[ENTRY]
 {
-    multi method is-match(| --> Bool:D)
-    {...}
+    also does Common;
 }
 
 role Hook::Trigger[LEDGER]
 {
-    multi method is-match(| --> Bool:D)
-    {...}
+    also does Common;
 }
 
 role Hook::Trigger[COA]
 {
-    multi method is-match(| --> Bool:D)
-    {...}
+    also does Common;
 }
 
 role Hook::Trigger[HODL]
 {
-    multi method is-match(| --> Bool:D)
-    {...}
+    also does Common;
 }
 
 role Hook::Trigger[HOOK]
+{
+    also does Common;
+}
+
+my role Common
 {
     multi method is-match(| --> Bool:D)
     {...}

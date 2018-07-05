@@ -1,6 +1,54 @@
 use v6;
 use Tantum::Types;
 
+my role Common
+{...}
+
+my role Introspection
+{...}
+
+role Hook::Action[POSTING]
+{
+    also does Common;
+    also does Introspection;
+}
+
+role Hook::Action[ENTRY]
+{
+    also does Common;
+    also does Introspection;
+}
+
+role Hook::Action[LEDGER]
+{
+    also does Common;
+    also does Introspection;
+}
+
+role Hook::Action[COA]
+{
+    also does Common;
+    also does Introspection;
+}
+
+role Hook::Action[HODL]
+{
+    also does Common;
+    also does Introspection;
+}
+
+role Hook::Action[HOOK]
+{
+    also does Common;
+    # omit C<Introspection> to avoid infinite loops
+}
+
+my role Common
+{
+    multi method apply(|)
+    {...}
+}
+
 my role Introspection
 {
     proto method apply(|c)
@@ -13,48 +61,6 @@ my role Introspection
         $*registry.send-to-hooks(HOOK, ['enter', |@arg]);
         {*}
     }
-}
-
-role Hook::Action[POSTING]
-{
-    also does Introspection;
-    multi method apply(|)
-    {...}
-}
-
-role Hook::Action[ENTRY]
-{
-    also does Introspection;
-    multi method apply(|)
-    {...}
-}
-
-role Hook::Action[LEDGER]
-{
-    also does Introspection;
-    multi method apply(|)
-    {...}
-}
-
-role Hook::Action[COA]
-{
-    also does Introspection;
-    multi method apply(|)
-    {...}
-}
-
-role Hook::Action[HODL]
-{
-    also does Introspection;
-    multi method apply(|)
-    {...}
-}
-
-role Hook::Action[HOOK]
-{
-    # omit C<also does Introspection> to avoid infinite loops
-    multi method apply(|)
-    {...}
 }
 
 # vim: set filetype=perl6 foldmethod=marker foldlevel=0:
