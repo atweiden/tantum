@@ -175,4 +175,13 @@ multi method is-match(
     my Bool:D $is-match = True;
 }
 
+multi method is-match(
+    |
+    --> Bool:D
+)
+{
+    # don't match by default
+    my Bool:D $is-match = False;
+}
+
 # vim: set filetype=perl6 foldmethod=marker foldlevel=0:

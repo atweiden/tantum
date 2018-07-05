@@ -78,6 +78,7 @@ multi method is-match(
     --> Bool:D
 )
 {
+    # match by default
     my Bool:D $is-match = True;
 }
 
