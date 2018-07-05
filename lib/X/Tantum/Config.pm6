@@ -2,8 +2,9 @@ use v6;
 
 # X::Tantum::Config::Account::Malformed {{{
 
-class X::Tantum::Config::Account::Malformed is Exception
+class X::Tantum::Config::Account::Malformed
 {
+    also is Exception;
     method message(--> Str:D)
     {
         my Str:D $message =
@@ -14,8 +15,9 @@ class X::Tantum::Config::Account::Malformed is Exception
 # end X::Tantum::Config::Account::Malformed }}}
 # X::Tantum::Config::Asset::Malformed {{{
 
-class X::Tantum::Config::Asset::Malformed is Exception
+class X::Tantum::Config::Asset::Malformed
 {
+    also is Exception;
     method message(--> Str:D)
     {
         my Str:D $message =
@@ -26,8 +28,9 @@ class X::Tantum::Config::Asset::Malformed is Exception
 # end X::Tantum::Config::Asset::Malformed }}}
 # X::Tantum::Config::Asset::Price::Malformed {{{
 
-class X::Tantum::Config::Asset::Price::Malformed is Exception
+class X::Tantum::Config::Asset::Price::Malformed
 {
+    also is Exception;
     method message(--> Str:D)
     {
         my Str:D $message =
@@ -38,8 +41,9 @@ class X::Tantum::Config::Asset::Price::Malformed is Exception
 # end X::Tantum::Config::Asset::Price::Malformed }}}
 # X::Tantum::Config::Asset::PriceFile::DNERF {{{
 
-class X::Tantum::Config::Asset::PriceFile::DNERF is Exception
+class X::Tantum::Config::Asset::PriceFile::DNERF
 {
+    also is Exception;
     method message(--> Str:D)
     {
         my Str:D $message =
@@ -51,8 +55,9 @@ class X::Tantum::Config::Asset::PriceFile::DNERF is Exception
 # end X::Tantum::Config::Asset::PriceFile::DNERF }}}
 # X::Tantum::Config::Entity::Malformed {{{
 
-class X::Tantum::Config::Entity::Malformed is Exception
+class X::Tantum::Config::Entity::Malformed
 {
+    also is Exception;
     method message(--> Str:D)
     {
         my Str:D $message =
@@ -63,8 +68,9 @@ class X::Tantum::Config::Entity::Malformed is Exception
 # end X::Tantum::Config::Entity::Malformed }}}
 # X::Tantum::Config::Ledger::FromFile::DNERF {{{
 
-class X::Tantum::Config::Ledger::FromFile::DNERF is Exception
+class X::Tantum::Config::Ledger::FromFile::DNERF
 {
+    also is Exception;
     method message(--> Str:D)
     {
         my Str:D $message =
@@ -76,8 +82,9 @@ class X::Tantum::Config::Ledger::FromFile::DNERF is Exception
 # end X::Tantum::Config::Ledger::FromFile::DNERF }}}
 # X::Tantum::Config::Ledger::FromPkg::DNERF {{{
 
-class X::Tantum::Config::Ledger::FromPkg::DNERF is Exception
+class X::Tantum::Config::Ledger::FromPkg::DNERF
 {
+    also is Exception;
     method message(--> Str:D)
     {
         my Str:D $message =
@@ -89,8 +96,9 @@ class X::Tantum::Config::Ledger::FromPkg::DNERF is Exception
 # end X::Tantum::Config::Ledger::FromPkg::DNERF }}}
 # X::Tantum::Config::Ledger::FromPkg::TXNINFO::DNERF {{{
 
-class X::Tantum::Config::Ledger::FromPkg::TXNINFO::DNERF is Exception
+class X::Tantum::Config::Ledger::FromPkg::TXNINFO::DNERF
 {
+    also is Exception;
     method message(--> Str:D)
     {
         my Str:D $message =
@@ -101,8 +109,9 @@ class X::Tantum::Config::Ledger::FromPkg::TXNINFO::DNERF is Exception
 # end X::Tantum::Config::Ledger::FromPkg::TXNINFO::DNERF }}}
 # X::Tantum::Config::Ledger::FromPkg::TXNJSON::DNERF {{{
 
-class X::Tantum::Config::Ledger::FromPkg::TXNJSON::DNERF is Exception
+class X::Tantum::Config::Ledger::FromPkg::TXNJSON::DNERF
 {
+    also is Exception;
     method message(--> Str:D)
     {
         my Str:D $message =
@@ -113,8 +122,9 @@ class X::Tantum::Config::Ledger::FromPkg::TXNJSON::DNERF is Exception
 # end X::Tantum::Config::Ledger::FromPkg::TXNJSON::DNERF }}}
 # X::Tantum::Config::Ledger::Malformed {{{
 
-class X::Tantum::Config::Ledger::Malformed is Exception
+class X::Tantum::Config::Ledger::Malformed
 {
+    also is Exception;
     method message(--> Str:D)
     {
         my Str:D $message =
@@ -125,8 +135,9 @@ class X::Tantum::Config::Ledger::Malformed is Exception
 # end X::Tantum::Config::Ledger::Malformed }}}
 # X::Tantum::Config::Ledger::Missing {{{
 
-class X::Tantum::Config::Ledger::Missing is Exception
+class X::Tantum::Config::Ledger::Missing
 {
+    also is Exception;
     method message(--> Str:D)
     {
         my Str:D $message =
@@ -137,8 +148,9 @@ class X::Tantum::Config::Ledger::Missing is Exception
 # end X::Tantum::Config::Ledger::Missing }}}
 # X::Tantum::Config::Mkdir::Failed {{{
 
-class X::Tantum::Config::Mkdir::Failed is Exception
+class X::Tantum::Config::Mkdir::Failed
 {
+    also is Exception;
     has Str:D $.text is required;
     method message(::?CLASS:D: --> Str:D)
     {
@@ -149,8 +161,9 @@ class X::Tantum::Config::Mkdir::Failed is Exception
 # end X::Tantum::Config::Mkdir::Failed }}}
 # X::Tantum::Config::PrepareConfigDir::NotReadable {{{
 
-class X::Tantum::Config::PrepareConfigDir::NotReadable is Exception
+class X::Tantum::Config::PrepareConfigDir::NotReadable
 {
+    also is Exception;
     method message(--> Str:D)
     {
         my Str:D $message =
@@ -161,8 +174,9 @@ class X::Tantum::Config::PrepareConfigDir::NotReadable is Exception
 # end X::Tantum::Config::PrepareConfigDir::NotReadable }}}
 # X::Tantum::Config::PrepareConfigDir::NotWriteable {{{
 
-class X::Tantum::Config::PrepareConfigDir::NotWriteable is Exception
+class X::Tantum::Config::PrepareConfigDir::NotWriteable
 {
+    also is Exception;
     method message(--> Str:D)
     {
         my Str:D $message =
@@ -173,8 +187,9 @@ class X::Tantum::Config::PrepareConfigDir::NotWriteable is Exception
 # end X::Tantum::Config::PrepareConfigDir::NotWriteable }}}
 # X::Tantum::Config::PrepareConfigDir::NotADirectory {{{
 
-class X::Tantum::Config::PrepareConfigDir::NotADirectory is Exception
+class X::Tantum::Config::PrepareConfigDir::NotADirectory
 {
+    also is Exception;
     method message(--> Str:D)
     {
         my Str:D $message =
@@ -185,8 +200,9 @@ class X::Tantum::Config::PrepareConfigDir::NotADirectory is Exception
 # end X::Tantum::Config::PrepareConfigDir::NotADirectory }}}
 # X::Tantum::Config::PrepareConfigFile::NotReadable {{{
 
-class X::Tantum::Config::PrepareConfigFile::NotReadable is Exception
+class X::Tantum::Config::PrepareConfigFile::NotReadable
 {
+    also is Exception;
     method message(--> Str:D)
     {
         my Str:D $message =
@@ -197,8 +213,9 @@ class X::Tantum::Config::PrepareConfigFile::NotReadable is Exception
 # end X::Tantum::Config::PrepareConfigFile::NotReadable }}}
 # X::Tantum::Config::PrepareConfigFile::NotWriteable {{{
 
-class X::Tantum::Config::PrepareConfigFile::NotWriteable is Exception
+class X::Tantum::Config::PrepareConfigFile::NotWriteable
 {
+    also is Exception;
     method message(--> Str:D)
     {
         my Str:D $message =
@@ -209,8 +226,9 @@ class X::Tantum::Config::PrepareConfigFile::NotWriteable is Exception
 # end X::Tantum::Config::PrepareConfigFile::NotWriteable }}}
 # X::Tantum::Config::PrepareConfigFile::NotADirectory {{{
 
-class X::Tantum::Config::PrepareConfigFile::NotADirectory is Exception
+class X::Tantum::Config::PrepareConfigFile::NotADirectory
 {
+    also is Exception;
     method message(--> Str:D)
     {
         my Str:D $message =

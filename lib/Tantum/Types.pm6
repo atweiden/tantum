@@ -274,6 +274,14 @@ enum Costing is export <
 >;
 
 # end Costing }}}
+# ExpenseDeductibility {{{
+
+enum ExpenseDeductibility is export <
+    DEDUCTIBLE
+    NON-DEDUCTIBLE
+>;
+
+# end ExpenseDeductibility }}}
 # HookType {{{
 
 enum HookType is export <

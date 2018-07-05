@@ -8,6 +8,7 @@ use Tantum::Config::Entity;
 use Tantum::Config::Ledger;
 use Tantum::Config::Utils;
 use Tantum::Types;
+use TXN::Parser::ParseTree;
 use TXN::Parser::Types;
 use X::Tantum::Config;
 unit class Config;
@@ -281,6 +282,140 @@ method new(
 }
 
 # end method new }}}
+
+# method contains-aux-asset {{{
+
+method contains-aux-asset(
+    ::?CLASS:D:
+    Entry::Posting:D $posting
+    --> Bool:D
+)
+{
+    my VarName:D $entity-name = $posting.account.entity;
+    my AssetCode:D $entity-base-currency =
+        self.resolve-entity-base-currency($entity-name);
+    my AssetCode:D $currency = $posting.amount.asset-code;
+    my Bool:D $contains-aux-asset = $entity-base-currency eqv $currency;
+}
+
+# end method contains-aux-asset }}}
+# method gen-asset-convertibility {{{
+
+# XXX: NYI
+method gen-asset-convertibility(
+    ::?CLASS:D:
+    Entry::Posting:D $posting
+    --> AssetConvertibilityType:D
+)
+{
+    my AssetConvertibilityType:D $asset-convertibility = CURRENT;
+}
+
+# end method gen-asset-convertibility }}}
+# method gen-asset-physicality {{{
+
+# XXX: NYI
+method gen-asset-physicality(
+    ::?CLASS:D:
+    Entry::Posting:D $posting
+    --> AssetPhysicalityType:D
+)
+{
+    my AssetPhysicalityType:D $asset-physicality = TANGIBLE;
+}
+
+# end method gen-asset-physicality }}}
+# method gen-asset-type {{{
+
+# XXX: NYI
+method gen-asset-type(
+    ::?CLASS:D:
+    Entry::Posting:D $posting
+    --> AssetType:D
+)
+{
+    my AssetType:D $asset-type = INVESTMENT;
+}
+
+# end method gen-asset-type }}}
+# method gen-asset-usage {{{
+
+# XXX: NYI
+method gen-asset-usage(
+    ::?CLASS:D:
+    Entry::Posting:D $posting
+    --> AssetUsageType:D
+)
+{
+    my AssetUsageType:D $asset-usage = OPERATING;
+}
+
+# end method gen-asset-usage }}}
+# method gen-expense-deductibility {{{
+
+# XXX: NYI
+method gen-expense-deductibility(
+    ::?CLASS:D:
+    Entry::Posting:D $posting
+    --> ExpenseDeductibility:D
+)
+{
+    my ExpenseDeductibility:D $expense-deductibility = DEDUCTIBLE;
+}
+
+# end method gen-expense-deductibility }}}
+# method gen-income-type {{{
+
+# XXX: NYI
+method gen-income-type(
+    ::?CLASS:D:
+    Entry::Posting:D $posting
+    --> IncomeType:D
+)
+{
+    my IncomeType:D $income-type = MISCELLANEOUS;
+}
+
+# end method gen-income-type }}}
+# method is-account-open {{{
+
+# XXX: NYI
+method is-account-open(
+    ::?CLASS:D:
+    Entry::Posting:D $posting
+    --> Bool:D
+)
+{
+    my Bool:D $is-account-open = True;
+}
+
+# end method is-account-open }}}
+# method is-entity-open {{{
+
+# XXX: NYI
+method is-entity-open(
+    ::?CLASS:D:
+    Entry::Posting:D $posting
+    --> Bool:D
+)
+{
+    my Bool:D $is-entity-open = True;
+}
+
+# end method is-entity-open }}}
+# method is-xe-present {{{
+
+# XXX: NYI
+method is-xe-present(
+    ::?CLASS:D:
+    Entry::Posting:D $posting
+    --> Bool:D
+)
+{
+    my Bool:D $is-xe-present = True;
+}
+
+# end method is-xe-present }}}
 # method resolve-entity-base-currency {{{
 
 method resolve-entity-base-currency(
@@ -339,6 +474,7 @@ multi sub resolve-entity-base-currency(
 }
 
 # end method resolve-entity-base-currency }}}
+
 # sub gen-settings {{{
 
 multi sub gen-settings(
