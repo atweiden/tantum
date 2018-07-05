@@ -10,6 +10,7 @@ class X::Tantum::Hook::Core::Entry::Posting::AccountClosed
 {
     also is Exception;
     also does Common;
+
     method message(::?CLASS:D: --> Str:D)
     {
         my Str:D $message = 'Sorry, account is closed';
@@ -23,6 +24,7 @@ class X::Tantum::Hook::Core::Entry::Posting::EntityClosed
 {
     also is Exception;
     also does Common;
+
     method message(::?CLASS:D: --> Str:D)
     {
         my Str:D $message = 'Sorry, entity is closed';
@@ -36,6 +38,7 @@ class X::Tantum::Hook::Core::Entry::Posting::XEMissing
 {
     also is Exception;
     also does Common;
+
     method message(::?CLASS:D: --> Str:D)
     {
         my Str:D $message = 'Sorry, exchange rate is missing';
