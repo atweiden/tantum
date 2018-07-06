@@ -38,8 +38,13 @@ my role Common
 {
     has $.made is required;
 
-    proto method new(|) {*}
-    multi method new(|c) { self.bless(:made(|c)) }
+    proto method new(|)
+    {*}
+
+    multi method new(|c)
+    {
+        self.bless(:made(|c));
+    }
 }
 
 # vim: set filetype=perl6 foldmethod=marker foldlevel=0:
