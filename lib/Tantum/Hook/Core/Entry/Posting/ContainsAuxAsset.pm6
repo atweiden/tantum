@@ -35,14 +35,17 @@ multi method apply(
         Entry::Posting:D $posting,
         |
     )
+    --> Capture:D
 )
 {
     my Bool:D $contains-aux-asset = apply(|c);
+    my Capture:D $apply = \(|c, :$contains-aux-asset);
 }
 
 multi sub apply(
     Entry::Posting:D $posting where { $*config.contains-aux-asset($_).so },
     |
+    --> Bool:D
 )
 {
     my Bool:D $contains-aux-asset = True;
@@ -51,6 +54,7 @@ multi sub apply(
 multi sub apply(
     Entry::Posting:D $posting,
     |
+    --> Bool:D
 )
 {
     my Bool:D $contains-aux-asset = False;

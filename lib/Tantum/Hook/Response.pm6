@@ -1,5 +1,4 @@
 use v6;
-use Tantum::Hook;
 use Tantum::Types;
 
 my role Common
@@ -37,8 +36,10 @@ role Hook::Response[HOOK]
 
 my role Common
 {
-    # return value of Hook indexed by Hook type
-    has Hash[Any,Hook:U] @.made is required;
+    has $.made is required;
+
+    proto method new(|) {*}
+    multi method new(|c) { self.bless(:made(|c)) }
 }
 
 # vim: set filetype=perl6 foldmethod=marker foldlevel=0:

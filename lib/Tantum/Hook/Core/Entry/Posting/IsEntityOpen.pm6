@@ -36,14 +36,17 @@ multi method apply(
         Entry::Posting:D $posting,
         |
     )
+    --> Capture:D
 )
 {
     my Bool:D $is-entity-open = apply(|c);
+    my Capture:D $apply = \(|c, :$is-entity-open);
 }
 
 multi sub apply(
     Entry::Posting:D $posting where { $*config.is-entity-open($_).so },
     |
+    --> Bool:D
 )
 {
     my Bool:D $is-entity-open = True;
@@ -52,6 +55,7 @@ multi sub apply(
 multi sub apply(
     Entry::Posting:D $posting,
     |
+    --> Nil
 )
 {
     die(X::Tantum::Hook::Core::Entry::Posting::EntityClosed.new(:$posting));
