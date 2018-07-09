@@ -90,8 +90,8 @@ multi sub send-to-hooks(
     --> Hook::Response[$type]
 )
 {
-    my \applied = $hook.apply(|c);
-    my Hook::Response[$type] $response = send-to-hooks($type, @hook, applied);
+    my Capture:D $applied = $hook.apply(|c).Capture;
+    my Hook::Response[$type] $response = send-to-hooks($type, @hook, |$applied);
 }
 
 multi sub send-to-hooks(

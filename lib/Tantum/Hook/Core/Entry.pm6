@@ -1,8 +1,6 @@
 use v6;
-use Tantum::Dx::Coa;
 use Tantum::Dx::Entry::Posting;
 use Tantum::Dx::Entry;
-use Tantum::Dx::Hodl;
 use Tantum::Hook;
 use Tantum::Types;
 use TXN::Parser::ParseTree;
@@ -36,60 +34,46 @@ method priority(::?CLASS:D: --> Int:D)
 
 multi method apply(
     | (
-        Entry:D $e,
-        Coa:D $c,
-        Hodl:D $h,
-        *% (
-            Hook:U :@applied,
-            Entryʹ:D :@carry
-        )
+        Entry:D $entry,
+        Bool:D :$is-entry-balanced! where .so,
+        |
     )
     --> Entryʹ:D
 )
 {
-    my Entry::Posting:D @p = $e.posting;
-    my Entry::ID:D $id = $e.id;
-    my Entry::Header:D $header = $e.header;
-    my Entry::Posting:D @posting = apply(@p, $header);
-    my Entry $entry .= new(:$id, :$header, :@posting);
-    my Hodl:D $hodl = $*registry.send-to-hooks(HODL, [$h, $entry]);
-    my Coa:D $coa = $*registry.send-to-hooks(COA, [$c, $entry, $hodl]);
-    my Entryʹ $entryʹ .= new(:$entry, :$coa, :$hodl);
+    my Entry::ID:D $id = $entry.id;
+    my Entry::Header:D $header = $entry.header;
+    my Entry::Posting:D @posting = $entry.posting;
+    my Entry::Postingʹ:D @postingʹ = apply(@posting);
+    my Entryʹ $entryʹ .= new(:$id, :$header, :@postingʹ);
 }
 
 multi sub apply(
-    Entry::Posting:D @ (Entry::Posting:D $p, *@tail),
-    Entry::Header:D $header,
-    Entry::Posting:D :carry(@c)
-    --> Array[Entry::Posting:D]
+    Entry::Posting:D @ (Entry::Posting:D $posting, *@tail),
+    Entry::Postingʹ:D :carry(@c)
+    --> Array[Entry::Postingʹ:D]
 )
 {
-    my Entry::Posting:D @p = |@tail;
-    my Entry::Posting:D $posting =
-        $*registry.send-to-hooks(POSTING, [$p, $header]);
-    my Entry::Posting:D @carry = |@c, $posting;
-    my Entry::Posting:D @posting = apply(@p, $header, :@carry);
+    my Entry::Posting:D @posting = |@tail;
+    my Entry::Postingʹ:D $postingʹ =
+        $*registry.send-to-hooks(POSTING, $posting);
+    my Entry::Postingʹ:D @carry = |@c, $postingʹ;
+    my Entry::Postingʹ:D @postingʹ = apply(@posting, :@carry);
 }
 
 multi sub apply(
     Entry::Posting:D @,
-    Entry::Header:D $,
-    Entry::Posting:D :@carry
-    --> Array[Entry::Posting:D]
+    Entry::Postingʹ:D :@carry
+    --> Array[Entry::Postingʹ:D]
 )
 {
-    my Entry::Posting:D @posting = @carry;
+    my Entry::Postingʹ:D @postingʹ = @carry;
 }
 
 multi method is-match(
     | (
-        Entry:D $entry,
-        Coa:D $coa,
-        Hodl:D $hodl,
-        *% (
-            Hook:U :@applied! where .so,
-            Entryʹ:D :@carry
-        )
+        Entryʹ:D $entryʹ,
+        |
     )
     --> Bool:D
 )
@@ -101,17 +85,22 @@ multi method is-match(
 multi method is-match(
     | (
         Entry:D $entry,
-        Coa:D $coa,
-        Hodl:D $hodl,
-        *% (
-            Hook:U :@applied,
-            Entryʹ:D :@carry
-        )
+        Bool:D :$is-entry-balanced! where .so,
+        |
     )
     --> Bool:D
 )
 {
     my Bool:D $is-match = True;
+}
+
+multi method is-match(
+    |
+    --> Bool:D
+)
+{
+    # don't match by default
+    my Bool:D $is-match = False;
 }
 
 # vim: set filetype=perl6 foldmethod=marker foldlevel=0:
