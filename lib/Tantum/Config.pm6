@@ -294,8 +294,8 @@ method contains-aux-asset(
     my VarName:D $entity-name = $posting.account.entity;
     my AssetCode:D $entity-base-currency =
         self.resolve-entity-base-currency($entity-name);
-    my AssetCode:D $currency = $posting.amount.asset-code;
-    my Bool:D $contains-aux-asset = $entity-base-currency eqv $currency;
+    my AssetCode:D $asset-code = $posting.amount.asset-code;
+    my Bool:D $contains-aux-asset = not($entity-base-currency eqv $asset-code);
 }
 
 # end method contains-aux-asset }}}
