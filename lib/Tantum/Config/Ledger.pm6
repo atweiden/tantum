@@ -126,10 +126,15 @@ class Config::Ledger::FromFile
     also is Config::Ledger;
     also does ToHash;
 
-    has VarNameBare:D $.code is required;
-    has AbsolutePath:D $.file is required;
-    has Int $.date-local-offset;
-    has AbsolutePath $.include-lib;
+    has VarNameBare:D $!code is required;
+    has AbsolutePath:D $!file is required;
+    has Int $!date-local-offset;
+    has AbsolutePath $!include-lib;
+
+    method code(::?CLASS:D: --> VarNameBare:D) { $!code }
+    method date-local-offset(::?CLASS:D: --> Int) { $!date-local-offset }
+    method file(::?CLASS:D: --> AbsolutePath:D) { $!file }
+    method include-lib(::?CLASS:D: --> AbsolutePath) { $!include-lib }
 
     submethod BUILD(
         Str:D :$code! where .so,
@@ -210,9 +215,13 @@ class Config::Ledger::FromPkg
     also is Config::Ledger;
     also does ToHash;
 
-    has VarNameBare:D $.pkgname is required;
-    has Version:D $.pkgver is required;
-    has UInt:D $.pkgrel = 1;
+    has VarNameBare:D $!pkgname is required;
+    has Version:D $!pkgver is required;
+    has UInt:D $!pkgrel = 1;
+
+    method pkgname(::?CLASS:D: --> VarNameBare:D) { $!pkgname }
+    method pkgrel(::?CLASS:D: --> UInt:D) { $!pkgrel }
+    method pkgver(::?CLASS:D: --> Version:D) { $!pkgver }
 
     submethod BUILD(
         Str:D :$pkgname! where .so,
@@ -242,10 +251,10 @@ class Config::Ledger::FromPkg
         made('extract', $pkg-dir, $build-root, $.pkgname, $.pkgver, $.pkgrel);
         my Str:D $txn-json = made('slurp', 'txn.json', $build-root);
         my Str:D $txn-info-json = made('slurp', '.TXNINFO', $build-root);
-        my Entry:D @entry = remarshal($txn-json, :if<json>, :of<entry>);
+        my Ledger:D $ledger = remarshal($txn-json, :if<json>, :of<ledger>);
         my %txn-info{Str:D} = Rakudo::Internals::JSON.from-json($txn-info-json);
         made('clean', $build-root);
-        my %made = :@entry, :%txn-info;
+        my %made = :$ledger, :%txn-info;
     }
 
     multi sub made(

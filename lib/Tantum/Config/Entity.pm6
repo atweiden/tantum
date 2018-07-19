@@ -9,14 +9,27 @@ unit class Config::Entity;
 
 # class attributes {{{
 
-has VarNameBare:D $.code is required;
-has Config::Account @.account;
-has Config::Asset @.asset;
-has Costing $.base-costing;
-has AssetCode $.base-currency;
-has Date $.fiscal-year-end;
-has VarName $.name;
-has Range $.open;
+has VarNameBare:D $!code is required;
+has Config::Account @!account;
+has Config::Asset @!asset;
+has Costing $!base-costing;
+has AssetCode $!base-currency;
+has Date $!fiscal-year-end;
+has VarName $!name;
+has Range $!open;
+
+# --- accessor {{{
+
+method account(::?CLASS:D: --> Array[Config::Account]) { @!account }
+method asset(::?CLASS:D: --> Array[Config::Asset]) { @!asset }
+method base-costing(::?CLASS:D: --> Costing) { $!base-costing }
+method base-currency(::?CLASS:D: --> AssetCode) { $!base-currency }
+method code(::?CLASS:D: --> VarNameBare:D) { $!code }
+method fiscal-year-end(::?CLASS:D: --> Date) { $!fiscal-year-end }
+method name(::?CLASS:D: --> VarName) { $!name }
+method open(::?CLASS:D: --> Range) { $!open }
+
+# --- end accessor }}}
 
 # end class attributes }}}
 

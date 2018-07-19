@@ -7,8 +7,19 @@ unit class Tantum;
 constant $PROGRAM = 'Tantum';
 constant $VERSION = v0.1.0;
 
-has Config:D $.config is required;
-has Registry:D $.registry is required;
+# class attributes {{{
+
+has Config:D $!config is required;
+has Registry:D $!registry is required;
+
+# --- accessor {{{
+
+method config(::?CLASS:D: --> Config:D) { $!config }
+method registry(::?CLASS:D: --> Registry:D) { $!registry }
+
+# --- end accessor }}}
+
+# end class attributes }}}
 
 # submethod BUILD {{{
 

@@ -6,10 +6,19 @@ unit class Config::Account;
 
 # class attributes {{{
 
-has Silo:D $.silo is required;
-has VarName:D $.entity is required;
-has VarName:D @.path is required;
-has Range $.open;
+has Silo:D $!silo is required;
+has VarName:D $!entity is required;
+has VarName:D @!path is required;
+has Range $!open;
+
+# --- accessor {{{
+
+method silo(::?CLASS:D: --> Silo:D) { $!silo }
+method entity(::?CLASS:D: --> VarName:D) { $!entity }
+method path(::?CLASS:D: --> Array[VarName:D]) { @!path }
+method open(::?CLASS:D: --> Range) { $!open }
+
+# --- end accessor }}}
 
 # end class attributes }}}
 

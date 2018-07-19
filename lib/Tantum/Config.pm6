@@ -17,31 +17,31 @@ unit class Config;
 
 # --- scene {{{
 
-has Config::Ledger:D @.ledger is required;
+has Config::Ledger:D @!ledger is required;
 
 my Costing:D $default-base-costing = FIFO;
-has Costing:D $.base-costing = $default-base-costing;
+has Costing:D $!base-costing = $default-base-costing;
 
 my AssetCode:D $default-base-currency = 'USD';
-has AssetCode:D $.base-currency = $default-base-currency;
+has AssetCode:D $!base-currency = $default-base-currency;
 
 my Str:D $now-year-end = sprintf(Q{%s-12-31}, now.Date.year);
 my Date:D $default-fiscal-year-end = Date.new($now-year-end);
-has Date:D $.fiscal-year-end = $default-fiscal-year-end;
+has Date:D $!fiscal-year-end = $default-fiscal-year-end;
 
-has Config::Account:D @.account;
-has Config::Asset:D @.asset;
-has Config::Entity:D @.entity;
+has Config::Account:D @!account;
+has Config::Asset:D @!asset;
+has Config::Entity:D @!entity;
 
 # --- end scene }}}
 # --- setup {{{
 
 # application settings
-has AbsolutePath:D $.app-dir is required;
-has AbsolutePath:D $.app-file is required;
-has AbsolutePath:D $.log-dir is required;
-has AbsolutePath:D $.pkg-dir is required;
-has AbsolutePath:D $.price-dir is required;
+has AbsolutePath:D $!app-dir is required;
+has AbsolutePath:D $!app-file is required;
+has AbsolutePath:D $!log-dir is required;
+has AbsolutePath:D $!pkg-dir is required;
+has AbsolutePath:D $!price-dir is required;
 my AbsolutePath:D $default-app-dir =
     sprintf(Q{%s/.config/tantum}, $*HOME);
 my AbsolutePath:D $default-log-dir =
@@ -54,14 +54,32 @@ my AbsolutePath:D $default-app-file =
     sprintf(Q{%s/tantum.toml}, $default-app-dir);
 
 # scene settings
-has AbsolutePath:D $.scene-dir is required;
-has AbsolutePath:D $.scene-file is required;
+has AbsolutePath:D $!scene-dir is required;
+has AbsolutePath:D $!scene-file is required;
 my AbsolutePath:D $default-scene-dir =
     sprintf(Q{%s/.tantum}, $*CWD);
 my AbsolutePath:D $default-scene-file =
     sprintf(Q{%s/scene.toml}, $default-scene-dir);
 
 # --- end setup }}}
+# --- accessor {{{
+
+method account(::?CLASS:D: --> Array[Config::Account:D]) { @!account }
+method app-dir(::?CLASS:D: --> AbsolutePath:D) { $!app-dir }
+method app-file(::?CLASS:D: --> AbsolutePath:D) { $!app-file }
+method asset(::?CLASS:D: --> Array[Config::Asset:D]) { @!asset }
+method base-costing(::?CLASS:D: --> Costing:D) { $!base-costing }
+method base-currency(::?CLASS:D: --> AssetCode:D) { $!base-currency }
+method entity(::?CLASS:D: --> Array[Config::Entity:D]) { @!entity }
+method fiscal-year-end(::?CLASS:D: --> Date:D) { $!fiscal-year-end }
+method ledger(::?CLASS:D: --> Array[Config::Ledger:D]) { @!ledger }
+method log-dir(::?CLASS:D: --> AbsolutePath:D) { $!log-dir }
+method pkg-dir(::?CLASS:D: --> AbsolutePath:D) { $!pkg-dir }
+method price-dir(::?CLASS:D: --> AbsolutePath:D) { $!price-dir }
+method scene-dir(::?CLASS:D: --> AbsolutePath:D) { $!scene-dir }
+method scene-file(::?CLASS:D: --> AbsolutePath:D) { $!scene-file }
+
+# --- end accessor }}}
 
 # end class attributes }}}
 

@@ -11,10 +11,19 @@ unit class Config::Asset;
 
 # class attributes {{{
 
-has AssetCode:D $.code is required;
-has Costing $.costing;
-has VarName $.name;
-has Hash[Price:D,Date:D] %.price{AssetCode:D};
+has AssetCode:D $!code is required;
+has Costing $!costing;
+has VarName $!name;
+has Hash[Price:D,Date:D] %!price{AssetCode:D};
+
+# --- accessor {{{
+
+method code(::?CLASS:D: --> AssetCode:D) { $!code }
+method costing(::?CLASS:D: --> Costing) { $!costing }
+method name(::?CLASS:D: --> VarName) { $!name }
+method price(::?CLASS:D: --> Hash[Hash[Price:D,Date:D],AssetCode:D]) { %!price }
+
+# --- end accessor }}}
 
 # end class attributes }}}
 
