@@ -131,10 +131,14 @@ class Config::Ledger::FromFile
     has Int $!date-local-offset;
     has AbsolutePath $!include-lib;
 
-    method code(::?CLASS:D: --> VarNameBare:D) { $!code }
-    method date-local-offset(::?CLASS:D: --> Int) { $!date-local-offset }
-    method file(::?CLASS:D: --> AbsolutePath:D) { $!file }
-    method include-lib(::?CLASS:D: --> AbsolutePath) { $!include-lib }
+    # --- accessor {{{
+
+    method code(::?CLASS:D:) { $!code }
+    method date-local-offset(::?CLASS:D:) { $!date-local-offset }
+    method file(::?CLASS:D:) { $!file }
+    method include-lib(::?CLASS:D:) { $!include-lib }
+
+    # --- end accessor }}}
 
     submethod BUILD(
         Str:D :$code! where .so,
@@ -219,9 +223,13 @@ class Config::Ledger::FromPkg
     has Version:D $!pkgver is required;
     has UInt:D $!pkgrel = 1;
 
-    method pkgname(::?CLASS:D: --> VarNameBare:D) { $!pkgname }
-    method pkgrel(::?CLASS:D: --> UInt:D) { $!pkgrel }
-    method pkgver(::?CLASS:D: --> Version:D) { $!pkgver }
+    # --- accessor {{{
+
+    method pkgname(::?CLASS:D:) { $!pkgname }
+    method pkgrel(::?CLASS:D:) { $!pkgrel }
+    method pkgver(::?CLASS:D:) { $!pkgver }
+
+    # --- end accessor }}}
 
     submethod BUILD(
         Str:D :$pkgname! where .so,

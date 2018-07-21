@@ -13,10 +13,10 @@ has Range $!open;
 
 # --- accessor {{{
 
-method silo(::?CLASS:D: --> Silo:D) { $!silo }
-method entity(::?CLASS:D: --> VarName:D) { $!entity }
-method path(::?CLASS:D: --> Array[VarName:D]) { @!path }
-method open(::?CLASS:D: --> Range) { $!open }
+method silo(::?CLASS:D:) { $!silo }
+method entity(::?CLASS:D:) { $!entity }
+method path(::?CLASS:D:) { @!path }
+method open(::?CLASS:D:) { $!open }
 
 # --- end accessor }}}
 

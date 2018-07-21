@@ -18,10 +18,10 @@ has Hash[Price:D,Date:D] %!price{AssetCode:D};
 
 # --- accessor {{{
 
-method code(::?CLASS:D: --> AssetCode:D) { $!code }
-method costing(::?CLASS:D: --> Costing) { $!costing }
-method name(::?CLASS:D: --> VarName) { $!name }
-method price(::?CLASS:D: --> Hash[Hash[Price:D,Date:D],AssetCode:D]) { %!price }
+method code(::?CLASS:D:) { $!code }
+method costing(::?CLASS:D:) { $!costing }
+method name(::?CLASS:D:) { $!name }
+method price(::?CLASS:D:) { %!price }
 
 # --- end accessor }}}
 

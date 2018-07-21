@@ -64,20 +64,20 @@ my AbsolutePath:D $default-scene-file =
 # --- end setup }}}
 # --- accessor {{{
 
-method account(::?CLASS:D: --> Array[Config::Account:D]) { @!account }
-method app-dir(::?CLASS:D: --> AbsolutePath:D) { $!app-dir }
-method app-file(::?CLASS:D: --> AbsolutePath:D) { $!app-file }
-method asset(::?CLASS:D: --> Array[Config::Asset:D]) { @!asset }
-method base-costing(::?CLASS:D: --> Costing:D) { $!base-costing }
-method base-currency(::?CLASS:D: --> AssetCode:D) { $!base-currency }
-method entity(::?CLASS:D: --> Array[Config::Entity:D]) { @!entity }
-method fiscal-year-end(::?CLASS:D: --> Date:D) { $!fiscal-year-end }
-method ledger(::?CLASS:D: --> Array[Config::Ledger:D]) { @!ledger }
-method log-dir(::?CLASS:D: --> AbsolutePath:D) { $!log-dir }
-method pkg-dir(::?CLASS:D: --> AbsolutePath:D) { $!pkg-dir }
-method price-dir(::?CLASS:D: --> AbsolutePath:D) { $!price-dir }
-method scene-dir(::?CLASS:D: --> AbsolutePath:D) { $!scene-dir }
-method scene-file(::?CLASS:D: --> AbsolutePath:D) { $!scene-file }
+method account(::?CLASS:D:) { @!account }
+method app-dir(::?CLASS:D:) { $!app-dir }
+method app-file(::?CLASS:D:) { $!app-file }
+method asset(::?CLASS:D:) { @!asset }
+method base-costing(::?CLASS:D:) { $!base-costing }
+method base-currency(::?CLASS:D:) { $!base-currency }
+method entity(::?CLASS:D:) { @!entity }
+method fiscal-year-end(::?CLASS:D:) { $!fiscal-year-end }
+method ledger(::?CLASS:D:) { @!ledger }
+method log-dir(::?CLASS:D:) { $!log-dir }
+method pkg-dir(::?CLASS:D:) { $!pkg-dir }
+method price-dir(::?CLASS:D:) { $!price-dir }
+method scene-dir(::?CLASS:D:) { $!scene-dir }
+method scene-file(::?CLASS:D:) { $!scene-file }
 
 # --- end accessor }}}
 

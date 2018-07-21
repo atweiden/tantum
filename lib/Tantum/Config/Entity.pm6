@@ -20,14 +20,14 @@ has Range $!open;
 
 # --- accessor {{{
 
-method account(::?CLASS:D: --> Array[Config::Account]) { @!account }
-method asset(::?CLASS:D: --> Array[Config::Asset]) { @!asset }
-method base-costing(::?CLASS:D: --> Costing) { $!base-costing }
-method base-currency(::?CLASS:D: --> AssetCode) { $!base-currency }
-method code(::?CLASS:D: --> VarNameBare:D) { $!code }
-method fiscal-year-end(::?CLASS:D: --> Date) { $!fiscal-year-end }
-method name(::?CLASS:D: --> VarName) { $!name }
-method open(::?CLASS:D: --> Range) { $!open }
+method account(::?CLASS:D:) { @!account }
+method asset(::?CLASS:D:) { @!asset }
+method base-costing(::?CLASS:D:) { $!base-costing }
+method base-currency(::?CLASS:D:) { $!base-currency }
+method code(::?CLASS:D:) { $!code }
+method fiscal-year-end(::?CLASS:D:) { $!fiscal-year-end }
+method name(::?CLASS:D:) { $!name }
+method open(::?CLASS:D:) { $!open }
 
 # --- end accessor }}}
 

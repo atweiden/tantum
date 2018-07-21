@@ -14,8 +14,8 @@ has Registry:D $!registry is required;
 
 # --- accessor {{{
 
-method config(::?CLASS:D: --> Config:D) { $!config }
-method registry(::?CLASS:D: --> Registry:D) { $!registry }
+method config(::?CLASS:D:) { $!config }
+method registry(::?CLASS:D:) { $!registry }
 
 # --- end accessor }}}
 
