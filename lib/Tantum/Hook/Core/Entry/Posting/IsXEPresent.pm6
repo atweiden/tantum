@@ -37,7 +37,6 @@ multi method apply(
         Entry::Posting:D $posting,
         |
     )
-    --> Capture:D
 )
 {
     my Bool:D $is-xe-present = apply(|c);

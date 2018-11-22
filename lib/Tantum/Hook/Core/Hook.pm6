@@ -34,7 +34,6 @@ multi method apply(
         @arg ('enter', Str:D $, Str:D $, Capture:D $),
         *% (Hook:U :@applied)
     )
-    --> Nil
 )
 {
     my Str:D $apply = apply(@arg);
@@ -46,7 +45,6 @@ multi method apply(
         @arg ('leave', Str:D $, Str:D $, Capture:D $),
         *% (Hook:U :@applied)
     )
-    --> Nil
 )
 {
     my Str:D $apply = apply(@arg);

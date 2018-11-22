@@ -40,7 +40,6 @@ multi method apply(
             Hodl:D :@carry
         )
     )
-    --> Hodl:D
 )
 {
     my Hodl:D $hodl = apply($h, $entry);

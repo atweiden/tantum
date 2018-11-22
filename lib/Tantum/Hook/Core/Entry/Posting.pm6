@@ -42,7 +42,6 @@ multi method apply(
             |
         )
     )
-    --> Entry::Postingʹ:D
 )
 {
     my Entry::Postingʹ:D $postingʹ = apply(|c);

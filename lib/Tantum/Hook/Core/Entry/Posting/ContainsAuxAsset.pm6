@@ -35,7 +35,6 @@ multi method apply(
         Entry::Posting:D $posting,
         |
     )
-    --> Capture:D
 )
 {
     my Bool:D $contains-aux-asset = apply(|c);

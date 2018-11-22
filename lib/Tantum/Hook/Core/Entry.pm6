@@ -38,7 +38,6 @@ multi method apply(
         Bool:D :$is-entry-balanced! where .so,
         |
     )
-    --> Entryʹ:D
 )
 {
     my Entry::ID:D $id = $entry.id;

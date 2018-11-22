@@ -36,7 +36,6 @@ multi method apply(
         Hodl:D $hodl,
         |
     )
-    --> Capture:D
 )
 {
     my Capture:D $capture = apply(|c);

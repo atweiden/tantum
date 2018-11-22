@@ -42,7 +42,6 @@ multi method apply(
             Coa:D :@carry
         )
     )
-    --> Coa:D
 )
 {
     # clone new C<Coa> from old

@@ -36,7 +36,6 @@ multi method apply(
         Entry::Posting:D $posting,
         |
     )
-    --> Capture:D
 )
 {
     my Bool:D $is-entity-open = apply(|c);

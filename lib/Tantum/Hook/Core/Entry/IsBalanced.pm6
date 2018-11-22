@@ -35,7 +35,6 @@ multi method apply(
         Entry:D $entry,
         |
     )
-    --> Capture:D
 )
 {
     my Bool:D $is-entry-balanced = apply(|c);

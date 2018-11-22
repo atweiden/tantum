@@ -45,7 +45,6 @@ multi method apply(
             Ledgerʹ:D :@carry
         )
     )
-    --> Ledgerʹ:D
 )
 {
     my Entry:D @e = $ledger.entry;
