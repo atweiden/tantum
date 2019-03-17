@@ -327,7 +327,7 @@ class Config::Ledger::FromPkg
     )
     {
         # clean up build root
-        dir($build-root).hyper.map({ .unlink });
+        dir($build-root).map({ .unlink });
         rmdir($build-root);
     }
 }

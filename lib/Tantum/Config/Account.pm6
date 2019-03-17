@@ -35,7 +35,7 @@ submethod BUILD(
     $!silo = Config::Utils.gen-silo($silo);
     $!entity = Config::Utils.gen-var-name($entity);
     @!path =
-        @path.hyper.map(-> $path {
+        @path.map(-> $path {
             Config::Utils.gen-var-name($path)
         });
     $!open = Config::Utils.gen-date-range($open) if $open;

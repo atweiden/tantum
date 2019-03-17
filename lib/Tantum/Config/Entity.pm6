@@ -101,8 +101,8 @@ method hash(::?CLASS:D: --> Hash:D)
 {
     my %hash;
     %hash<code> = $.code;
-    %hash<account> = @.account.hyper.map({ .hash }).Array if @.account;
-    %hash<asset> = @.asset.hyper.map({ .hash }).Array if @.asset;
+    %hash<account> = @.account.map({ .hash }).Array if @.account;
+    %hash<asset> = @.asset.map({ .hash }).Array if @.asset;
     %hash<base-costing> = $.base-costing if $.base-costing;
     %hash<base-currency> = $.base-currency if $.base-currency;
     %hash<fiscal-year-end> = $.fiscal-year-end if $.fiscal-year-end;
@@ -120,7 +120,7 @@ multi sub gen-settings(
 )
 {
     my Config::Account:D @a =
-        @account.hyper.map(-> %toml {
+        @account.map(-> %toml {
             Config::Account.new(|%toml)
         });
 }
@@ -132,7 +132,7 @@ multi sub gen-settings(
 )
 {
     my Config::Asset:D @a =
-        @asset.hyper.map(-> %toml {
+        @asset.map(-> %toml {
             Config::Asset.new(|%toml, :$scene-file)
         });
 }

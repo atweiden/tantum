@@ -228,13 +228,13 @@ multi submethod BUILD(
     %scene-file-content<fiscal-year-end> =
         $fiscal-year-end // $default-fiscal-year-end;
     %scene-file-content<account> =
-        @account.hyper.map({ .hash }).Array if @account;
+        @account.map({ .hash }).Array if @account;
     %scene-file-content<asset> =
-        @asset.hyper.map({ .hash }).Array if @asset;
+        @asset.map({ .hash }).Array if @asset;
     %scene-file-content<entity> =
-        @entity.hyper.map({ .hash }).Array if @entity;
+        @entity.map({ .hash }).Array if @entity;
     %scene-file-content<ledger> =
-        @ledger.hyper.map({ .hash }).Array if @ledger;
+        @ledger.map({ .hash }).Array if @ledger;
     my Str:D $scene-file-content = to-toml(%scene-file-content);
     prepare-config-file($!scene-file, $scene-file-content);
 }
@@ -501,7 +501,7 @@ multi sub gen-settings(
 )
 {
     my Config::Account:D @a =
-        @account.hyper.map(-> %toml {
+        @account.map(-> %toml {
             Config::Account.new(|%toml)
         });
 }
@@ -513,7 +513,7 @@ multi sub gen-settings(
 )
 {
     my Config::Asset:D @a =
-        @asset.hyper.map(-> %toml {
+        @asset.map(-> %toml {
             Config::Asset.new(|%toml, :$scene-file)
         });
 }
@@ -525,7 +525,7 @@ multi sub gen-settings(
 )
 {
     my Config::Entity:D @a =
-        @entity.hyper.map(-> %toml {
+        @entity.map(-> %toml {
             Config::Entity.new(|%toml, :$scene-file)
         });
 }
@@ -538,7 +538,7 @@ multi sub gen-settings(
 )
 {
     my Config::Ledger:D @a =
-        @ledger.hyper.map(-> %toml {
+        @ledger.map(-> %toml {
             Config::Ledger.new(|%toml, :$scene-file)
         });
 }

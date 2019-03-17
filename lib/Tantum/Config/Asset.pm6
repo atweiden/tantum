@@ -92,7 +92,7 @@ sub gen-price-sheet(
 )
 {
     my Hash[Price:D,Date:D] %price-sheet{AssetCode:D} =
-        %price.kv.hyper.map(-> $asset-code, %asset-code-keypairs {
+        %price.kv.map(-> $asset-code, %asset-code-keypairs {
             my Price:D %dates-and-prices{Date:D} =
                 gen-dates-and-prices(%asset-code-keypairs);
             my Price:D %dates-and-prices-from-file{Date:D} =
@@ -120,7 +120,6 @@ sub gen-dates-and-prices(
 {
     my Price:D %dates-and-prices{Date:D} =
         %asset-code-keypairs
-            .hyper
             .grep({ TXN::Parser::Grammar.parse(.key, :rule<date:full-date>) })
             .map({
                 Rat(.value) ~~ Price

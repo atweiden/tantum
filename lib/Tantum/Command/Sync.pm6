@@ -80,7 +80,7 @@ multi sub sync(
 )
 {
     my List:D $sync =
-        @ledger.hyper.map(-> Config::Ledger:D $ledger {
+        @ledger.map(-> Config::Ledger:D $ledger {
             sync(:$ledger, |%opts)
         }).List;
 }
@@ -137,7 +137,7 @@ sub grep-ledger-for-request(
 )
 {
     my Config::Ledger:D @grep-ledger-for-request =
-        @ledger.hyper.grep(-> Config::Ledger:D $ledger {
+        @ledger.grep(-> Config::Ledger:D $ledger {
             is-ledger-for-request($ledger, @request)
         });
 }

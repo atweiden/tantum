@@ -8,11 +8,11 @@ has Account:D %.subaccount{VarName:D};
 method clone(::?CLASS:D: --> Account:D)
 {
     my Array[Rat:D] %balance{AssetCode:D} =
-        %.balance.kv.hyper.map(-> AssetCode:D $asset-code, Rat:D @delta {
+        %.balance.kv.map(-> AssetCode:D $asset-code, Rat:D @delta {
             $asset-code => @delta.clone
         });
     my Account:D %subaccount{VarName:D} =
-        %.subaccount.kv.hyper.map(->
+        %.subaccount.kv.map(->
             VarName:D $subaccount-name, Account:D $account {
                 $subaccount-name => $account.clone
         });

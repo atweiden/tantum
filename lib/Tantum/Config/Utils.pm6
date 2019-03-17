@@ -35,7 +35,7 @@ method gen-date(Str:D $d where .so --> Date:D)
 
 multi method gen-date-range(Str:D $s where .so --> Range:D)
 {
-    my Str:D ($d1, $d2) = $s.split('..').hyper.map({ .trim });
+    my Str:D ($d1, $d2) = $s.split('..').map({ .trim });
     my Range:D $date-range = gen-date-range($d1, $d2);
 }
 
