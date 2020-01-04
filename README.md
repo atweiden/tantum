@@ -7,7 +7,7 @@ Double-entry accounting system
 
 ### Dependencies
 
-- Rakudo Perl 6
+- Raku
 - [Config::TOML](https://github.com/atweiden/config-toml)
 - [File::Path::Resolve](https://github.com/atweiden/file-path-resolve)
 - [File::Presence](https://github.com/atweiden/file-presence)

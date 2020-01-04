@@ -183,4 +183,4 @@ multi sub gen-dates-and-prices-from-file(
 
 # end sub gen-price-sheet }}}
 
-# vim: set filetype=perl6 foldmethod=marker foldlevel=0:
+# vim: set filetype=raku foldmethod=marker foldlevel=0:

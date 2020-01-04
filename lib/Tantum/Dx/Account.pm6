@@ -29,4 +29,4 @@ method mksubaccount(::?CLASS:D: VarName:D $subaccount-name --> Nil)
     %!subaccount{$subaccount-name} = Account.new;
 }
 
-# vim: set filetype=perl6 foldmethod=marker foldlevel=0:
+# vim: set filetype=raku foldmethod=marker foldlevel=0:

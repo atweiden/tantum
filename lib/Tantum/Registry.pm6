@@ -107,4 +107,4 @@ multi sub send-to-hooks(
 
 # end method send-to-hooks }}}
 
-# vim: set filetype=perl6 foldmethod=marker foldlevel=0:
+# vim: set filetype=raku foldmethod=marker foldlevel=0:

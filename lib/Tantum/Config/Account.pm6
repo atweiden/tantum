@@ -80,4 +80,4 @@ method hash(::?CLASS:D: --> Hash:D)
 
 # end method hash }}}
 
-# vim: set filetype=perl6 foldmethod=marker foldlevel=0:
+# vim: set filetype=raku foldmethod=marker foldlevel=0:

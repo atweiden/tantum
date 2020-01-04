@@ -43,4 +43,4 @@ multi sub setup(
         Config::Ledger.new(:$code, :$file, :$scene-file);
 }
 
-# vim: set filetype=perl6 foldmethod=marker foldlevel=0:
+# vim: set filetype=raku foldmethod=marker foldlevel=0:

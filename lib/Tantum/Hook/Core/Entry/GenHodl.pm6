@@ -98,4 +98,4 @@ multi method is-match(
     my Bool:D $is-match = False;
 }
 
-# vim: set filetype=perl6 foldmethod=marker foldlevel=0:
+# vim: set filetype=raku foldmethod=marker foldlevel=0:

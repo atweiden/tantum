@@ -25,4 +25,4 @@ multi sub ls-entries(Entry:D @e, Bool :sort($) --> Array[Entry:D])
 
 # end method ls-entries }}}
 
-# vim: set filetype=perl6 foldmethod=marker foldlevel=0:
+# vim: set filetype=raku foldmethod=marker foldlevel=0:

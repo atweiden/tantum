@@ -251,4 +251,4 @@ my role Common[HookType:D $type]
     # end method perl }}}
 }
 
-# vim: set filetype=perl6 foldmethod=marker foldlevel=0:
+# vim: set filetype=raku foldmethod=marker foldlevel=0:

@@ -24,4 +24,4 @@ my role Common
     has Entry:D $.entry is required;
 }
 
-# vim: set filetype=perl6 foldmethod=marker foldlevel=0:
+# vim: set filetype=raku foldmethod=marker foldlevel=0:

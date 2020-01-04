@@ -32,4 +32,4 @@ has Entry::ID:D $.id is required;
 has Entry::Header:D $.header is required;
 has Entry::Postingʹ:D @.postingʹ is required;
 
-# vim: set filetype=perl6 foldmethod=marker foldlevel=0:
+# vim: set filetype=raku foldmethod=marker foldlevel=0:
